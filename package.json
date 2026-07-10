@@ -15,7 +15,7 @@
     "db:reset": "npm run migrate:local && npm run seed",
     "type-check": "tsc --noEmit && tsc --noEmit -p workers/tsconfig.json",
     "deploy:worker": "wrangler deploy",
-    "deploy:web": "wrangler pages deploy dist --project-name alphaminds-commons",
+    "deploy:web": "wrangler pages deploy .output/public --project-name alphaminds-commons",
     "tail": "wrangler tail",
     "test": "vitest run",
     "test:watch": "vitest",
