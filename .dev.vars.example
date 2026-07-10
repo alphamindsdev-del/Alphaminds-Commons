@@ -1,0 +1,6 @@
+JWT_SESSION_SECRET=change-this-to-a-random-32-char-min-string
+RESEND_API_KEY=re_your_key_here
+WEB_PUSH_VAPID_PRIVATE=your_vapid_private_key_here
+WEB_PUSH_VAPID_PUBLIC=your_vapid_public_key_here
+ADMIN_ALERT_EMAIL=admin@alphaminds.com
+ENVIRONMENT=development

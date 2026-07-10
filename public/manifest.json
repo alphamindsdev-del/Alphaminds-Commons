@@ -1,0 +1,14 @@
+{
+  "name": "AlphaMinds Commons",
+  "short_name": "AlphaMinds",
+  "description": "A digital community for human flourishing, organized around the Five Houses.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#28555e",
+  "background_color": "#0F1923",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "192x192", "type": "image/svg+xml" },
+    { "src": "/favicon.svg", "sizes": "512x512", "type": "image/svg+xml" }
+  ]
+}

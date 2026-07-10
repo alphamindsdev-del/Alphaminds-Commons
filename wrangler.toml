@@ -1,0 +1,97 @@
+# Wrangler Configuration for AlphaMinds API Worker
+
+name = "alphaminds-api"
+main = "workers/api/src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "development"
+
+# Secrets (Set locally via .dev.vars, in production via wrangler secret put):
+# JWT_SESSION_SECRET
+# RESEND_API_KEY
+# WEB_PUSH_VAPID_PRIVATE
+# WEB_PUSH_VAPID_PUBLIC
+# ADMIN_ALERT_EMAIL
+
+# D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "alphaminds-commons"
+database_id = "3416d527-f0af-4f91-a4b6-9e0fae5549bf"
+preview_database_id = "3416d527-f0af-4f91-a4b6-9e0fae5549bf"
+
+# KV Namespace Bindings
+[[kv_namespaces]]
+binding = "ALPHAMINDS_SESSIONS"
+id = "09f205ab1a0648439e62ef97b0ec0585"
+preview_id = "09f205ab1a0648439e62ef97b0ec0585"
+
+[[kv_namespaces]]
+binding = "ALPHAMINDS_SUBSCRIPTION_CACHE"
+id = "7bda6ec612ac428ea319188cd1356959"
+preview_id = "7bda6ec612ac428ea319188cd1356959"
+
+[[kv_namespaces]]
+binding = "ALPHAMINDS_DAILY_DELIVERY"
+id = "53d7aa9fb8b341a08d05f22673ab05ba"
+preview_id = "53d7aa9fb8b341a08d05f22673ab05ba"
+
+[[kv_namespaces]]
+binding = "ALPHAMINDS_RATE_LIMITS"
+id = "9fc5052df38f4e5abeceb270f1c0ad20"
+preview_id = "9fc5052df38f4e5abeceb270f1c0ad20"
+
+[[kv_namespaces]]
+binding = "ALPHAMINDS_CONTENT_SCHEDULE_CACHE"
+id = "5a7627c9362c4c70bf386cd9d381a3a0"
+preview_id = "5a7627c9362c4c70bf386cd9d381a3a0"
+
+[[kv_namespaces]]
+binding = "ALPHAMINDS_CHAPTER_CONFIG"
+id = "278855df10364c3b96a4ca26b992ca6e"
+preview_id = "278855df10364c3b96a4ca26b992ca6e"
+
+# R2 Bucket Bindings
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "alphaminds-media"
+preview_bucket_name = "alphaminds-media-preview"
+
+[[r2_buckets]]
+binding = "BACKUP_BUCKET"
+bucket_name = "alphaminds-backups"
+preview_bucket_name = "alphaminds-backups-preview"
+
+# Cron Triggers (Scheduled Jobs)
+[triggers]
+crons = [
+  "0 5 * * *",   # Daily content delivery
+  "0 0 * * 1",   # Weekly challenge reset
+  "30 0 * * *",  # Streak audit
+  "0 1 * * *",   # Leaderboard recalculation
+  "0 2 * * 1",   # Impact score recalculation
+  "0 3 * * 0",   # Weekly summary email
+  "0 4 * * *",   # D1 backup export
+]
+
+# --- Environments ---
+
+[env.staging]
+name = "alphaminds-api-staging"
+[env.staging.vars]
+ENVIRONMENT = "staging"
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "alphaminds-commons-staging"
+database_id = "PLACEHOLDER_STAGING_DB_ID"
+
+[env.production]
+name = "alphaminds-api-production"
+[env.production.vars]
+ENVIRONMENT = "production"
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "alphaminds-commons-production"
+database_id = "PLACEHOLDER_PRODUCTION_DB_ID"

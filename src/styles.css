@@ -1,0 +1,161 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 28px;
+  --font-sans: "Satoshi", system-ui, sans-serif;
+  --font-display: "Satoshi", system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-subtle: var(--subtle);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+
+  --color-becoming: #6366F1;
+  --color-connection: #EC4899;
+  --color-wellness: #10B981;
+  --color-play: #F59E0B;
+  --color-humanity: #EF4444;
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: #F8FAFB;
+  --surface: #FFFFFF;
+  --subtle: #F0F4F5;
+  --foreground: #0F2327;
+  --text-primary: #0F2327;
+  --text-secondary: #4A6B70;
+  --card: #FFFFFF;
+  --card-foreground: #0F2327;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F2327;
+  --primary: #28555e;
+  --primary-foreground: #FFFFFF;
+  --primary-dark: #1e3f47;
+  --primary-light: #3a7a8a;
+  --accent: #4ECDC4;
+  --accent-foreground: #0F2327;
+  --secondary: #F0F4F5;
+  --secondary-foreground: #0F2327;
+  --muted: #F0F4F5;
+  --muted-foreground: #4A6B70;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #E2EAEB;
+  --input: #E2EAEB;
+  --ring: #28555e;
+}
+
+.dark {
+  --background: #0F1923;
+  --surface: #162531;
+  --subtle: #1E3040;
+  --foreground: #F0F8F9;
+  --text-primary: #F0F8F9;
+  --text-secondary: #8BAAB0;
+  --card: #162531;
+  --card-foreground: #F0F8F9;
+  --popover: #162531;
+  --popover-foreground: #F0F8F9;
+  --primary: #4ECDC4;
+  --primary-foreground: #0F1923;
+  --primary-dark: #1e3f47;
+  --primary-light: #3a7a8a;
+  --accent: #4ECDC4;
+  --accent-foreground: #0F1923;
+  --secondary: #1E3040;
+  --secondary-foreground: #F0F8F9;
+  --muted: #1E3040;
+  --muted-foreground: #8BAAB0;
+  --destructive: #EF4444;
+  --destructive-foreground: #F0F8F9;
+  --border: #2A4050;
+  --input: #2A4050;
+  --ring: #4ECDC4;
+}
+
+@utility glass {
+  background: color-mix(in oklab, var(--surface) 75%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+@utility card-shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+@utility card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.15);
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    font-family: "Satoshi", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: "Satoshi", system-ui, sans-serif;
+  }
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
