@@ -16,6 +16,7 @@ interface Post {
 }
 import { Avatar } from "@/components/common/Avatar";
 import { HOUSE_MAP } from "@/lib/constants";
+import { cleanWriteup } from "@/lib/utils";
 import { Heart, MessageCircle, Share2 } from "lucide-react";
 
 export function PostCard({ post }: { post: Post }) {
@@ -53,7 +54,7 @@ export function PostCard({ post }: { post: Post }) {
         </div>
       </header>
 
-      <p className="text-text-primary leading-relaxed whitespace-pre-wrap">{post.content}</p>
+      <p className="text-text-primary leading-relaxed whitespace-pre-wrap">{cleanWriteup(post.content)}</p>
 
       {post.image && (
         <div

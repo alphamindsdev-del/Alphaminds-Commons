@@ -13,3 +13,10 @@ export function initials(name: string) {
     .join("")
     .toUpperCase();
 }
+
+export function cleanWriteup(text: string): string {
+  return text
+    .replace(/\u2014|\u2013|--/g, ", ")
+    .replace(/\u2015|\u2012/g, " ")
+    .trim();
+}

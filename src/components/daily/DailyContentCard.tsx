@@ -4,6 +4,7 @@ import { useState } from "react";
 import confetti from "canvas-confetti";
 import { useDailyContent } from "@/hooks/useDailyContent";
 import { HOUSE_MAP } from "@/lib/constants";
+import { cleanWriteup } from "@/lib/utils";
 
 export function DailyContentCard() {
   const { data: dailyData, isLoading } = useDailyContent();
@@ -69,7 +70,7 @@ export function DailyContentCard() {
           {c.title}
         </h2>
         <p className="text-base sm:text-lg text-white/90 leading-relaxed max-w-2xl mb-8">
-          {c.body}
+          {cleanWriteup(c.body)}
         </p>
 
         <button

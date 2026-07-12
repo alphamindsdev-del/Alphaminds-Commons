@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { useMyProfile } from "@/hooks/useMyProfile";
@@ -10,6 +10,7 @@ import { ProgressBar } from "@/components/common/ProgressBar";
 import { ChallengeCard } from "@/components/challenges/ChallengeCard";
 import { PostCard } from "@/components/posts/PostCard";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
+import { Settings, LogOut } from "lucide-react";
 
 export const Route = createFileRoute("/profile/")({
   head: () => ({ meta: [{ title: `Profile · AlphaMinds` }] }),
@@ -17,8 +18,14 @@ export const Route = createFileRoute("/profile/")({
 });
 
 function ProfilePage() {
-  const { member: authMember } = useAuthStore();
+  const { member: authMember, clearSession } = useAuthStore();
+  const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
+
+  const handleLogout = () => {
+    clearSession();
+    navigate({ to: "/" });
+  };
   const { data: profile } = useMyProfile();
   const { data: myChallengesData } = useMyChallenges();
   const m: {
@@ -139,6 +146,22 @@ function ProfilePage() {
           </div>
         </section>
       )}
+
+      <section className="rounded-2xl border border-border bg-card divide-y divide-border card-shadow">
+        <Link to="/settings" className="flex items-center justify-between p-4 hover:bg-subtle transition-colors">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center"><Settings className="h-5 w-5" /></div>
+            <span className="font-bold text-text-primary">Settings</span>
+          </div>
+          <span className="text-text-secondary text-sm">→</span>
+        </Link>
+        <button onClick={handleLogout} className="flex items-center justify-between p-4 w-full text-left hover:bg-subtle transition-colors">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center"><LogOut className="h-5 w-5" /></div>
+            <span className="font-bold text-destructive">Log out</span>
+          </div>
+        </button>
+      </section>
 
       <EditProfileModal open={editOpen} onClose={() => setEditOpen(false)} />
     </div>

@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store/authStore";
 import { HOUSE_MAP, type HouseId } from "@/lib/constants";
 import { PostCard } from "@/components/posts/PostCard";
 import { Avatar } from "@/components/common/Avatar";
+import { cleanWriteup } from "@/lib/utils";
 
 export const Route = createFileRoute("/rooms/$roomId/posts/$postId")({
   head: () => ({ meta: [{ title: "Post · AlphaMinds" }] }),
@@ -55,7 +56,7 @@ function PostDetailPage() {
                   <Avatar name={c.author.name} size="sm" color={ch.color} />
                   <div className="flex-1">
                     <div className="text-sm"><span className="font-bold">{c.author.name}</span> <span className="text-text-secondary">· {c.timestamp}</span></div>
-                    <p className="text-text-primary mt-1">{c.content}</p>
+                    <p className="text-text-primary mt-1">{cleanWriteup(c.content)}</p>
                     {c.replies?.length > 0 && (
                       <div className="mt-3 pl-4 border-l-2 border-border space-y-3">
                         {c.replies.map((r: any) => {
@@ -65,7 +66,7 @@ function PostDetailPage() {
                               <Avatar name={r.author.name} size="sm" color={rh.color} />
                               <div>
                                 <div className="text-sm"><span className="font-bold">{r.author.name}</span> <span className="text-text-secondary">· {r.timestamp}</span></div>
-                                <p className="text-text-primary mt-1 text-sm">{r.content}</p>
+                                <p className="text-text-primary mt-1 text-sm">{cleanWriteup(r.content)}</p>
                               </div>
                             </div>
                           );
