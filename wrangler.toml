@@ -76,22 +76,3 @@ crons = [
   "0 4 * * *",   # D1 backup export
 ]
 
-# --- Environments ---
-
-[env.staging]
-name = "alphaminds-api-staging"
-[env.staging.vars]
-ENVIRONMENT = "staging"
-[[env.staging.d1_databases]]
-binding = "DB"
-database_name = "alphaminds-commons-staging"
-database_id = "PLACEHOLDER_STAGING_DB_ID"
-
-[env.production]
-name = "alphaminds-api-production"
-[env.production.vars]
-ENVIRONMENT = "production"
-[[env.production.d1_databases]]
-binding = "DB"
-database_name = "alphaminds-commons-production"
-database_id = "PLACEHOLDER_PRODUCTION_DB_ID"
