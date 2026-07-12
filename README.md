@@ -130,40 +130,30 @@ wrangler secret put WEB_PUSH_VAPID_PUBLIC
 wrangler secret put ADMIN_ALERT_EMAIL
 ```
 
-## Cron Triggers — Free Plan Limitation
+## Cron Triggers — Free Plan (5 Slots)
 
-Cloudflare Workers **Free plan does not support cron triggers** at all. The **Workers Paid plan** ($5/month) supports up to **3 cron schedules** per worker.
+Cloudflare Workers **Free plan allows up to 5 Cron Triggers per account** (not per worker). CPU time is capped at 10ms per invocation — DB queries and KV/network I/O don't count toward this limit, so these handlers fit within it.
 
-All 7 handlers below exist in the codebase but are stripped from the deploy config by `scripts/patch.mjs` to avoid deploy failures on the free plan.
+**5 cron triggers are active** in Phase 1:
 
-### All Cron Handlers
+| # | Handler | Schedule | What It Does |
+|---|---------|----------|-------------|
+| 1 | **Daily Content Delivery** | `0 5 * * *` (5 AM) | Fetches scheduled daily content, caches it in KV, and creates delivery records for all active members |
+| 2 | **Streak Audit** | `30 0 * * *` (12:30 AM) | Resets `current_streak_days` to 0 for members inactive since yesterday |
+| 3 | **Leaderboard Recalculation** | `0 1 * * *` (1 AM) | Recalculates all-time and weekly leaderboard rankings per chapter and globally |
+| 4 | **Weekly Challenge Reset** | `0 0 * * 1` (Mon midnight) | Marks ended challenges as completed/abandoned based on targets |
+| 5 | **D1 Backup Export** | `0 4 * * *` (4 AM) | Exports D1 database as SQL and uploads to R2 backup bucket |
 
-| # | Handler | Schedule | What It Does | Phase Priority |
-|---|---------|----------|-------------|----------------|
-| 1 | **Daily Content Delivery** | `0 5 * * *` (5 AM) | Fetches scheduled daily content, pre-caches it in KV, and creates delivery records for all active members | **Core** — daily practices are the main engagement loop |
-| 2 | **Streak Audit** | `30 0 * * *` (12:30 AM) | Resets `current_streak_days` to 0 for members inactive since yesterday | **Core** — streaks drive retention |
-| 3 | **Leaderboard Recalculation** | `0 1 * * *` (1 AM) | Recalculates all-time and weekly leaderboard rankings per chapter and globally | **Medium** — leaderboard is a key gamification feature |
-| 4 | **Weekly Challenge Reset** | `0 0 * * 1` (Mon midnight) | Marks ended challenges as completed/abandoned based on targets | **Medium** — challenges auto-reset |
-| 5 | **Impact Score Recalculation** | `0 2 * * 1` (Mon 2 AM) | Recalculates impact scores from volunteer hours, challenges, detectors | **Low** — nice-to-have metric |
-| 6 | **Weekly Summary Email** | `0 3 * * 0` (Sun 3 AM) | Gathers weekly stats and sends summary email via Resend | **Low** — engagement email |
-| 7 | **D1 Backup Export** | `0 4 * * *` (4 AM) | Exports D1 database as SQL and uploads to R2 backup bucket | **Low** — data safety (can do manually) |
+**Dropped from free tier** (to stay under 5-trigger limit):
+- `Impact Score Recalculation` — nice-to-have metric, enable when upgrading
+- `Weekly Summary Email` — engagement email, can be triggered manually or via admin
 
-### Recommended Phase 1 (Workers Paid, 3 slots)
+### Upgrading to Workers Paid ($5/month)
 
-If upgrading to Workers Paid ($5/month), enable:
-1. **Daily Content Delivery** — non-negotiable, core feature
-2. **Streak Audit** — streaks won't work without it
-3. **Leaderboard Recalculation** — best use of 3rd slot
-
-### To Re-enable Cron Triggers
-
-1. Edit `scripts/patch.mjs` and remove/comment `delete wr.triggers;`
-2. Deploy — the crons will start working on the paid plan
-
-Until then, crons can be triggered manually for testing:
-```bash
-curl "https://alphaminds.alphamindsdev.workers.dev/cdn-cgi/handler/scheduled"
-```
+Paid plan unlocks:
+- **250 cron triggers** per account
+- **30s CPU time** per invocation (vs 10ms on free)
+- Add the 2 dropped handlers back by uncommenting them in `wrangler.toml`
 
 ## Build & Patch System
 
@@ -172,8 +162,8 @@ Nitro bundles everything into `.output/server/`. The `build` script (`vite build
 ### 1. API Routing Bypass (`index.mjs`)
 Adds a static import of `_ssr/ssr.mjs` and intercepts `/v1/*` requests to call `__ssr.fetch(cfRequest, env, context)` directly — bypassing the h3 pipeline so Hono API routes get Cloudflare bindings and POST bodies aren't consumed prematurely.
 
-### 2. Deploy Config Strip (`wrangler.json`)
-Removes `env` blocks (staging/production environments) and `triggers` (cron schedules) from the Nitro-generated `wrangler.json` to avoid Cloudflare deploy validation errors on the free plan.
+### 2. Deploy Config Cleanup (`wrangler.json`)
+Removes `env` blocks (staging/production environments) from the Nitro-generated `wrangler.json` to avoid Cloudflare's "Redirected configurations cannot include environments" validation error. Cron triggers are kept — the free plan supports up to 5.
 
 ## API Overview
 

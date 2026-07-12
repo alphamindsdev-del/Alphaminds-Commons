@@ -32,16 +32,13 @@ if (!idx.includes("__ssr.fetch")) {
 }
 writeFileSync(idxPath, idx);
 
-// 2. Remove env block and triggers from wrangler.json (env causes deploy errors, triggers fail on free plan)
+// 2. Remove env block from wrangler.json (Nitro copies staging/production envs from wrangler.toml,
+//    which causes "Redirected configurations cannot include environments" validation error)
 const wrPath = join(outDir, "wrangler.json");
 let wr = JSON.parse(readFileSync(wrPath, "utf-8"));
 let wrChanged = false;
 if (wr.env && (wr.env.staging || wr.env.production)) {
   delete wr.env;
-  wrChanged = true;
-}
-if (wr.triggers) {
-  delete wr.triggers;
   wrChanged = true;
 }
 if (wrChanged) {
