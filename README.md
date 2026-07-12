@@ -162,8 +162,12 @@ Nitro bundles everything into `.output/server/`. The `build` script (`vite build
 ### 1. API Routing Bypass (`index.mjs`)
 Adds a static import of `_ssr/ssr.mjs` and intercepts `/v1/*` requests to call `__ssr.fetch(cfRequest, env, context)` directly — bypassing the h3 pipeline so Hono API routes get Cloudflare bindings and POST bodies aren't consumed prematurely.
 
-### 2. Deploy Config Cleanup (`wrangler.json`)
-Removes `env` blocks (staging/production environments) from the Nitro-generated `wrangler.json` to avoid Cloudflare's "Redirected configurations cannot include environments" validation error. Cron triggers are kept — the free plan supports up to 5.
+### 2. Deploy Config Fixup (`wrangler.json`)
+Force-corrects the Nitro-generated `wrangler.json` to avoid deploy errors:
+- **Worker name** → `"alphaminds"` (Nitro caches sometimes keep `"alphaminds-api"`)
+- **Environment** → `"production"` (Nitro caches sometimes keep `"development"`)
+- **Removes `env.staging`/`env.production` blocks** (causes "Redirected configurations cannot include environments" error)
+- **Reduces to 5 crons** (free plan limit) — drops Impact Score + Weekly Summary
 
 ## API Overview
 
