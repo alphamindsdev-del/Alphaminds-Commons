@@ -1,14 +1,69 @@
 # AlphaMinds Commons
 
-A community platform organized around the Five Houses of human flourishing — Becoming, Connection, Wellness, Play, and Humanity. Built as a Progressive Web App (PWA) entirely on the Cloudflare developer platform: Workers (edge functions), D1 (SQLite), KV (caching), and R2 (object storage).
+A community platform organized around the **Five Houses** of human flourishing — Becoming, Connection, Wellness, Play, and Humanity. Built as a Progressive Web App (PWA) entirely on the Cloudflare developer platform: Workers (edge functions), D1 (SQLite), KV (caching), and R2 (object storage).
 
-The platform connects members through houses, rooms, events, challenges, and daily content. It launches with a single founding chapter and is architected for multi-chapter global scale. Features include authentication, member profiles, discussion rooms with posts/comments/reactions, event RSVPs, challenge tracking, daily content delivery, and an admin dashboard.
+The platform connects members through houses, rooms, events, challenges, and daily content. It launches with a single founding chapter and is architected for multi-chapter global scale.
+
+## Current Status — MVP
+
+The MVP is live at **https://alphaminds.alphamindsdev.workers.dev** with:
+- Authentication (register/login/logout, password reset via email)
+- Member profiles with bio, house memberships, streak, points
+- Five houses with score tracking and progress bars
+- Discussion rooms with posts, comments, reactions (like/share)
+- Events with RSVP
+- Challenges with tracking and progress
+- Daily content cards with completion tracking
+- Admin dashboard (create daily content, member management)
+- Settings page (theme, notifications, privacy, account management)
+- Notifications system
+- Subscription management (free tier currently)
+- Responsive design (mobile-first with bottom nav, desktop sidebar)
+
+### Infrastructure
+
+| Resource | Detail |
+|----------|--------|
+| Frontend | React 19 + Vite 8 + Tailwind CSS, served via Workers Assets |
+| Backend | Cloudflare Workers + Hono.js REST API at `/v1/*` |
+| Database | Cloudflare D1 (SQLite) — `alphaminds-commons` |
+| Cache/State | Cloudflare KV — 6 namespaces (sessions, subscription cache, daily delivery, rate limits, content schedule, chapter config) |
+| Storage | Cloudflare R2 — 2 buckets (media uploads, database backups) |
+| Email | Resend API (transactional: password reset, weekly summary, notifications) |
+| Payments | Paystack + Stripe webhooks configured (ready for Phase 3) |
+| CI/CD | GitHub → Cloudflare Workers Builds (auto-deploy on push to `master`) |
+
+## Project Structure
+
+```
+workers/
+  api/src/          → REST API — routers for auth, members, houses, rooms,
+  │                    posts, events, challenges, daily content, admin, media
+  │   middleware/   → Auth, rate limiting, RBAC, CORS, subscription tier checks
+  │   lib/          → DB, KV, R2, session, password, email, push, validation
+  │   index.ts      → Hono app entry, route mounting
+  cron/src/         → 7 scheduled handlers triggered by cron
+  │   handlers/     → dailyContent, weeklyReset, streakAudit, leaderboard,
+  │                    impactScore, weeklySummary, d1Backup
+  │   index.ts      → Scheduled event router
+  │   lib.ts        → Cron logging utilities
+  webhooks/src/     → Paystack + Stripe webhook handlers (Phase 3)
+  shared/           → Types (zod), constants (tiers, error codes), error helpers
+src/                → React + Vite frontend
+  routes/           → TanStack Router route pages
+  components/       → Reusable UI (layout, common, posts, daily, challenges)
+  hooks/            → TanStack Query + REST API hooks
+  lib/              → API client, constants, types, utilities
+  store/            → Zustand stores (auth, theme)
+migrations/         → D1 SQL migrations (37 tables)
+scripts/            → patch.mjs (build post-process), seed.ts
+```
 
 ## Prerequisites
 
 - **Node.js** >= 20.0.0 (LTS)
-- **npm** >= 10.0.0
-- **Wrangler** >= 3.0.0 — `npm install -g wrangler`
+- **npm** >= 10.0.0 (or **bun** >= 1.2.0)
+- **Wrangler** >= 4.0.0 — `npm install -g wrangler`
 - **Git** >= 2.40.0
 
 Authenticate with Cloudflare: `wrangler login`
@@ -19,24 +74,20 @@ Authenticate with Cloudflare: `wrangler login`
 # 1. Install dependencies
 npm install
 
-# 2. Create Cloudflare resources (one-time per environment)
-#    See docs/RUNBOOK.md section 4 for full instructions:
-#    - Create D1 database: wrangler d1 create alphaminds-commons
-#    - Create 6 KV namespaces
-#    - Create 2 R2 buckets
-#    - Add all IDs to wrangler.toml
+# Cloudflare resources must already exist (D1, KV, R2).
+# IDs are configured in wrangler.toml.
 
-# 3. Set up environment files
+# 2. Set up environment files
 cp .env.example .env.local        # Frontend environment
 cp .dev.vars.example .dev.vars    # Worker secrets (gitignored)
 
-# 4. Run database migrations
+# 3. Run database migrations
 npm run migrate:local
 
-# 5. Seed the database
+# 4. Seed the database (creates houses, rooms, daily content, admin)
 npm run seed
 
-# 6. Start development servers
+# 5. Start development servers
 npm run dev
 ```
 
@@ -44,10 +95,10 @@ npm run dev
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start frontend (Vite) + backend (Wrangler) concurrently |
-| `npm run dev:web` | Start Vite dev server only (http://localhost:5173) |
-| `npm run dev:worker` | Start Wrangler local worker only (http://localhost:8787) |
-| `npm run build` | Build frontend for production |
+| `npm run dev` | Start frontend (Vite, :8080) + backend (Wrangler, :8787) concurrently |
+| `npm run dev:web` | Start Vite dev server only |
+| `npm run dev:worker` | Start Wrangler local worker only |
+| `npm run build` | Build frontend + SSR for production (also runs patch.mjs) |
 | `npm run type-check` | TypeScript check for both frontend and workers |
 | `npm run lint` | Run ESLint across the codebase |
 | `npm run format` | Format code with Prettier |
@@ -55,22 +106,21 @@ npm run dev
 | `npm run seed` | Seed local D1 database with initial data |
 | `npm run db:reset` | Reset local database (migrate + seed) |
 
+Frontend: http://localhost:8080
+API: http://localhost:8787/v1/...
+
 ## Deployment
 
+The project uses **Cloudflare Workers Builds** (CI). Every push to `master` triggers an auto-build and deploy at:
+- **https://alphaminds.alphamindsdev.workers.dev**
+
+Manual deploy:
 ```bash
-# Deploy the API worker
-npm run deploy:worker
-
-# Deploy the frontend to Cloudflare Pages
-npm run deploy:web
-
-# Deploy both
-npm run build && npm run deploy:worker && npm run deploy:web
+npm run build        # Build + patch
+npx wrangler deploy  # Deploy .output/server/ (the built worker)
 ```
 
-### Production Secrets
-
-Set secrets via Wrangler (never commit them):
+### Secrets (set via Wrangler, never commit)
 
 ```bash
 wrangler secret put JWT_SESSION_SECRET
@@ -80,30 +130,123 @@ wrangler secret put WEB_PUSH_VAPID_PUBLIC
 wrangler secret put ADMIN_ALERT_EMAIL
 ```
 
-## Project Structure
+## Cron Triggers — Free Plan Limitation
 
+Cloudflare Workers **Free plan does not support cron triggers** at all. The **Workers Paid plan** ($5/month) supports up to **3 cron schedules** per worker.
+
+All 7 handlers below exist in the codebase but are stripped from the deploy config by `scripts/patch.mjs` to avoid deploy failures on the free plan.
+
+### All Cron Handlers
+
+| # | Handler | Schedule | What It Does | Phase Priority |
+|---|---------|----------|-------------|----------------|
+| 1 | **Daily Content Delivery** | `0 5 * * *` (5 AM) | Fetches scheduled daily content, pre-caches it in KV, and creates delivery records for all active members | **Core** — daily practices are the main engagement loop |
+| 2 | **Streak Audit** | `30 0 * * *` (12:30 AM) | Resets `current_streak_days` to 0 for members inactive since yesterday | **Core** — streaks drive retention |
+| 3 | **Leaderboard Recalculation** | `0 1 * * *` (1 AM) | Recalculates all-time and weekly leaderboard rankings per chapter and globally | **Medium** — leaderboard is a key gamification feature |
+| 4 | **Weekly Challenge Reset** | `0 0 * * 1` (Mon midnight) | Marks ended challenges as completed/abandoned based on targets | **Medium** — challenges auto-reset |
+| 5 | **Impact Score Recalculation** | `0 2 * * 1` (Mon 2 AM) | Recalculates impact scores from volunteer hours, challenges, detectors | **Low** — nice-to-have metric |
+| 6 | **Weekly Summary Email** | `0 3 * * 0` (Sun 3 AM) | Gathers weekly stats and sends summary email via Resend | **Low** — engagement email |
+| 7 | **D1 Backup Export** | `0 4 * * *` (4 AM) | Exports D1 database as SQL and uploads to R2 backup bucket | **Low** — data safety (can do manually) |
+
+### Recommended Phase 1 (Workers Paid, 3 slots)
+
+If upgrading to Workers Paid ($5/month), enable:
+1. **Daily Content Delivery** — non-negotiable, core feature
+2. **Streak Audit** — streaks won't work without it
+3. **Leaderboard Recalculation** — best use of 3rd slot
+
+### To Re-enable Cron Triggers
+
+1. Edit `scripts/patch.mjs` and remove/comment `delete wr.triggers;`
+2. Deploy — the crons will start working on the paid plan
+
+Until then, crons can be triggered manually for testing:
+```bash
+curl "https://alphaminds.alphamindsdev.workers.dev/cdn-cgi/handler/scheduled"
 ```
-workers/              → Cloudflare Workers (backend)
-  api/src/            → REST API routes (Hono.js)
-  cron/src/           → Cron trigger handlers
-  webhooks/src/       → Payment webhook stubs (Phase 3)
-  shared/             → Shared types, constants, errors
-  tsconfig.json       → Workers TypeScript config
-src/                  → React + Vite frontend
-  pages/              → Route pages
-  components/         → Reusable UI components
-  hooks/              → Custom React hooks (TanStack Query)
-  lib/                → API client, utilities
-  store/              → Zustand stores
-migrations/           → D1 SQL migrations
-scripts/              → Seed scripts
-wrangler.toml         → Worker configuration
-```
+
+## Build & Patch System
+
+Nitro bundles everything into `.output/server/`. The `build` script (`vite build && node scripts/patch.mjs`) applies two patches:
+
+### 1. API Routing Bypass (`index.mjs`)
+Adds a static import of `_ssr/ssr.mjs` and intercepts `/v1/*` requests to call `__ssr.fetch(cfRequest, env, context)` directly — bypassing the h3 pipeline so Hono API routes get Cloudflare bindings and POST bodies aren't consumed prematurely.
+
+### 2. Deploy Config Strip (`wrangler.json`)
+Removes `env` blocks (staging/production environments) and `triggers` (cron schedules) from the Nitro-generated `wrangler.json` to avoid Cloudflare deploy validation errors on the free plan.
+
+## API Overview
+
+| Base Path | Module | Auth |
+|-----------|--------|------|
+| `POST /v1/auth/register` | Register | No |
+| `POST /v1/auth/login` | Login | No |
+| `GET /v1/auth/me` | Current user | Yes |
+| `GET /v1/houses` | List houses | Yes |
+| `GET /v1/houses/:id` | House detail | Yes |
+| `GET /v1/me/profile` | My profile | Yes |
+| `PATCH /v1/me/profile` | Update profile | Yes |
+| `GET /v1/chapters/:id/rooms` | List rooms | Yes |
+| `GET /v1/rooms/:id/posts` | List posts | Yes |
+| `POST /v1/rooms/:id/posts` | Create post | Yes |
+| `GET /v1/posts/:id` | Post detail | Yes |
+| `POST /v1/posts/:id/reactions` | Toggle reaction | Yes |
+| `POST /v1/posts/:id/comments` | Add comment | Yes |
+| `GET /v1/chapters/:id/events` | List events | Yes |
+| `POST /v1/events/:id/rsvp` | RSVP | Yes |
+| `GET /v1/challenges` | List challenges | Yes |
+| `POST /v1/challenges/:id/join` | Join challenge | Yes |
+| `POST /v1/challenges/:id/log` | Log progress | Yes |
+| `GET /v1/daily-content/today` | Today's content | Yes |
+| `POST /v1/daily-content/:id/complete` | Mark complete | Yes |
+| `POST /v1/admin/daily-content` | Create content | Admin |
+| `GET /v1/admin/daily-content` | List content | Admin |
+| `PATCH /v1/admin/daily-content/:id` | Update content | Admin |
+| `DELETE /v1/me/account` | Delete account | Yes |
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, Vite 8, TypeScript, Tailwind CSS 4, Framer Motion |
+| Routing | TanStack Router v1 |
+| Server State | TanStack Query v5 |
+| Client State | Zustand v5 |
+| SSR/Bundling | TanStack Start + Nitro v3 (preset: `cloudflare-module`) |
+| API Framework | Hono.js v4 |
+| Database | Cloudflare D1 (SQLite via wrangler) |
+| Cache | Cloudflare KV (6 namespaces) |
+| Storage | Cloudflare R2 (media + backups) |
+| Email | Resend API |
+| Payments | Paystack + Stripe (webhook-ready) |
+| CI/CD | Cloudflare Workers Builds (GitHub connected) |
+| UI Components | Radix UI primitives, shadcn/ui, Sonner (toasts), Lucide icons |
+
+## Key Design Decisions
+
+- **Dual routing**: TanStack Router for SSR pages, Hono for REST API (`/v1/*`). The patch script bridges them so Hono gets Cloudflare bindings directly.
+- **Mobile-first**: Bottom nav on mobile, collapsible sidebar on desktop. Top bar only visible on mobile.
+- **Five Houses**: Core gamification — each member has a primary house and can earn scores across all five. Houses map to weekly daily content themes.
+- **No cron triggers on free plan**: All scheduled jobs are documented and wired up but disabled. Manually triggerable via admin endpoint or Cloudflare dashboard.
+- **Hyphen-free writeups**: All writeup content runs through `cleanWriteup()` in `src/lib/utils.ts` which strips em dashes, en dashes, and double hyphens to avoid AI-generated-text appearance.
+
+## Next Steps / Phase 2
+
+| Feature | Status |
+|---------|--------|
+| Upgrade to Workers Paid ($5/mo) + enable 3 crons | Pending |
+| Member admin panel (edit members, assign roles) | Pending |
+| Leaderboard UI on frontend | Pending |
+| Push notifications (Web Push API) | Pending |
+| Media uploads (R2) for posts | Pending |
+| Email verification flow | Pending |
+| Subscription tiers (free vs premium) | Pending |
+| Chapter system (multi-chapter) | Stubbed |
+| Payment processing (Paystack + Stripe) | Webhooks wired, UI pending |
 
 ## Documentation
 
-Full documentation is in the `/docs` folder:
-
+Full documentation is in the `/docs` folder (legacy, may be partially out of date):
 - **ARCHITECTURE.md** — System design and infrastructure decisions
 - **SCHEMA.md** — D1 table definitions, columns, indexes, and seed data
 - **API.md** — Endpoint reference with typed request/response shapes
@@ -112,18 +255,3 @@ Full documentation is in the `/docs` folder:
 - **RUNBOOK.md** — Wrangler commands, migrations, secrets, deployment
 - **FRONTEND.md** — Frontend architecture and hook conventions
 - **AGENT.md** — Rules for AI coding agents working on this project
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, Vite 8, TypeScript, Tailwind CSS, Framer Motion |
-| Routing | React Router v6 |
-| Server State | TanStack Query |
-| Client State | Zustand |
-| Backend | Cloudflare Workers, Hono.js |
-| Database | Cloudflare D1 (SQLite) |
-| Cache | Cloudflare KV (6 namespaces) |
-| Storage | Cloudflare R2 (media, backups) |
-| Email | Resend |
-| Payments | Paystack + Stripe (Phase 3) |
