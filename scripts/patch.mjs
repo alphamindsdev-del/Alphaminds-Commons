@@ -32,11 +32,16 @@ if (!idx.includes("__ssr.fetch")) {
 }
 writeFileSync(idxPath, idx);
 
-// 2. Remove env block from wrangler.json
+// 2. Remove env block and triggers from wrangler.json (env causes deploy errors, triggers fail on free plan)
 const wrPath = join(outDir, "wrangler.json");
 let wr = JSON.parse(readFileSync(wrPath, "utf-8"));
 if (wr.env && (wr.env.staging || wr.env.production)) {
   delete wr.env;
+}
+if (wr.triggers) {
+  delete wr.triggers;
+}
+if (wr.env || wr.triggers) {
   writeFileSync(wrPath, JSON.stringify(wr, null, 2));
 }
 

@@ -1,12 +1,12 @@
 # Wrangler Configuration for AlphaMinds API Worker
 
-name = "alphaminds-api"
+name = "alphaminds"
 main = "workers/api/src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-ENVIRONMENT = "development"
+ENVIRONMENT = "production"
 
 # Secrets (Set locally via .dev.vars, in production via wrangler secret put):
 # JWT_SESSION_SECRET
