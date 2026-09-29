@@ -1,4 +1,8 @@
 import { Bell, Calendar, Trophy, MessageSquare, Sun, Star, DoorOpen } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { apiFetch } from "@/lib/api";
+import { useQueryClient } from "@tanstack/react-query";
+
 type NotificationType = "comment" | "event" | "badge" | "room" | "daily" | "challenge";
 
 interface AppNotification {
@@ -9,6 +13,7 @@ interface AppNotification {
   timestamp: string;
   group: string;
   unread: boolean;
+  actionUrl: string | null;
 }
 
 const icons = {
@@ -21,10 +26,24 @@ const icons = {
 } as const;
 
 export function NotificationItem({ n }: { n: AppNotification }) {
-  const cfg = icons[n.type] ?? { Icon: Bell, color: "#28555e", bg: "#28555e15" };
+  const cfg = icons[n.type] ?? { Icon: Bell, color: "var(--primary)", bg: "color-mix(in srgb, var(--primary) 8%, transparent)" };
   const { Icon } = cfg;
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const handleClick = async () => {
+    if (n.unread) {
+      await apiFetch(`/v1/me/notifications/${n.id}/read`, { method: "POST" });
+      queryClient.invalidateQueries({ queryKey: ["unread-notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["me", "notifications"] });
+    }
+    if (n.actionUrl) {
+      navigate({ to: n.actionUrl });
+    }
+  };
+
   return (
-    <div className="flex items-start gap-3 p-4 rounded-xl hover:bg-subtle transition-colors">
+    <div className="flex items-start gap-3 p-4 rounded-xl hover:bg-subtle transition-colors cursor-pointer" onClick={handleClick}>
       <div className="h-10 w-10 rounded-full flex items-center justify-center shrink-0" style={{ background: cfg.bg, color: cfg.color }}>
         <Icon className="h-4 w-4" />
       </div>

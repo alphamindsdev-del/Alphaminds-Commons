@@ -32,16 +32,27 @@ function HouseDetailPage() {
         <Link to="/houses" className="text-sm font-semibold text-text-secondary">← All Houses</Link>
       </div>
 
-      <header className="relative mt-4 mx-4 sm:mx-6 lg:mx-8 rounded-3xl p-8 sm:p-12 text-white overflow-hidden" style={{ background: `linear-gradient(135deg, ${h.color}, ${h.color}aa, #1e3f47)` }}>
-        <div className="absolute -top-20 -right-20 h-80 w-80 rounded-full blur-3xl opacity-30 bg-white" />
-        <div className="relative">
-          <div className="text-6xl mb-4">{h.emoji}</div>
-          <h1 className="font-black text-4xl sm:text-5xl">{h.fullName}</h1>
-          <p className="italic text-white/85 text-lg mt-1">{h.tagline}</p>
-          <p className="mt-4 max-w-2xl text-white/90">{h.description}</p>
-          <p className="mt-6 text-xs font-bold uppercase tracking-widest text-white/80">
-            {houseRooms.length} Rooms · 1,247 Members · {houseEvents.length} Events
-          </p>
+      <header className="relative mt-4 mx-4 sm:mx-6 lg:mx-8 rounded-3xl p-8 sm:p-12 text-white overflow-hidden" style={{ background: `linear-gradient(135deg, ${h.color}, ${h.color}99, var(--primary-dark))` }}>
+        <span className="absolute -top-10 -right-6 font-display font-bold text-[11rem] sm:text-[16rem] leading-none text-white/[0.1] tracking-tighter select-none pointer-events-none">
+          {h.fullName.replace("House of ", "").charAt(0).toUpperCase()}
+        </span>
+        <div className="absolute -top-24 -right-24 h-80 w-80 rounded-full blur-3xl opacity-30 bg-white" />
+        <div className="absolute -bottom-32 -left-16 h-72 w-72 rounded-full blur-3xl opacity-20 bg-accent" />
+        <div className="relative max-w-3xl">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center ring-1 ring-white/25">
+              <h.icon className="h-6 w-6" />
+            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.3em] text-white/80">{h.dayLabel}</p>
+          </div>
+          <h1 className="mt-4 text-display font-semibold text-4xl sm:text-6xl tracking-tighter leading-[0.95]">{h.fullName}</h1>
+          <p className="italic text-white/90 text-lg mt-2">{h.tagline}</p>
+          <p className="mt-4 max-w-2xl text-white/90 leading-relaxed">{h.description}</p>
+          <div className="mt-6 flex flex-wrap gap-6 text-white">
+            <div className="pr-6 border-r border-white/20"><p className="font-display font-semibold text-3xl tabular-nums">{houseRooms.length}</p><p className="text-[10px] font-bold uppercase tracking-widest text-white/70">Rooms</p></div>
+            <div className="pr-6 border-r border-white/20"><p className="font-display font-semibold text-3xl tabular-nums">{1_247}</p><p className="text-[10px] font-bold uppercase tracking-widest text-white/70">Members</p></div>
+            <div><p className="font-display font-semibold text-3xl tabular-nums">{houseEvents.length}</p><p className="text-[10px] font-bold uppercase tracking-widest text-white/70">Events</p></div>
+          </div>
         </div>
       </header>
 
@@ -67,7 +78,7 @@ function HouseDetailPage() {
               icon={<MessageSquare className="h-6 w-6" />}
               title="No rooms yet"
               body="This house doesn't have any rooms yet. Check back soon."
-              action={<Link to="/rooms" className="rounded-xl bg-primary text-white text-sm font-bold px-5 py-2.5 inline-block">Browse all rooms</Link>}
+              action={<Link to="/rooms" className="rounded-xl bg-primary text-primary-foreground text-sm font-bold px-5 py-2.5 inline-block">Browse all rooms</Link>}
             />
           )
         )}
@@ -81,7 +92,7 @@ function HouseDetailPage() {
               icon={<Calendar className="h-6 w-6" />}
               title="No upcoming events"
               body="There are no events scheduled for this house right now."
-              action={<Link to="/events" className="rounded-xl bg-primary text-white text-sm font-bold px-5 py-2.5 inline-block">Browse all events</Link>}
+              action={<Link to="/events" className="rounded-xl bg-primary text-primary-foreground text-sm font-bold px-5 py-2.5 inline-block">Browse all events</Link>}
             />
           )
         )}
@@ -95,7 +106,7 @@ function HouseDetailPage() {
               icon={<Target className="h-6 w-6" />}
               title="No active challenges"
               body="No active challenges right now — check back next week."
-              action={<Link to="/challenges" className="rounded-xl bg-primary text-white text-sm font-bold px-5 py-2.5 inline-block">Browse all challenges</Link>}
+              action={<Link to="/challenges" className="rounded-xl bg-primary text-primary-foreground text-sm font-bold px-5 py-2.5 inline-block">Browse all challenges</Link>}
             />
           )
         )}

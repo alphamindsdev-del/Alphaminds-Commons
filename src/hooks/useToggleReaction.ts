@@ -11,6 +11,7 @@ export function useToggleReaction(postId: string) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["post", postId] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
   });
 }

@@ -5,7 +5,9 @@ import { RegisterSchema, RegisterInput, LoginSchema, LoginInput, ForgotPasswordS
 import { hashPassword, verifyPassword } from '../lib/password.js';
 import { generateSessionToken, createSessionPayload, storeSession, deleteSession } from '../lib/session.js';
 import { isEmailTaken, isUsernameTaken } from '../lib/db.js';
+import { sendOtpEmail } from '../lib/email.js';
 import { authMiddleware, getSession } from '../middleware/auth.js';
+import { signHandoff } from '../lib/handoff.js';
 
 type AuthEnv = { Bindings: Env; Variables: { session: SessionPayload } };
 
@@ -31,8 +33,8 @@ authRouter.post('/register', async (c) => {
   const now = new Date().toISOString();
 
   await c.env.DB.prepare(
-    'INSERT INTO members (id, email, username, display_name, password_hash, country_code, age, gender, primary_house, chapter_id, role, is_active, email_verified, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'member\', 1, 1, ?, ?)'
-  ).bind(memberId, input.email, input.username, input.display_name, passwordHash, input.country_code ?? null, input.age ?? null, input.gender ?? null, input.primary_house, input.chapter_id ?? null, now, now).run();
+    'INSERT INTO members (id, email, username, display_name, password_hash, country_code, age, gender, primary_house, chapter_id, timezone, role, is_active, email_verified, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, \'member\', 1, 1, ?, ?)'
+  ).bind(memberId, input.email, input.username, input.display_name, passwordHash, input.country_code ?? null, input.age ?? null, input.gender ?? null, input.primary_house, input.chapter_id ?? null, input.timezone, now, now).run();
 
   const statsId = crypto.randomUUID();
   await c.env.DB.prepare(
@@ -73,7 +75,7 @@ authRouter.post('/register', async (c) => {
   await storeSession(c.env, token, session);
 
   const member = await c.env.DB.prepare(
-    'SELECT id, email, username, display_name, avatar_r2_key, bio, country_code, city, primary_house, chapter_id, role, is_active, email_verified, created_at FROM members WHERE id = ? AND deleted_at IS NULL'
+    'SELECT id, email, username, display_name, avatar_r2_key, bio, country_code, city, primary_house, membership_level, chapter_id, role, is_active, email_verified, created_at FROM members WHERE id = ? AND deleted_at IS NULL'
   ).bind(memberId).first();
 
   return c.json({ token, member }, 201);
@@ -150,7 +152,7 @@ authRouter.get('/me', authMiddleware, async (c) => {
   const session = getSession(c);
 
   const member = await c.env.DB.prepare(
-    'SELECT id, email, username, display_name, avatar_r2_key, bio, country_code, city, primary_house, chapter_id, role, is_active, email_verified, last_active_at, created_at, updated_at FROM members WHERE id = ? AND deleted_at IS NULL'
+    'SELECT id, email, username, display_name, avatar_r2_key, cover_photo_r2_key, bio, country_code, city, primary_house, membership_level, chapter_id, timezone, role, is_active, email_verified, last_active_at, created_at, updated_at FROM members WHERE id = ? AND deleted_at IS NULL'
   ).bind(session.member_id).first();
 
   if (!member) {
@@ -172,8 +174,19 @@ authRouter.post('/forgot-password', async (c) => {
   }
   const { email } = parsed.data as ForgotPasswordInput;
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  await c.env.ALPHAMINDS_SESSIONS.put(`otp:${email}`, otp, { expirationTtl: 600 });
+  const member = await c.env.DB.prepare(
+    'SELECT id FROM members WHERE email = ? AND deleted_at IS NULL'
+  ).bind(email).first<{ id: string }>();
+
+  if (member) {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await c.env.ALPHAMINDS_SESSIONS.put(`otp:${email}`, otp, { expirationTtl: 600 });
+    try {
+      await sendOtpEmail(c.env, email, otp);
+    } catch (err) {
+      console.error('Failed to send OTP email:', err);
+    }
+  }
 
   return c.json({ success: true });
 });
@@ -224,4 +237,31 @@ authRouter.post('/reset-password', async (c) => {
   ).bind(passwordHash, now, now, email).run();
 
   return c.json({ success: true });
+});
+
+// Embedded Rel-Fi single sign-on: issues a short-lived, signed handoff JWT the
+// Rel-Fi worker can verify locally (shared RELFI_SERVICE_SECRET) to provision a
+// Rel-Fi user from the AlphaMinds session — no session cookie exposure, no
+// cross-worker call. Called same-origin from the embedded game frontend.
+authRouter.get('/relfi-handoff', authMiddleware, async (c) => {
+  const session = getSession(c);
+
+  const member = await c.env.DB.prepare(
+    'SELECT display_name FROM members WHERE id = ? AND deleted_at IS NULL',
+  ).bind(session.member_id).first<{ display_name: string }>();
+
+  if (!c.env.RELFI_SERVICE_SECRET) {
+    console.error('[relfi-handoff] RELFI_SERVICE_SECRET is missing or empty');
+    return c.json({ error: 'Server configuration error' }, 500);
+  }
+
+  const handoff = await signHandoff(c.env, {
+    sub: session.member_id,
+    email: session.email,
+    username: session.username,
+    display_name: member?.display_name || session.username,
+    role: session.role,
+  });
+
+  return c.json({ handoff });
 });

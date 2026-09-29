@@ -10,6 +10,7 @@ export function useJoinRoom() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      queryClient.invalidateQueries({ queryKey: ["me", "profile"] });
     },
   });
 }

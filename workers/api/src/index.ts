@@ -11,6 +11,11 @@ import { dailyRouter } from './routes/daily.js';
 import { notificationsRouter } from './routes/notifications.js';
 import { mediaRouter } from './routes/media.js';
 import { adminRouter } from './routes/admin.js';
+import { codeRouter } from './routes/code.js';
+import { journeyRouter } from './routes/journey.js';
+import { relfiRouter } from './routes/relfi.js';
+import { plansRouter } from './routes/plans.js';
+import { libraryRouter } from './routes/library.js';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -25,7 +30,7 @@ app.use('*', async (c, next) => {
   c.header('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Requested-With');
   c.header('Access-Control-Max-Age', '86400');
   if (c.req.method === 'OPTIONS') return c.body(null, 204);
-  await next();
+  return await next();
 });
 
 app.onError((err, c) => {
@@ -46,6 +51,11 @@ app.route('/v1/challenges', challengesRouter);
 app.route('/v1/daily-content', dailyRouter);
 app.route('/v1/media', mediaRouter);
 app.route('/v1/admin', adminRouter);
+app.route('/v1/code', codeRouter);
+app.route('/v1/journey', journeyRouter);
+app.route('/v1/relfi', relfiRouter);
+app.route('/v1/plans', plansRouter);
+app.route('/v1/library', libraryRouter);
 
 // Mount chapter-scoped routes
 app.route('/v1/chapters', chapterRoomsRouter);

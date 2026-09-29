@@ -1,5 +1,7 @@
 // Shared TypeScript definitions
 
+/// <reference types="@cloudflare/workers-types" />
+
 import { House, Role, Tier } from './constants.js';
 
 // Cloudflare Worker Bindings Env
@@ -21,6 +23,7 @@ export interface Env {
 
   // Secrets & Configs
   JWT_SESSION_SECRET: string;
+  RELFI_SERVICE_SECRET: string;
   RESEND_API_KEY: string;
   WEB_PUSH_VAPID_PRIVATE: string;
   WEB_PUSH_VAPID_PUBLIC: string;
@@ -71,6 +74,7 @@ export interface MemberRow {
   password_hash: string | null;
   google_id: string | null;
   avatar_r2_key: string | null;
+  cover_photo_r2_key?: string | null;
   bio: string | null;
   country_code: string | null;
   city: string | null;
@@ -329,7 +333,7 @@ export interface ChallengeLogRow {
 export interface DailyContentRow {
   id: string;
   house: House | 'global';
-  content_type: 'insight' | 'challenge' | 'question' | 'wellness_tip' | 'humanity_action';
+  content_type: 'insight' | 'challenge' | 'question' | 'wellness_tip' | 'humanity_action' | 'alpha_daily';
   title: string;
   body: string;
   media_r2_key: string | null;
@@ -561,5 +565,52 @@ export interface AdminAuditLogRow {
   before_json: string | null; // JSON string
   after_json: string | null; // JSON string
   ip_address: string | null;
+  created_at: string;
+}
+
+export interface PlanRow {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  cover_image_r2_key: string | null;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  estimated_duration: string | null;
+  is_published: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+export interface PlanSectionRow {
+  id: string;
+  plan_id: string;
+  title: string;
+  description: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlanItemRow {
+  id: string;
+  plan_id: string;
+  section_id: string | null;
+  title: string;
+  body: string;
+  content_type: 'video' | 'audio' | 'article' | 'image';
+  media_r2_key: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlanProgressRow {
+  id: string;
+  plan_id: string;
+  member_id: string;
+  plan_item_id: string;
+  completed_at: string;
   created_at: string;
 }

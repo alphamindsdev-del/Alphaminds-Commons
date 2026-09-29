@@ -3,6 +3,8 @@ import { Env, SessionPayload } from '../../../shared/types.js';
 import { ERROR_CODES } from '../../../shared/constants.js';
 import { LogProgressSchema, LogProgressInput } from '../lib/validation.js';
 import { authMiddleware, getSession } from '../middleware/auth.js';
+import { mapChallenge } from '../lib/challenge-mapper.js';
+import { houseScoreColumn, touchActivity } from '../lib/scoring.js';
 
 type AuthEnv = { Bindings: Env; Variables: { session: SessionPayload } };
 
@@ -17,16 +19,16 @@ challengesRouter.get('/', authMiddleware, async (c) => {
 
   if (house) {
     queryStr = `SELECT c.*,
-                (SELECT COUNT(*) FROM challenge_participation cp WHERE cp.challenge_id = c.id AND cp.deleted_at IS NULL) as participant_count,
-                (SELECT CASE WHEN EXISTS (SELECT 1 FROM challenge_participation cp2 WHERE cp2.challenge_id = c.id AND cp2.member_id = ? AND cp2.deleted_at IS NULL) THEN 1 ELSE 0 END) as is_participating
+                (SELECT COUNT(*) FROM challenge_participations cp WHERE cp.challenge_id = c.id) as participant_count,
+                (SELECT CASE WHEN EXISTS (SELECT 1 FROM challenge_participations cp2 WHERE cp2.challenge_id = c.id AND cp2.member_id = ?) THEN 1 ELSE 0 END) as is_participating
                 FROM challenges c
                 WHERE c.deleted_at IS NULL AND c.is_active = 1 AND c.house = ?
                 ORDER BY c.created_at DESC`;
     bindParams = [session.member_id, house];
   } else {
     queryStr = `SELECT c.*,
-                (SELECT COUNT(*) FROM challenge_participation cp WHERE cp.challenge_id = c.id AND cp.deleted_at IS NULL) as participant_count,
-                (SELECT CASE WHEN EXISTS (SELECT 1 FROM challenge_participation cp2 WHERE cp2.challenge_id = c.id AND cp2.member_id = ? AND cp2.deleted_at IS NULL) THEN 1 ELSE 0 END) as is_participating
+                (SELECT COUNT(*) FROM challenge_participations cp WHERE cp.challenge_id = c.id) as participant_count,
+                (SELECT CASE WHEN EXISTS (SELECT 1 FROM challenge_participations cp2 WHERE cp2.challenge_id = c.id AND cp2.member_id = ?) THEN 1 ELSE 0 END) as is_participating
                 FROM challenges c
                 WHERE c.deleted_at IS NULL AND c.is_active = 1
                 ORDER BY c.created_at DESC`;
@@ -34,7 +36,58 @@ challengesRouter.get('/', authMiddleware, async (c) => {
   }
 
   const result = await c.env.DB.prepare(queryStr).bind(...bindParams).all();
-  return c.json({ data: result.results });
+  return c.json({ data: result.results.map((r: any) => mapChallenge(r)) });
+});
+
+challengesRouter.get('/:challengeId', authMiddleware, async (c) => {
+  const session = getSession(c as any);
+  const { challengeId } = c.req.param();
+
+  const challenge = await c.env.DB.prepare(
+    `SELECT c.*,
+       (SELECT COUNT(*) FROM challenge_participations cp WHERE cp.challenge_id = c.id) as participant_count,
+       (SELECT CASE WHEN EXISTS (SELECT 1 FROM challenge_participations cp2 WHERE cp2.challenge_id = c.id AND cp2.member_id = ?) THEN 1 ELSE 0 END) as is_participating
+     FROM challenges c
+     WHERE c.id = ? AND c.deleted_at IS NULL AND c.is_active = 1`
+  ).bind(session.member_id, challengeId).first<any>();
+
+  if (!challenge) {
+    return c.json({ error: 'Challenge not found', code: ERROR_CODES.NOT_FOUND }, 404);
+  }
+
+  const participation = await c.env.DB.prepare(
+    "SELECT * FROM challenge_participations WHERE challenge_id = ? AND member_id = ? AND status = 'active'"
+  ).bind(challengeId, session.member_id).first<any>();
+
+  const logs = await c.env.DB.prepare(
+    `SELECT cl.logged_date as date, cl.note, cl.value
+     FROM challenge_logs cl
+     JOIN challenge_participations cp ON cl.participation_id = cp.id
+     WHERE cp.challenge_id = ? AND cp.member_id = ?
+     ORDER BY cl.created_at DESC LIMIT 10`
+  ).bind(challengeId, session.member_id).all();
+
+  const leaderboard = await c.env.DB.prepare(
+    `SELECT m.id, m.username, m.display_name, m.primary_house, COALESCE(SUM(cl.value), 0) as value
+     FROM challenge_logs cl
+     JOIN challenge_participations cp ON cl.participation_id = cp.id
+     JOIN members m ON cl.member_id = m.id
+     WHERE cp.challenge_id = ? AND m.deleted_at IS NULL
+     GROUP BY cl.member_id
+     ORDER BY value DESC
+     LIMIT 10`
+  ).bind(challengeId).all();
+
+  const base = mapChallenge(challenge);
+  return c.json({
+    ...base,
+    joined: !!participation,
+    current: participation?.current_value ?? 0,
+    participant_count: base.participants,
+    days_left: base.daysLeft,
+    log: logs.results ?? [],
+    leaderboard: leaderboard.results ?? [],
+  });
 });
 
 challengesRouter.post('/:challengeId/join', authMiddleware, async (c) => {
@@ -51,7 +104,7 @@ challengesRouter.post('/:challengeId/join', authMiddleware, async (c) => {
   }
 
   const existing = await c.env.DB.prepare(
-    'SELECT id FROM challenge_participation WHERE challenge_id = ? AND member_id = ? AND deleted_at IS NULL'
+    'SELECT id FROM challenge_participations WHERE challenge_id = ? AND member_id = ?'
   ).bind(challengeId, session.member_id).first();
 
   if (existing) {
@@ -59,7 +112,7 @@ challengesRouter.post('/:challengeId/join', authMiddleware, async (c) => {
   }
 
   await c.env.DB.prepare(
-    'INSERT INTO challenge_participation (id, challenge_id, member_id, chapter_id, status, current_value, target_value, completion_pct, log_count, points_awarded, created_at, updated_at) VALUES (?, ?, ?, ?, \'active\', 0, ?, 0, 0, 0, ?, ?)'
+    'INSERT INTO challenge_participations (id, challenge_id, member_id, chapter_id, status, current_value, target_value, completion_pct, log_count, points_awarded, created_at, updated_at) VALUES (?, ?, ?, ?, \'active\', 0, ?, 0, 0, 0, ?, ?)'
   ).bind(crypto.randomUUID(), challengeId, session.member_id, session.chapter_id, challenge.target_value, now, now).run();
 
   return c.json({ success: true });
@@ -77,7 +130,7 @@ challengesRouter.post('/:challengeId/log', authMiddleware, async (c) => {
   const now = new Date().toISOString();
 
   const participation = await c.env.DB.prepare(
-    'SELECT * FROM challenge_participation WHERE challenge_id = ? AND member_id = ? AND deleted_at IS NULL AND status = \'active\''
+    `SELECT cp.*, c.points_reward, c.house FROM challenge_participations cp JOIN challenges c ON cp.challenge_id = c.id WHERE cp.challenge_id = ? AND cp.member_id = ? AND cp.status = 'active'`
   ).bind(challengeId, session.member_id).first<any>();
 
   if (!participation) {
@@ -95,17 +148,21 @@ challengesRouter.post('/:challengeId/log', authMiddleware, async (c) => {
   const isCompleted = target && target > 0 && newCurrentValue >= target;
 
   await c.env.DB.prepare(
-    'UPDATE challenge_participation SET current_value = ?, completion_pct = ?, last_logged_at = ?, log_count = log_count + 1, updated_at = ?, completed_at = CASE WHEN ? THEN ? ELSE completed_at END, status = CASE WHEN ? THEN \'completed\' ELSE status END WHERE id = ?'
+    'UPDATE challenge_participations SET current_value = ?, completion_pct = ?, last_logged_at = ?, log_count = log_count + 1, updated_at = ?, completed_at = CASE WHEN ? THEN ? ELSE completed_at END, status = CASE WHEN ? THEN \'completed\' ELSE status END WHERE id = ?'
   ).bind(newCurrentValue, completionPct, now, now, isCompleted ? 1 : 0, isCompleted ? now : null, isCompleted ? 1 : 0, participation.id).run();
 
+  await touchActivity(c.env, session.member_id, new Date(now));
+
   if (isCompleted) {
+    const reward = participation.points_reward || 0;
+    const col = houseScoreColumn(participation.house);
     await c.env.DB.prepare(
-      'UPDATE member_stats SET total_points = total_points + ?, challenges_completed = challenges_completed + 1, updated_at = ? WHERE member_id = ?'
-    ).bind(participation.points_reward || 0, now, session.member_id).run();
+      `UPDATE member_stats SET total_points = total_points + ?, ${col} = ${col} + ?, total_score = total_score + ?, challenges_completed = challenges_completed + 1, updated_at = ? WHERE member_id = ?`
+    ).bind(reward, reward, reward, now, session.member_id).run();
 
     await c.env.DB.prepare(
-      'UPDATE challenge_participation SET points_awarded = ? WHERE id = ?'
-    ).bind(participation.points_reward || 0, participation.id).run();
+      'UPDATE challenge_participations SET points_awarded = ? WHERE id = ?'
+    ).bind(reward, participation.id).run();
   }
 
   return c.json({ success: true, current_value: newCurrentValue, completion_pct: completionPct, completed: isCompleted });

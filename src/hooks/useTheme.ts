@@ -9,22 +9,21 @@ function getInitial(): Theme {
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>("light");
-
-  useEffect(() => {
-    const t = getInitial();
-    setTheme(t);
-  }, []);
+  const [theme, setThemeState] = useState<Theme>(() => getInitial());
 
   useEffect(() => {
     if (typeof document === "undefined") return;
     document.documentElement.classList.toggle("dark", theme === "dark");
-    window.localStorage.setItem("am-theme", theme);
   }, [theme]);
+
+  const setTheme = (t: Theme) => {
+    setThemeState(t);
+    window.localStorage.setItem("am-theme", t);
+  };
 
   return {
     theme,
-    toggle: () => setTheme((t) => (t === "light" ? "dark" : "light")),
+    toggle: () => setTheme(theme === "light" ? "dark" : "light"),
     setTheme,
   };
 }

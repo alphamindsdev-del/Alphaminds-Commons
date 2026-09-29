@@ -1,22 +1,23 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 export function ProgressBar({
-  value,
+  value = 0,
   max = 100,
-  color = "#28555e",
+  color = "var(--primary)",
   label,
   showValue = true,
   className,
 }: {
-  value: number;
+  value?: number;
   max?: number;
   color?: string;
-  label?: string;
+  label?: ReactNode;
   showValue?: boolean;
   className?: string;
 }) {
-  const pct = Math.min(100, Math.round((value / max) * 100));
+  const pct = Math.min(100, Math.round(((value ?? 0) / (max ?? 100)) * 100));
   return (
     <div className={cn("w-full", className)}>
       {(label || showValue) && (

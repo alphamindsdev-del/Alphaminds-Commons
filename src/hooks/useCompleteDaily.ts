@@ -10,6 +10,7 @@ export function useCompleteDaily(contentId: string) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["daily-content", "today"] });
+      queryClient.invalidateQueries({ queryKey: ["me", "profile"] });
     },
   });
 }

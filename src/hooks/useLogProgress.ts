@@ -11,6 +11,7 @@ export function useLogProgress(challengeId: string) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["me", "challenges"] });
+      queryClient.invalidateQueries({ queryKey: ["me", "profile"] });
     },
   });
 }

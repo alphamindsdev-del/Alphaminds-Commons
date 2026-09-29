@@ -3,6 +3,11 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import apiApp from "../workers/api/src/index";
+import { handleDailyContentDelivery } from "../workers/cron/src/handlers/dailyContent.js";
+import { handleWeeklyReset } from "../workers/cron/src/handlers/weeklyReset.js";
+import { handleStreakAudit } from "../workers/cron/src/handlers/streakAudit.js";
+import { handleLeaderboardRecalculation } from "../workers/cron/src/handlers/leaderboard.js";
+import { handleD1Backup } from "../workers/cron/src/handlers/d1Backup.js";
 
 declare const globalThis: {
   __env__?: Record<string, unknown>;
@@ -33,11 +38,47 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
     return response;
   }
 
-  console.error(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`));
-  return new Response(renderErrorPage(), {
+  const captured = consumeLastCapturedError();
+  const err =
+    captured instanceof Error
+      ? captured
+      : new Error(`h3 swallowed SSR error. Body:\n${body}`);
+  console.error(err);
+  return new Response(renderErrorPage(err), {
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
   });
+}
+
+export async function scheduled(
+  event: { cron: string; scheduledTime: number },
+  env: unknown,
+  ctx: { waitUntil: (promise: Promise<any>) => void }
+): Promise<void> {
+  const scheduledTime = new Date(event.scheduledTime);
+  ctx.waitUntil(
+    (async () => {
+      switch (event.cron) {
+        case '0 5 * * *':
+          await handleDailyContentDelivery(env as any, scheduledTime);
+          break;
+        case '0 0 * * 1':
+          await handleWeeklyReset(env as any, scheduledTime);
+          break;
+        case '30 0 * * *':
+          await handleStreakAudit(env as any, scheduledTime);
+          break;
+        case '0 1 * * *':
+          await handleLeaderboardRecalculation(env as any, scheduledTime);
+          break;
+        case '0 4 * * *':
+          await handleD1Backup(env as any, scheduledTime);
+          break;
+        default:
+          console.warn(`No handler registered for cron schedule: ${event.cron}`);
+      }
+    })()
+  );
 }
 
 export default {
@@ -47,7 +88,7 @@ export default {
 
     if (url.pathname.startsWith("/v1/") || url.pathname === "/v1") {
       try {
-        return await apiApp.fetch(request, bindings, ctx);
+        return await apiApp.fetch(request, bindings, ctx as any);
       } catch (err) {
         return new Response(
           JSON.stringify({ error: err instanceof Error ? err.message : String(err) }),
@@ -62,7 +103,7 @@ export default {
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       console.error(error);
-      return new Response(renderErrorPage(), {
+      return new Response(renderErrorPage(error), {
         status: 500,
         headers: { "content-type": "text/html; charset=utf-8" },
       });

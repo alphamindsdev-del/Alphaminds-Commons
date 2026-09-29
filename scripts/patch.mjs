@@ -9,7 +9,7 @@ const outDir = join(dir, "..", ".output", "server");
 const idxPath = join(outDir, "index.mjs");
 let idx = readFileSync(idxPath, "utf-8");
 
-const importLine = 'import { default as __ssr } from "./_ssr/ssr.mjs";';
+const importLine = 'import { default as __ssr, scheduled as __scheduled } from "./_ssr/ssr.mjs";';
 if (!idx.includes(importLine)) {
   idx = idx.replace("globalThis.__nitro_main__ = import.meta.url;", `globalThis.__nitro_main__ = import.meta.url;\n${importLine}`);
 }
@@ -23,7 +23,8 @@ const newHandler = `var cloudflare_module_default = createHandler({ async fetch(
 \tif (url.pathname.startsWith("/v1/") || url.pathname === "/v1") {
 \t\treturn __ssr.fetch(cfRequest, env, context);
 \t}
-} });`;
+} });
+if (typeof __scheduled === "function") cloudflare_module_default.scheduled = __scheduled;`;
 
 if (!idx.includes("__ssr.fetch")) {
   idx = idx.replace(oldHandler, newHandler);

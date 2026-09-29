@@ -26,6 +26,7 @@ The MVP is live at **https://alphaminds.alphamindsdev.workers.dev** with:
 |----------|--------|
 | Frontend | React 19 + Vite 8 + Tailwind CSS, served via Workers Assets |
 | Backend | Cloudflare Workers + Hono.js REST API at `/v1/*` |
+| Rel-Fi Integration | Embedded game mode via `/rel-fi/*` mount routes; separate worker `relfi-games.alphamindsdev.workers.dev` with handoff JWT exchange |
 | Database | Cloudflare D1 (SQLite) — `alphaminds-commons` |
 | Cache/State | Cloudflare KV — 6 namespaces (sessions, subscription cache, daily delivery, rate limits, content schedule, chapter config) |
 | Storage | Cloudflare R2 — 2 buckets (media uploads, database backups) |
@@ -57,6 +58,59 @@ src/                → React + Vite frontend
   store/            → Zustand stores (auth, theme)
 migrations/         → D1 SQL migrations (37 tables)
 scripts/            → patch.mjs (build post-process), seed.ts
+```
+
+## Rel-Fi Integration (Embedded Game Mode)
+
+AlphaMinds now hosts the Rel-Fi social deduction game as an embedded experience rather than a separate app.
+
+### How It Works
+
+1. **Frontend vendored**: Rel-Fi source files are in `src/relfi/` (rewritten with `@relfi/*` import alias pointing to `./src/relfi/*`)
+2. **Mount routes**: `/rel-fi/*`, `/rel-fi/admin/*`, `/rel-fi/broadcast/:code`, `/rel-fi/tutorial`
+3. **Nav links**: Internal navigation (`/tutorial`, `/`) redirects to `/rel-fi/tutorial`, `/rel-fi`
+4. **Handoff auth flow**:
+   - AlphaMinds generates a signed JWT at `GET /v1/auth/relfi-handoff` (HMAC-signed with `RELFI_SERVICE_SECRET`)
+   - Rel-Fi game calls `embeddedLogin(handoff)` which exchanges the JWT at `POST /api/auth/embedded` on the Rel-Fi worker
+   - Rel-Fi worker verifies the HMAC signature and creates a session — no re-auth needed
+5. **Separate worker**: `relfi-games.alphamindsdev.workers.dev` handles game-specific API routes (auth, rooms, tickets, rates) with its own D1, KV, and R2 bindings
+
+### Embedded-Mode Runbook
+
+```bash
+# Build both projects
+cd alphaminds-commons-main && npm run build          # Frontend + SSR + patch
+cd relfi-game-master/backend && npm run deploy --dry-run  # Type-check only (wrangler bundles at deploy)
+
+# Deploy
+cd alphaminds-commons-main && wrangler deploy         # Main worker
+cd relfi-game-master/backend && wrangler deploy --config wrangler.toml  # Rel-Fi worker
+
+# Set secrets (both workers need RELFI_SERVICE_SECRET)
+echo "YOUR_SECRET" | wrangler secret put RELFI_SERVICE_SECRET          # From alphaminds root
+echo "YOUR_SECRET" | wrangler secret put RELFI_SERVICE_SECRET --config wrangler.toml  # From relfi-game-master/backend
+```
+
+### Project Structure Changes
+
+```
+workers/
+  api/src/          → REST API — routers for auth, members, houses, rooms,
+  │                    posts, events, challenges, daily content, admin, media
+  │   middleware/   → Auth, rate limiting, RBAC, CORS, subscription tier checks
+  │   lib/          → DB, KV, R2, session, password, email, push, validation
+  │   index.ts      → Hono app entry, route mounting
+  │   lib/handoff.ts → HMAC sign/verify for Rel-Fi handoff JWT
+  │   routes/auth.ts  → GET /v1/auth/relfi-handoff
+relfi-game-master/backend/  → Rel-Fi game worker (separate Cloudflare Worker)
+  src/              → Rel-Fi backend (verifyHandoff, embeddedLogin, routes)
+src/                → React + Vite frontend
+  relfi/            → Vendored Rel-Fi source (84 files, @relfi/* alias)
+    game/           → Game state, lobby, hand management
+    lib/            → API client, getHandoff(), embeddedLogin()
+    styles/         → Scoped CSS (relfi.css)
+  routes/           → TanStack Router route pages (includes rel-fi mounts)
+relfi-game-master/backend/.dev.vars  → Local secrets for Rel-Fi worker
 ```
 
 ## Prerequisites
@@ -111,6 +165,8 @@ API: http://localhost:8787/v1/...
 
 ## Deployment
 
+### Main Worker (AlphaMinds)
+
 The project uses **Cloudflare Workers Builds** (CI). Every push to `master` triggers an auto-build and deploy at:
 - **https://alphaminds.alphamindsdev.workers.dev**
 
@@ -120,6 +176,27 @@ npm run build        # Build + patch
 npx wrangler deploy  # Deploy .output/server/ (the built worker)
 ```
 
+### Rel-Fi Worker (Game Backend)
+
+Separate Cloudflare Worker at **https://relfi-games.alphamindsdev.workers.dev**
+
+Manual deploy:
+```bash
+cd relfi-game-master/backend
+wrangler deploy --config wrangler.toml  # Wrangler bundles automatically
+```
+
+### Deploy Checklist
+
+1. Set `RELFI_SERVICE_SECRET` on **both** workers (same value):
+   ```bash
+   echo "SECRET" | wrangler secret put RELFI_SERVICE_SECRET                                    # AlphaMinds
+   echo "SECRET" | wrangler secret put RELFI_SERVICE_SECRET --config wrangler.toml              # Rel-Fi
+   ```
+2. Build AlphaMinds: `npm run build`
+3. Deploy AlphaMinds: `wrangler deploy`
+4. Deploy Rel-Fi: `cd relfi-game-master/backend && wrangler deploy --config wrangler.toml`
+
 ### Secrets (set via Wrangler, never commit)
 
 ```bash
@@ -128,6 +205,7 @@ wrangler secret put RESEND_API_KEY
 wrangler secret put WEB_PUSH_VAPID_PRIVATE
 wrangler secret put WEB_PUSH_VAPID_PUBLIC
 wrangler secret put ADMIN_ALERT_EMAIL
+wrangler secret put RELFI_SERVICE_SECRET  # Rel-Fi handoff signing
 ```
 
 ## Cron Triggers — Free Plan (5 Slots)

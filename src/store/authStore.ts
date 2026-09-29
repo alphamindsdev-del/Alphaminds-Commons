@@ -11,12 +11,14 @@ interface Member {
   username: string;
   display_name: string;
   avatar_url?: string | null;
+  cover_photo_url?: string | null;
   primary_house: HouseId;
   secondary_houses?: string[];
   role: string;
   chapter_id: string | null;
   subscription_tier: Tier;
   email_verified: boolean;
+  membership_level?: string;
 }
 
 interface AuthState {
@@ -78,12 +80,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         username: data.member?.username ?? data.username,
         display_name: data.member?.display_name ?? data.display_name,
         avatar_url: data.member?.avatar_url ?? data.avatar_url,
+        cover_photo_url: data.member?.cover_photo_url ?? data.cover_photo_url,
         primary_house: data.member?.primary_house ?? data.primary_house,
         secondary_houses: data.member?.secondary_houses ?? data.secondary_houses,
         role: data.member?.role ?? data.role,
         chapter_id: data.member?.chapter_id ?? data.chapter_id,
         subscription_tier: data.member?.subscription_tier ?? data.subscription_tier ?? "free",
         email_verified: data.member?.email_verified ?? data.email_verified ?? false,
+        membership_level: data.member?.membership_level ?? data.membership_level ?? "SEEKER",
       };
       set({
         member,

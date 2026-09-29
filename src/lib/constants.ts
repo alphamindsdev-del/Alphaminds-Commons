@@ -1,10 +1,12 @@
-export type HouseId = "becoming" | "connection" | "wellness" | "play" | "humanity";
+import { Sprout, Handshake, Dumbbell, Clapperboard, Heart, type LucideIcon } from "lucide-react";
+
+export type HouseId = "becoming" | "connection" | "wellness" | "fun" | "humanity";
 
 export interface House {
   id: HouseId;
   name: string;
   fullName: string;
-  emoji: string;
+  icon: LucideIcon;
   color: string;
   colorSoft: string;
   tagline: string;
@@ -18,61 +20,61 @@ export const HOUSES: House[] = [
     id: "becoming",
     name: "Becoming",
     fullName: "House of Becoming",
-    emoji: "🌱",
+    icon: Sprout,
     color: "#6366F1",
     colorSoft: "#EEF2FF",
     tagline: "Grow into who you're meant to be.",
     description: "Mindset, learning, and personal mastery. This is where you sharpen your edges.",
     dayOfWeek: 1,
-    dayLabel: "Monday — Becoming Day",
+    dayLabel: "Monday Becoming Day",
   },
   {
     id: "connection",
     name: "Connection",
     fullName: "House of Connection",
-    emoji: "🤝",
+    icon: Handshake,
     color: "#EC4899",
     colorSoft: "#FDF2F8",
     tagline: "We rise by lifting each other.",
     description: "Relationships, conversation, and meaningful belonging. Show up, be seen, connect.",
     dayOfWeek: 2,
-    dayLabel: "Tuesday — Connection Day",
+    dayLabel: "Tuesday Connection Day",
   },
   {
     id: "wellness",
     name: "Wellness",
     fullName: "House of Wellness",
-    emoji: "💪",
+    icon: Dumbbell,
     color: "#10B981",
     colorSoft: "#ECFDF5",
     tagline: "Honor the body that carries you.",
     description: "Movement, rest, nourishment, and breath. The body knows the way home.",
     dayOfWeek: 4,
-    dayLabel: "Thursday — Wellness Day",
+    dayLabel: "Thursday Wellness Day",
   },
   {
-    id: "play",
-    name: "Play",
-    fullName: "House of Play",
-    emoji: "🎨",
+    id: "fun",
+    name: "Fun",
+    fullName: "House of Fun",
+    icon: Clapperboard,
     color: "#F59E0B",
     colorSoft: "#FFFBEB",
     tagline: "Joy is a serious practice.",
-    description: "Creativity, curiosity, and unstructured delight. Make, dance, laugh, wander.",
+    description: "Music, dance, games, adventures, and creative expression. Laugh, play, explore, and celebrate life together.",
     dayOfWeek: 5,
-    dayLabel: "Friday — Play Day",
+    dayLabel: "Friday Fun Day",
   },
   {
     id: "humanity",
     name: "Humanity",
     fullName: "House of Humanity",
-    emoji: "❤️",
+    icon: Heart,
     color: "#EF4444",
     colorSoft: "#FEF2F2",
     tagline: "We belong to each other.",
     description: "Service, justice, and showing up for the world beyond yourself.",
     dayOfWeek: 0,
-    dayLabel: "Sunday — Humanity Day",
+    dayLabel: "Sunday Humanity Day",
   },
 ];
 

@@ -16,6 +16,7 @@ export const RegisterSchema = z.object({
   primary_house: z.enum(HOUSES),
   secondary_houses: z.array(z.enum(HOUSES)).max(2).optional().default([]),
   chapter_id: z.string().optional(),
+  timezone: z.string().optional().default('UTC'),
 });
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 
@@ -58,8 +59,8 @@ export const RsvpSchema = z.object({
 export type RsvpInput = z.infer<typeof RsvpSchema>;
 
 export const CreateDailyContentSchema = z.object({
-  house: z.string(),
-  content_type: z.string(),
+  house: z.string().optional(),
+  content_type: z.enum(['insight', 'challenge', 'question', 'wellness_tip', 'humanity_action']).optional().default('insight'),
   title: z.string(),
   body: z.string(),
   scheduled_date: z.string().optional(),
@@ -91,6 +92,11 @@ export const CreateChapterSchema = z.object({
 });
 export type CreateChapterInput = z.infer<typeof CreateChapterSchema>;
 
+export const UpdateChapterSchema = CreateChapterSchema.partial().extend({
+  is_active: z.boolean().optional(),
+});
+export type UpdateChapterInput = z.infer<typeof UpdateChapterSchema>;
+
 export const ForgotPasswordSchema = z.object({
   email: z.string(),
 });
@@ -113,9 +119,89 @@ export const ChangeReactionSchema = z.object({
 });
 export type ChangeReactionInput = z.infer<typeof ChangeReactionSchema>;
 
+export const CreatePlanSchema = z.object({
+  title: z.string().min(1).max(200),
+  slug: z.string().min(1).max(200).regex(/^[a-z0-9-]+$/),
+  description: z.string().default(''),
+  cover_image_r2_key: z.string().optional(),
+  difficulty: z.enum(['beginner', 'intermediate', 'advanced']).default('beginner'),
+  estimated_duration: z.string().optional(),
+  is_published: z.boolean().optional(),
+});
+export type CreatePlanInput = z.infer<typeof CreatePlanSchema>;
+
+export const CreatePlanSectionSchema = z.object({
+  plan_id: z.string(),
+  title: z.string().min(1).max(200),
+  description: z.string().default(''),
+  sort_order: z.number().int().default(0),
+});
+export type CreatePlanSectionInput = z.infer<typeof CreatePlanSectionSchema>;
+
+export const CreatePlanItemSchema = z.object({
+  plan_id: z.string(),
+  section_id: z.string().optional(),
+  title: z.string().min(1).max(200),
+  body: z.string().default(''),
+  content_type: z.enum(['video', 'audio', 'article', 'image']),
+  media_r2_key: z.string().optional(),
+  sort_order: z.number().int().default(0),
+});
+export type CreatePlanItemInput = z.infer<typeof CreatePlanItemSchema>;
+
 export const MediaUploadSchema = z.object({
   file: z.instanceof(File),
 });
 export type MediaUploadInput = z.infer<typeof MediaUploadSchema>;
 
 export const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+
+export const CreateJourneyActivitySchema = z.object({
+  level: z.enum(['SEEKER', 'EXAMINER', 'FACILITATOR', 'STEWARD', 'CHAPTER_LEADER', 'COORDINATOR']),
+  title: z.string().min(1).max(200),
+  description: z.string().optional(),
+  type: z.enum(['course', 'lesson', 'reading', 'assignment', 'quiz', 'assessment', 'rel_fi', 'claim_file', 'video', 'audio', 'article', 'resource', 'custom']),
+  instructions: z.string().optional(),
+  position: z.number().int().min(1),
+  is_required: z.boolean().optional().default(true),
+  is_published: z.boolean().optional().default(false),
+  content: z.string().optional(),
+  metadata_json: z.string().optional().default('{}'),
+});
+export type CreateJourneyActivityInput = z.infer<typeof CreateJourneyActivitySchema>;
+
+export const UpdateJourneyActivitySchema = z.object({
+  level: z.enum(['SEEKER', 'EXAMINER', 'FACILITATOR', 'STEWARD', 'CHAPTER_LEADER', 'COORDINATOR']).optional(),
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().optional(),
+  type: z.enum(['course', 'lesson', 'reading', 'assignment', 'quiz', 'assessment', 'rel_fi', 'claim_file', 'video', 'audio', 'article', 'resource', 'custom']).optional(),
+  instructions: z.string().optional(),
+  position: z.number().int().optional(),
+  is_required: z.boolean().optional(),
+  is_published: z.boolean().optional(),
+  content: z.string().optional(),
+  metadata_json: z.string().optional(),
+});
+export type UpdateJourneyActivityInput = z.infer<typeof UpdateJourneyActivitySchema>;
+
+export const CreateCodeSchema = z.object({
+  title: z.string().min(1).max(200),
+  passage: z.string(),
+  scheduled_date: z.string().optional(),
+  is_published: z.boolean().optional().default(true),
+});
+export type CreateCodeInput = z.infer<typeof CreateCodeSchema>;
+
+export const UpdateCodeSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  passage: z.string().optional(),
+  scheduled_date: z.string().optional(),
+  is_published: z.boolean().optional(),
+});
+export type UpdateCodeInput = z.infer<typeof UpdateCodeSchema>;
+
+export const SaveCodeSchema = z.object({
+  member_id: z.string(),
+  code_id: z.string(),
+});
+export type SaveCodeInput = z.infer<typeof SaveCodeSchema>;

@@ -1,21 +1,22 @@
 import type { HouseId } from "./constants";
 
 export interface DailyContentItem {
-  content_id: string;
+  id: string;
   house: HouseId;
   content_type: string;
   title: string;
   body: string;
   day_of_week: string;
   scheduled_date?: string;
+  media_r2_key?: string | null;
 }
 
 export interface DailyContentResponse {
-  content: DailyContentItem;
+  content: DailyContentItem | null;
   delivery: {
     delivered_at: string;
     completed_at: string | null;
-  };
+  } | null;
 }
 
 export interface Badge {
@@ -33,9 +34,11 @@ export interface MyProfileResponse {
   email: string;
   bio?: string;
   avatar_url?: string | null;
+  cover_photo_url?: string | null;
   primary_house: HouseId;
   secondary_houses?: string[];
   chapter_id?: string | null;
+  membership_level?: string;
   role?: string;
   subscription_tier?: string;
   email_verified?: boolean;
@@ -43,6 +46,8 @@ export interface MyProfileResponse {
   joined_at?: string;
   streak?: number;
   total_points?: number;
+  challenges_completed?: number;
+  events_attended?: number;
   scores?: Record<string, number>;
   chapter?: string;
   badges?: Badge[];
@@ -84,15 +89,12 @@ export interface RoomItem {
   lastPostPreview?: string;
   unread?: boolean;
   joined?: boolean;
+  isMember?: boolean;
 }
 
 export interface RoomsResponse {
   data: RoomItem[];
   rooms?: RoomItem[];
-}
-
-export interface RoomDetailResponse {
-  room: RoomItem;
 }
 
 export interface PostAuthor {
@@ -138,16 +140,23 @@ export interface PostsResponse {
 export interface PostDetailResponse {
   id: string;
   room_id?: string;
+  roomId?: string;
   author: PostAuthor;
   content: string;
   title?: string;
   created_at: string;
+  timestamp?: string;
   likes?: number;
   liked?: boolean;
   reactions?: number;
   comment_count?: number;
   comments_count?: number;
   comments?: PostCommentItem[];
+  image?: string;
+  poll?: {
+    question: string;
+    options: { label: string; votes: number }[];
+  };
 }
 
 export interface PostCommentItem {
@@ -169,8 +178,10 @@ export interface EventItem {
   type?: string;
   house: HouseId;
   starts_at: string;
+  ends_at?: string;
   format?: string;
   location_name?: string;
+  location_address?: string;
   location?: string;
   description?: string;
   host?: {
@@ -185,14 +196,27 @@ export interface EventItem {
   rsvpLimit?: number;
   tags?: string[];
   capacity?: number;
+  online_url?: string;
+  registration_url?: string;
+  is_rsvped?: string | null;
 }
 
 export interface EventsResponse {
   data: EventItem[];
 }
 
+export interface EventAttendee {
+  status: string;
+  rsvped_at: string;
+  member_id: string;
+  username: string;
+  display_name: string;
+  avatar_r2_key: string | null;
+}
+
 export interface EventDetailResponse extends EventItem {
-  attendees?: Array<{ name: string; avatar: string }>;
+  attendees?: EventAttendee[];
+  is_rsvped?: string | null;
 }
 
 export interface ChallengeLogEntry {
@@ -232,7 +256,8 @@ export interface ChallengeDetailResponse extends ChallengeItem {
 }
 
 export interface MyChallengesResponse {
-  data: ChallengeItem[];
+  active: ChallengeItem[];
+  completed: ChallengeItem[];
 }
 
 export interface LeaderboardEntry {
@@ -269,6 +294,12 @@ export interface NotificationItemAPI {
 
 export interface NotificationsResponse {
   data: NotificationItemAPI[];
+  unread_count: number;
+  pagination?: {
+    next_cursor: string | null;
+    has_more: boolean;
+    limit: number;
+  };
 }
 
 export interface SubscriptionResponse {
@@ -287,6 +318,44 @@ export interface MemberProfileResponse {
   primaryHouse?: HouseId;
   bio?: string;
   avatar_url?: string | null;
+  cover_photo_url?: string | null;
   chapter?: string;
   scores?: Record<string, number>;
+  is_self?: boolean;
+  is_following?: boolean;
+  follower_count?: number;
+  following_count?: number;
 }
+
+export interface EventRegistration {
+  id: string;
+  status: string;
+  rsvped_at: string;
+  member_id: string;
+  username: string;
+  display_name: string;
+  avatar_r2_key: string | null;
+  email?: string;
+}
+
+export interface JourneyActivity {
+  id: string;
+  title: string;
+  description: string | null;
+  type: string;
+  instructions: string | null;
+  content: string | null;
+  position: number;
+  is_required: boolean;
+  status: "completed" | "active" | "locked";
+  completed_at: string | null;
+}
+
+export interface JourneyData {
+  level: string;
+  next_level: string | null;
+  completed_count: number;
+  total_count: number;
+  activities: JourneyActivity[];
+}
+

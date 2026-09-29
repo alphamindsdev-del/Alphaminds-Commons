@@ -11,6 +11,7 @@ export function useCreatePost(roomId: string) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts", roomId] });
+      queryClient.invalidateQueries({ queryKey: ["me", "profile"] });
     },
   });
 }

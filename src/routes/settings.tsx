@@ -1,9 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "@/hooks/useTheme";
+import { useFontSize } from "@/hooks/useFontSize";
 import { TierBadge } from "@/components/common/TierBadge";
+import { PageHeader } from "@/components/common/PageHeader";
 import { useAuthStore } from "@/store/authStore";
 import { apiFetch } from "@/lib/api";
+import { DEFAULT_SETTINGS, type MemberSettings } from "../../workers/shared/settings";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
@@ -15,8 +19,8 @@ export const Route = createFileRoute("/settings")({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="text-xs font-bold uppercase tracking-widest text-text-secondary mb-2 px-1">{title}</h2>
-      <div className="rounded-2xl border border-border bg-card divide-y divide-border card-shadow">{children}</div>
+      <p className="eyebrow px-1 mb-2">{title}</p>
+      <div className="rounded-2xl border border-border bg-card divide-y divide-border card-shadow overflow-hidden">{children}</div>
     </section>
   );
 }
@@ -77,9 +81,16 @@ function DeleteDialog({ open, onClose }: { open: boolean; onClose: () => void })
   );
 }
 
-function EmailPrefsDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const [marketing, setMarketing] = useState(false);
-  const [weeklyDigest, setWeeklyDigest] = useState(true);
+function EmailPrefsDialog({ open, onClose, settings, onSave }: { open: boolean; onClose: () => void; settings: MemberSettings; onSave: (patch: Partial<MemberSettings>) => void }) {
+  const [weeklyDigest, setWeeklyDigest] = useState(settings.emailWeeklyDigest);
+  const [marketing, setMarketing] = useState(settings.emailMarketing);
+
+  useEffect(() => {
+    if (open) {
+      setWeeklyDigest(settings.emailWeeklyDigest);
+      setMarketing(settings.emailMarketing);
+    }
+  }, [open, settings.emailWeeklyDigest, settings.emailMarketing]);
 
   if (!open) return null;
 
@@ -100,7 +111,12 @@ function EmailPrefsDialog({ open, onClose }: { open: boolean; onClose: () => voi
             <Toggle checked={marketing} onChange={() => setMarketing(!marketing)} />
           </label>
         </div>
-        <button onClick={() => { toast.success("Preferences saved"); onClose(); }} className="w-full rounded-xl bg-primary text-white font-bold py-3 mt-4">Save</button>
+        <button
+          onClick={() => { onSave({ emailWeeklyDigest: weeklyDigest, emailMarketing: marketing }); onClose(); }}
+          className="w-full rounded-xl bg-primary text-primary-foreground font-bold py-3 mt-4"
+        >
+          Save
+        </button>
       </div>
     </div>
   );
@@ -109,17 +125,43 @@ function EmailPrefsDialog({ open, onClose }: { open: boolean; onClose: () => voi
 function SettingsPage() {
   const { member } = useAuthStore();
   const navigate = useNavigate();
-  if (!member) return null;
   const { theme, toggle } = useTheme();
-  const [push, setPush] = useState(true);
-  const [emailNotifs, setEmailNotifs] = useState(false);
-  const [daily, setDaily] = useState(true);
-  const [showScores, setShowScores] = useState(true);
-  const [visibility, setVisibility] = useState<"public" | "members">("members");
-  const [fontSize, setFontSize] = useState<"sm" | "md" | "lg">("md");
+  const { fontSize, setFontSize } = useFontSize();
+  const queryClient = useQueryClient();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [emailPrefsOpen, setEmailPrefsOpen] = useState(false);
   const [dataLoading, setDataLoading] = useState(false);
+  const [settings, setSettings] = useState<MemberSettings>(DEFAULT_SETTINGS);
+
+  const { data } = useQuery({
+    queryKey: ["member-settings"],
+    queryFn: () => apiFetch<{ settings: MemberSettings }>("/v1/me/settings"),
+  });
+
+  useEffect(() => {
+    if (data?.settings) setSettings(data.settings);
+  }, [data]);
+
+  const saveSettings = useMutation({
+    mutationFn: (patch: Partial<MemberSettings>) =>
+      apiFetch<{ settings: MemberSettings }>("/v1/me/settings", {
+        method: "PUT",
+        body: JSON.stringify({ settings: patch }),
+      }),
+    onSuccess: (res) => {
+      if (res?.settings) setSettings(res.settings);
+      queryClient.invalidateQueries({ queryKey: ["member-settings"] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message ?? "Couldn't save preference");
+      queryClient.invalidateQueries({ queryKey: ["member-settings"] });
+    },
+  });
+
+  const update = (patch: Partial<MemberSettings>) => {
+    setSettings((prev) => ({ ...prev, ...patch }));
+    saveSettings.mutate(patch);
+  };
 
   const handleDataExport = async () => {
     setDataLoading(true);
@@ -133,9 +175,15 @@ function SettingsPage() {
     }
   };
 
+  if (!member) return null;
+
   return (
-    <div className="space-y-8 max-w-2xl mx-auto">
-      <header><h1 className="font-black text-3xl">Settings</h1></header>
+    <div className="space-y-10 max-w-2xl mx-auto">
+      <PageHeader
+        eyebrow="Preferences"
+        title="Settings"
+        subtitle="Tune your account, notifications, appearance, and privacy so the Commons feels like home."
+      />
 
       <Section title="Account">
         <Row label="Profile"><Link to="/profile" className="text-sm font-bold text-primary">Edit →</Link></Row>
@@ -144,9 +192,9 @@ function SettingsPage() {
       </Section>
 
       <Section title="Notifications">
-        <Row label="Push notifications"><Toggle checked={push} onChange={() => setPush(!push)} /></Row>
-        <Row label="Email notifications"><Toggle checked={emailNotifs} onChange={() => setEmailNotifs(!emailNotifs)} /></Row>
-        <Row label="Daily content reminder"><Toggle checked={daily} onChange={() => setDaily(!daily)} /></Row>
+        <Row label="Push notifications"><Toggle checked={settings.pushNotifications} onChange={() => update({ pushNotifications: !settings.pushNotifications })} /></Row>
+        <Row label="Email notifications"><Toggle checked={settings.emailNotifications} onChange={() => update({ emailNotifications: !settings.emailNotifications })} /></Row>
+        <Row label="Daily content reminder"><Toggle checked={settings.dailyContentReminder} onChange={() => update({ dailyContentReminder: !settings.dailyContentReminder })} /></Row>
       </Section>
 
       <Section title="Appearance">
@@ -156,7 +204,7 @@ function SettingsPage() {
         <Row label="Font size">
           <div className="flex gap-1 rounded-full bg-subtle p-1">
             {(["sm", "md", "lg"] as const).map((s) => (
-              <button key={s} onClick={() => setFontSize(s)} className={`px-3 py-1 rounded-full text-xs font-bold ${fontSize === s ? "bg-primary text-white" : "text-text-secondary"}`}>
+              <button key={s} onClick={() => setFontSize(s)} className={`px-3 py-1 rounded-full text-xs font-bold ${fontSize === s ? "bg-primary text-primary-foreground" : "text-text-secondary"}`}>
                 {s === "sm" ? "Small" : s === "md" ? "Medium" : "Large"}
               </button>
             ))}
@@ -168,16 +216,16 @@ function SettingsPage() {
         <Row label="Profile visibility">
           <div className="flex gap-1 rounded-full bg-subtle p-1">
             {(["public", "members"] as const).map((v) => (
-              <button key={v} onClick={() => setVisibility(v)} className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${visibility === v ? "bg-primary text-white" : "text-text-secondary"}`}>{v === "members" ? "Members only" : v}</button>
+              <button key={v} onClick={() => update({ profileVisibility: v })} className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${settings.profileVisibility === v ? "bg-primary text-primary-foreground" : "text-text-secondary"}`}>{v === "members" ? "Members only" : v}</button>
             ))}
           </div>
         </Row>
-        <Row label="Show house scores on profile"><Toggle checked={showScores} onChange={() => setShowScores(!showScores)} /></Row>
+        <Row label="Show house scores on profile"><Toggle checked={settings.showScoresOnProfile} onChange={() => update({ showScoresOnProfile: !settings.showScoresOnProfile })} /></Row>
       </Section>
 
       <Section title="Subscription">
         <Row label={<div className="flex items-center gap-2">Current plan <TierBadge tier={member.subscription_tier} /></div>}>
-          <Link to="/subscription" className="rounded-xl bg-primary text-white font-bold px-3 py-1.5 text-sm">Upgrade</Link>
+          <Link to="/subscription" className="rounded-xl bg-primary text-primary-foreground font-bold px-3 py-1.5 text-sm">Upgrade</Link>
         </Row>
       </Section>
 
@@ -192,7 +240,7 @@ function SettingsPage() {
       </Section>
 
       <DeleteDialog open={deleteOpen} onClose={() => setDeleteOpen(false)} />
-      <EmailPrefsDialog open={emailPrefsOpen} onClose={() => setEmailPrefsOpen(false)} />
+      <EmailPrefsDialog open={emailPrefsOpen} onClose={() => setEmailPrefsOpen(false)} settings={settings} onSave={update} />
     </div>
   );
 }

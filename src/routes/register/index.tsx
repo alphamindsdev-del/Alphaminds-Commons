@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import logo from "@/assets/alphaminds-logo.svg";
+import { useState, useEffect, useRef } from "react";
+import logo from "@/assets/alphaminds-logo.png";
 import { useRegister } from "@/hooks/useRegister";
 import { useAuthStore } from "@/store/authStore";
 import { ApiError } from "@/lib/api";
 import { toast } from "sonner";
+import { COUNTRIES } from "@/lib/countries";
 
 export const Route = createFileRoute("/register/")({
   head: () => ({ meta: [{ title: "Create your account · AlphaMinds" }] }),
@@ -23,32 +24,44 @@ function passwordStrength(p: string) {
 const GENDER_MAP: Record<string, string> = {
   Female: "female",
   Male: "male",
-  "Non-binary": "non_binary",
+  "Non binary": "non_binary",
   "Prefer not to say": "prefer_not_to_say",
 };
 
-const COUNTRY_MAP: Record<string, string> = {
-  Nigeria: "NG",
-  Ghana: "GH",
-  Kenya: "KE",
-  "South Africa": "ZA",
-  UK: "GB",
-  USA: "US",
-};
+const GENDER_OPTIONS = ["Female", "Male", "Non binary", "Prefer not to say"] as const;
 
-const GENDER_OPTIONS = ["Female", "Male", "Non-binary", "Prefer not to say"] as const;
+function getBrowserTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    return "UTC";
+  }
+}
 
 function RegisterPage() {
   const [pw, setPw] = useState("");
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [country, setCountry] = useState("Nigeria");
+  const [country, setCountry] = useState(COUNTRIES[0].name);
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
+  const [countrySearch, setCountrySearch] = useState("");
+  const [countryOpen, setCountryOpen] = useState(false);
+  const countryRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const registerMutation = useRegister();
   const { setSession } = useAuthStore();
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (countryRef.current && !countryRef.current.contains(e.target as Node)) {
+        setCountryOpen(false);
+      }
+    }
+    if (countryOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [countryOpen]);
   const s = passwordStrength(pw);
   const labels = ["Weak", "Weak", "Fair", "Strong", "Strong"];
   const colors = ["#EF4444", "#EF4444", "#F59E0B", "#10B981", "#10B981"];
@@ -65,15 +78,16 @@ function RegisterPage() {
       return;
     }
     try {
+      const selectedCountry = COUNTRIES.find((c) => c.name === country);
       const body: Record<string, any> = {
         email,
         username: sanitizedUsername,
         display_name: name,
         password: pw,
         primary_house: "wellness",
+        timezone: getBrowserTimezone(),
       };
-      const countryCode = COUNTRY_MAP[country];
-      if (countryCode) body.country_code = countryCode;
+      if (selectedCountry) body.country_code = selectedCountry.code;
       if (age) body.age = parseInt(age, 10);
       const genderKey = GENDER_MAP[gender];
       if (genderKey) body.gender = genderKey;
@@ -110,11 +124,11 @@ function RegisterPage() {
 
   return (
     <div className="min-h-dvh grid lg:grid-cols-2 bg-background">
-      <div className="hidden lg:flex relative overflow-hidden flex-col justify-between p-12 text-white" style={{ background: "linear-gradient(160deg, #28555e 0%, #1e3f47 60%, #0F1923 100%)" }}>
-        <div className="absolute inset-0 opacity-20" style={{ background: "radial-gradient(circle at 70% 30%, #EC4899 0%, transparent 40%), radial-gradient(circle at 20% 80%, #10B981 0%, transparent 40%)" }} />
-        <img src={logo} alt="AlphaMinds" className="h-14 w-auto brightness-0 invert relative" />
+      <div className="hidden lg:flex relative overflow-hidden flex-col justify-between p-12 text-white" style={{ background: "linear-gradient(160deg, var(--primary) 0%, var(--primary-dark) 60%, #0F1923 100%)" }}>
+        <div className="absolute inset-0 opacity-20" style={{ background: "radial-gradient(circle at 70% 30%, var(--accent) 0%, transparent 40%), radial-gradient(circle at 20% 80%, #10B981 0%, transparent 40%)" }} />
+        <img src={logo} alt="AlphaMinds" className="h-14 w-auto object-contain brightness-0 invert relative" />
         <div className="relative">
-          <p className="font-display text-4xl font-black leading-tight max-w-md">"Belonging is built. One small showing-up at a time."</p>
+          <p className="font-display text-4xl font-black leading-tight max-w-md">"Belonging is built. One small showing up at a time."</p>
           <p className="mt-4 text-white/70 text-sm uppercase tracking-widest font-bold">The Commons</p>
         </div>
         <p className="relative text-xs text-white/50">© AlphaMinds Commons</p>
@@ -122,7 +136,7 @@ function RegisterPage() {
 
       <div className="flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-sm">
-          <div className="lg:hidden mb-6 flex justify-center"><img src={logo} alt="AlphaMinds" className="h-12 w-auto" /></div>
+          <div className="lg:hidden mb-6 flex justify-center"><img src={logo} alt="AlphaMinds" className="h-12 w-auto object-contain" /></div>
           <h1 className="font-black text-3xl text-text-primary">Create your account</h1>
           <p className="text-text-secondary mt-1">Join the Commons in under a minute.</p>
 
@@ -152,9 +166,42 @@ function RegisterPage() {
             </Field>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Country">
-                <select value={country} onChange={(e) => setCountry(e.target.value)} className="w-full rounded-[10px] border border-border bg-surface px-3 py-3">
-                  <option>Nigeria</option><option>Ghana</option><option>Kenya</option><option>South Africa</option><option>UK</option><option>USA</option>
-                </select>
+                <div className="relative" ref={countryRef}>
+                  <button type="button" onClick={() => setCountryOpen(!countryOpen)} className="w-full rounded-[10px] border border-border bg-surface px-3 py-3 flex items-center gap-2 text-left">
+                    {(() => {
+                      const c = COUNTRIES.find((c) => c.name === country);
+                      return c ? <><span className="text-lg">{c.flag}</span><span className="truncate">{c.name}</span></> : <span className="text-text-secondary">Select country</span>;
+                    })()}
+                    <span className="ml-auto text-text-secondary text-xs">▼</span>
+                  </button>
+                  {countryOpen && (
+                    <div className="absolute z-50 mt-1 w-[320px] max-h-72 rounded-[10px] border border-border bg-surface shadow-xl overflow-hidden">
+                      <div className="p-2 border-b border-border">
+                        <input
+                          type="text"
+                          value={countrySearch}
+                          onChange={(e) => setCountrySearch(e.target.value)}
+                          placeholder="Search countries..."
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                          autoFocus
+                        />
+                      </div>
+                      <div className="overflow-y-auto max-h-56">
+                        {COUNTRIES.filter((c) => c.name.toLowerCase().includes(countrySearch.toLowerCase())).map((c) => (
+                          <button
+                            key={c.code}
+                            type="button"
+                            onClick={() => { setCountry(c.name); setCountryOpen(false); setCountrySearch(""); }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-subtle transition-colors"
+                          >
+                            <span className="text-lg">{c.flag}</span>
+                            <span>{c.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </Field>
               <Field label="Age"><input type="number" min={13} value={age} onChange={(e) => setAge(e.target.value)} placeholder="e.g. 25" className="w-full rounded-[10px] border border-border bg-surface px-4 py-3" /></Field>
             </div>
@@ -171,7 +218,7 @@ function RegisterPage() {
             {registerMutation.isError && (
               <p className="text-sm font-semibold text-red-500">{(registerMutation.error as any)?.message ?? "Registration failed"}</p>
             )}
-            <button type="submit" disabled={registerMutation.isPending} className="w-full rounded-xl bg-primary text-white font-bold py-3 disabled:opacity-50">
+            <button type="submit" disabled={registerMutation.isPending} className="w-full rounded-xl bg-primary text-primary-foreground font-bold py-3 disabled:opacity-50">
               {registerMutation.isPending ? "Creating account..." : "Create My Account"}
             </button>
             <p className="text-center text-sm text-text-secondary">Already have an account? <Link to="/login" className="text-primary font-bold">Sign In</Link></p>

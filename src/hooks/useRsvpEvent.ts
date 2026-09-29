@@ -11,6 +11,7 @@ export function useRsvpEvent(eventId: string) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["me", "profile"] });
     },
   });
 }

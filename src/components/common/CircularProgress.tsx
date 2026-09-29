@@ -5,7 +5,7 @@ export function CircularProgress({
   max = 100,
   size = 64,
   stroke = 6,
-  color = "#28555e",
+  color = "var(--primary)",
   children,
 }: {
   value: number;

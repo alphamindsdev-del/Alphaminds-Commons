@@ -24,7 +24,8 @@ export function requireRole(minimumRole: Role): MiddlewareHandler<RoleEnv> {
         return c.json({ error: 'Account suspended', code: ERROR_CODES.ACCOUNT_SUSPENDED }, 403);
       }
 
-      if (ROLE_ORDER[member.role] < ROLE_ORDER[minimumRole]) {
+      const memberRole = member.role as Role;
+      if (ROLE_ORDER[memberRole] < ROLE_ORDER[minimumRole]) {
         return c.json({ error: 'Insufficient permissions', code: ERROR_CODES.FORBIDDEN }, 403);
       }
     }

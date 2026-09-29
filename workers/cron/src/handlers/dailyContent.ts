@@ -1,4 +1,5 @@
 import { Env } from '../../../shared/types.js';
+import { parseSettings } from '../../../shared/settings.js';
 import { formatDate, startCronLog, completeCronLog, failCronLog } from '../lib.js';
 
 export async function handleDailyContentDelivery(env: Env, scheduledTime: Date): Promise<void> {
@@ -35,8 +36,8 @@ export async function handleDailyContentDelivery(env: Env, scheduledTime: Date):
     let lastId = '';
     while (true) {
       const members = await env.DB.prepare(`
-        SELECT id FROM members WHERE is_active = 1 AND deleted_at IS NULL AND id > ? ORDER BY id ASC LIMIT 500
-      `).bind(lastId).all<{ id: string }>();
+        SELECT id, settings_json FROM members WHERE is_active = 1 AND deleted_at IS NULL AND id > ? ORDER BY id ASC LIMIT 500
+      `).bind(lastId).all<{ id: string; settings_json: string | null }>();
 
       if (!members.results.length) break;
 
@@ -51,6 +52,14 @@ export async function handleDailyContentDelivery(env: Env, scheduledTime: Date):
           JSON.stringify({ content_id: content.id, delivered_at: new Date().toISOString(), completed_at: null }),
           { expirationTtl: 172800 }
         );
+
+        const reminderEnabled = parseSettings(member.settings_json).dailyContentReminder ?? true;
+        if (reminderEnabled) {
+          await env.DB.prepare(
+            'INSERT INTO notifications (id, member_id, type, title, body, action_url, is_read, push_sent, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?)'
+          ).bind(crypto.randomUUID(), member.id, 'daily_content', content.title, content.body?.slice(0, 200) ?? null, '/', new Date().toISOString()).run();
+        }
+
         recordsProcessed++;
       }
 

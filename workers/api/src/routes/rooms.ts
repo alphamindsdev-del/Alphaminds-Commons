@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { Env, SessionPayload } from '../../../shared/types.js';
 import { ERROR_CODES } from '../../../shared/constants.js';
 import { authMiddleware, getSession } from '../middleware/auth.js';
+import { houseScoreColumn, touchActivity } from '../lib/scoring.js';
 
 type AuthEnv = { Bindings: Env; Variables: { session: SessionPayload } };
 
@@ -55,6 +56,17 @@ roomsRouter.post('/:roomId/join', authMiddleware, async (c) => {
     'UPDATE rooms SET member_count = member_count + 1 WHERE id = ? AND deleted_at IS NULL'
   ).bind(roomId).run();
 
+  const validHouses = ['becoming', 'connection', 'wellness', 'fun', 'humanity'];
+  const roomHouse = (room as any).house as string;
+  if (validHouses.includes(roomHouse)) {
+    const col = houseScoreColumn(roomHouse);
+    await c.env.DB.prepare(
+      `UPDATE member_stats SET ${col} = ${col} + 1, total_score = total_score + 1, rooms_joined = rooms_joined + 1, updated_at = ? WHERE member_id = ?`
+    ).bind(now, session.member_id).run();
+  }
+
+  await touchActivity(c.env, session.member_id, new Date(now));
+
   return c.json({ success: true });
 });
 
@@ -84,29 +96,31 @@ roomsRouter.post('/:roomId/leave', authMiddleware, async (c) => {
 export const chapterRoomsRouter = new Hono<{ Bindings: Env }>();
 
 chapterRoomsRouter.get('/:chapterId/rooms', authMiddleware, async (c) => {
+  const session = getSession(c as any);
   const { chapterId } = c.req.param();
   const house = c.req.query('house');
   const cursor = c.req.query('cursor');
   const limit = Math.min(parseInt(c.req.query('limit') || '20', 10), 100);
   const actualLimit = limit + 1;
 
-  let queryStr: string;
-  let bindParams: any[];
+  const chapterCondition = chapterId === 'global'
+    ? '(r.chapter_id = ? OR r.chapter_id IS NULL)'
+    : 'r.chapter_id = ?';
+  const conditions = [chapterCondition, 'r.deleted_at IS NULL'];
+  const whereParams: any[] = [chapterId];
+  if (house) { conditions.push('r.house = ?'); whereParams.push(house); }
+  if (cursor) { conditions.push('r.id > ?'); whereParams.push(cursor); }
 
-  const baseConditions = 'chapter_id = ? AND deleted_at IS NULL';
-  const houseCondition = house ? ' AND house = ?' : '';
+  const queryStr = `SELECT r.*, CASE WHEN rm.id IS NOT NULL THEN 1 ELSE 0 END AS is_member
+    FROM rooms r
+    LEFT JOIN room_memberships rm ON rm.room_id = r.id AND rm.member_id = ? AND rm.deleted_at IS NULL
+    WHERE ${conditions.join(' AND ')}
+    ORDER BY r.id ASC LIMIT ?`;
 
-  if (cursor) {
-    queryStr = `SELECT * FROM rooms WHERE ${baseConditions}${houseCondition} AND id > ? ORDER BY id ASC LIMIT ?`;
-    bindParams = house ? [chapterId, house, cursor, actualLimit] : [chapterId, cursor, actualLimit];
-  } else {
-    queryStr = `SELECT * FROM rooms WHERE ${baseConditions}${houseCondition} ORDER BY id ASC LIMIT ?`;
-    bindParams = house ? [chapterId, house, actualLimit] : [chapterId, actualLimit];
-  }
-
-  const result = await c.env.DB.prepare(queryStr).bind(...bindParams).all();
-  const hasMore = result.results.length > limit;
-  const data = hasMore ? result.results.slice(0, limit) : result.results;
+  const result = await c.env.DB.prepare(queryStr).bind(session.member_id, ...whereParams, actualLimit).all();
+  const rows = (result.results as any[]).map((r) => ({ ...r, is_member: Boolean(r.is_member) }));
+  const hasMore = rows.length > limit;
+  const data = hasMore ? rows.slice(0, limit) : rows;
   const lastItem = data[data.length - 1];
 
   return c.json({

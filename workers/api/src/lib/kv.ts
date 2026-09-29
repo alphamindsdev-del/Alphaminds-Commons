@@ -24,12 +24,16 @@ export async function deleteCachedTier(env: Env, memberId: string): Promise<void
   await env.ALPHAMINDS_SUBSCRIPTION_CACHE.delete(`tier:${memberId}`);
 }
 
-export async function getDailyDelivery(env: Env, memberId: string, date: string): Promise<string | null> {
-  return env.ALPHAMINDS_DAILY_DELIVERY.get(`delivery:${memberId}:${date}`);
+export async function getDailyContentCache(env: Env, date: string): Promise<string | null> {
+  return env.ALPHAMINDS_DAILY_DELIVERY.get(`daily:content:${date}`);
 }
 
-export async function setDailyDelivery(env: Env, memberId: string, date: string, value: string, ttl?: number): Promise<void> {
-  await env.ALPHAMINDS_DAILY_DELIVERY.put(`delivery:${memberId}:${date}`, value, { expirationTtl: ttl ?? 86400 });
+export async function setDailyContentCache(env: Env, date: string, value: string, ttl?: number): Promise<void> {
+  await env.ALPHAMINDS_DAILY_DELIVERY.put(`daily:content:${date}`, value, { expirationTtl: ttl ?? 86400 });
+}
+
+export async function deleteDailyContentCache(env: Env, date: string): Promise<void> {
+  await env.ALPHAMINDS_DAILY_DELIVERY.delete(`daily:content:${date}`);
 }
 
 export async function getRateLimit(env: Env, key: string): Promise<string | null> {

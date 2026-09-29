@@ -20,7 +20,7 @@ import { cleanWriteup } from "@/lib/utils";
 import { Heart, MessageCircle, Share2 } from "lucide-react";
 
 export function PostCard({ post }: { post: Post }) {
-  const h = HOUSE_MAP[post.author.primaryHouse];
+  const h = HOUSE_MAP[post.author.primaryHouse] ?? HOUSE_MAP.wellness;
   const toggleReaction = useToggleReaction(post.id);
 
   const handleLike = async () => {
@@ -59,7 +59,7 @@ export function PostCard({ post }: { post: Post }) {
       {post.image && (
         <div
           className="mt-4 h-56 rounded-xl"
-          style={{ background: `linear-gradient(135deg, ${h.color}, ${h.color}66, #28555e)` }}
+          style={{ background: `linear-gradient(135deg, ${h.color}, ${h.color}66, var(--primary))` }}
         />
       )}
 

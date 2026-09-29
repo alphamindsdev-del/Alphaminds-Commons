@@ -10,7 +10,7 @@ export function useUpdateProfile() {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["me", "profile"] });
+      queryClient.invalidateQueries({ queryKey: ["me"] });
     },
   });
 }

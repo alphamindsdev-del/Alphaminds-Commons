@@ -52,7 +52,7 @@ export function SignupBanner() {
       <div className="mt-3 flex gap-2">
         <Link
           to="/register"
-          className="flex-1 rounded-xl bg-primary text-white text-center text-sm font-bold py-2.5"
+          className="flex-1 rounded-xl bg-primary text-primary-foreground text-center text-sm font-bold py-2.5"
         >
           Sign up free
         </Link>

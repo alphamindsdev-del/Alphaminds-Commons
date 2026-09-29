@@ -43,7 +43,7 @@ export function PostComposer({ roomId, roomName }: { roomId: string; roomName: s
               <button onClick={() => setOpen(false)} className="text-sm font-semibold px-3 py-1.5 rounded-lg hover:bg-subtle">
                 Cancel
               </button>
-              <button onClick={submit} className="text-sm font-bold px-4 py-1.5 rounded-lg bg-primary text-white">
+              <button onClick={submit} className="text-sm font-bold px-4 py-1.5 rounded-lg bg-primary text-primary-foreground">
                 Post
               </button>
             </div>

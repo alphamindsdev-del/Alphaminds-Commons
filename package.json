@@ -10,7 +10,7 @@
     "build": "vite build && node scripts/patch.mjs",
     "build:worker": "wrangler deploy --dry-run",
     "migrate:local": "wrangler d1 migrations apply alphaminds-commons --local",
-    "migrate:remote": "wrangler d1 migrations apply alphaminds-commons",
+    "migrate:remote": "wrangler d1 migrations apply alphaminds-commons --remote",
     "seed": "wrangler d1 execute alphaminds-commons --local --file=scripts/seed.sql",
     "db:reset": "npm run migrate:local && npm run seed",
     "type-check": "tsc --noEmit && tsc --noEmit -p workers/tsconfig.json",
@@ -24,6 +24,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.4.3",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -68,6 +69,7 @@
     "hono": "^4.0.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.575.0",
+    "qrcode.react": "^4.2.0",
     "react": "^19.2.0",
     "react-day-picker": "^9.14.0",
     "react-dom": "^19.2.0",

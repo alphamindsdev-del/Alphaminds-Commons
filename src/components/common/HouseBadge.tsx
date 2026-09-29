@@ -5,18 +5,16 @@ export function HouseBadge({
   house,
   size = "md",
   className,
-  showEmoji = true,
 }: {
   house: HouseId;
   size?: "sm" | "md" | "lg";
   className?: string;
-  showEmoji?: boolean;
 }) {
-  const h = HOUSE_MAP[house];
+  const h = HOUSE_MAP[house] ?? HOUSE_MAP.wellness;
   const sizes = {
-    sm: "text-[10px] px-2 py-0.5 gap-1",
-    md: "text-xs px-2.5 py-1 gap-1.5",
-    lg: "text-sm px-3 py-1.5 gap-2",
+    sm: "text-[10px] px-2 py-0.5",
+    md: "text-xs px-2.5 py-1",
+    lg: "text-sm px-3 py-1.5",
   };
   return (
     <span
@@ -31,7 +29,6 @@ export function HouseBadge({
         border: `1px solid ${h.color}30`,
       }}
     >
-      {showEmoji && <span>{h.emoji}</span>}
       {h.name}
     </span>
   );

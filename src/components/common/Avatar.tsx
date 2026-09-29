@@ -7,7 +7,7 @@ export function Avatar({
   color,
 }: {
   name: string;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
   className?: string;
   color?: string;
 }) {
@@ -16,6 +16,7 @@ export function Avatar({
     md: "h-10 w-10 text-sm",
     lg: "h-14 w-14 text-base",
     xl: "h-24 w-24 text-2xl",
+    "2xl": "h-20 w-20 text-xl sm:h-24 sm:w-24 sm:text-2xl",
   };
   return (
     <div
@@ -24,7 +25,7 @@ export function Avatar({
         sizes[size],
         className,
       )}
-      style={{ background: color ?? "linear-gradient(135deg,#28555e,#3a7a8a)" }}
+      style={{ background: color ?? "linear-gradient(135deg,var(--primary-dark),var(--primary-light))" }}
       aria-label={name}
     >
       {initials(name)}

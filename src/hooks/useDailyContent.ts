@@ -6,5 +6,8 @@ export function useDailyContent() {
   return useQuery<DailyContentResponse>({
     queryKey: ["daily-content", "today"],
     queryFn: () => apiFetch<DailyContentResponse>("/v1/daily-content/today"),
+    staleTime: 1000 * 60,
+    refetchOnMount: true,
+    retry: 1,
   });
 }

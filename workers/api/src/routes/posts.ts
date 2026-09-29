@@ -3,6 +3,8 @@ import { Env, SessionPayload } from '../../../shared/types.js';
 import { ERROR_CODES } from '../../../shared/constants.js';
 import { CreatePostSchema, CreatePostInput, CreateCommentSchema, CreateCommentInput, ChangeReactionSchema, ChangeReactionInput } from '../lib/validation.js';
 import { authMiddleware, getSession } from '../middleware/auth.js';
+import { createNotification } from '../lib/notify.js';
+import { houseScoreColumn, touchActivity } from '../lib/scoring.js';
 
 type AuthEnv = { Bindings: Env; Variables: { session: SessionPayload } };
 
@@ -18,14 +20,14 @@ roomPostsRouter.get('/:roomId/posts', authMiddleware, async (c) => {
   let bindParams: any[];
 
   if (cursor) {
-    queryStr = `SELECT p.*, m.username, m.display_name, m.avatar_r2_key
+    queryStr = `SELECT p.*, m.username, m.display_name, m.avatar_r2_key, m.primary_house
                 FROM posts p
                 JOIN members m ON p.author_id = m.id
                 WHERE p.room_id = ? AND p.deleted_at IS NULL AND p.id > ?
                 ORDER BY p.id ASC LIMIT ?`;
     bindParams = [roomId, cursor, actualLimit];
   } else {
-    queryStr = `SELECT p.*, m.username, m.display_name, m.avatar_r2_key
+    queryStr = `SELECT p.*, m.username, m.display_name, m.avatar_r2_key, m.primary_house
                 FROM posts p
                 JOIN members m ON p.author_id = m.id
                 WHERE p.room_id = ? AND p.deleted_at IS NULL
@@ -71,16 +73,38 @@ roomPostsRouter.post('/:roomId/posts', authMiddleware, async (c) => {
     'INSERT INTO posts (id, room_id, author_id, chapter_id, house, content, post_type, media_r2_keys, reaction_count, comment_count, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)'
   ).bind(postId, roomId, session.member_id, member.chapter_id, member.primary_house, input.content, input.post_type, input.media_r2_keys?.length ? JSON.stringify(input.media_r2_keys) : null, now, now).run();
 
+  const validHouses = ['becoming', 'connection', 'wellness', 'fun', 'humanity'];
+  const roomInfo = await c.env.DB.prepare(
+    'SELECT name, house FROM rooms WHERE id = ?'
+  ).bind(roomId).first<{ name: string; house: string }>();
+
+  const resolvedHouse = roomInfo && validHouses.includes(roomInfo.house) ? roomInfo.house : member.primary_house;
+  const houseScoreCol = houseScoreColumn(resolvedHouse);
   await c.env.DB.prepare(
-    'UPDATE member_stats SET total_points = total_points + 2, posts_authored = posts_authored + 1, updated_at = ? WHERE member_id = ?'
+    `UPDATE member_stats SET total_points = total_points + 2, ${houseScoreCol} = ${houseScoreCol} + 2, total_score = total_score + 2, posts_authored = posts_authored + 1, updated_at = ? WHERE member_id = ?`
   ).bind(now, session.member_id).run();
 
+  await touchActivity(c.env, session.member_id, new Date(now));
+
   const post = await c.env.DB.prepare(
-    `SELECT p.*, m.username, m.display_name, m.avatar_r2_key
+    `SELECT p.*, m.username, m.display_name, m.avatar_r2_key, m.primary_house
      FROM posts p
      JOIN members m ON p.author_id = m.id
      WHERE p.id = ?`
   ).bind(postId).first();
+
+  const members = await c.env.DB.prepare(
+    'SELECT member_id FROM room_memberships WHERE room_id = ? AND member_id != ? AND deleted_at IS NULL'
+  ).bind(roomId, session.member_id).all();
+
+  for (const rm of members.results) {
+    await createNotification(
+      c.env, (rm as any).member_id, 'new_post',
+      `New post in ${roomInfo?.name ?? 'room'}`,
+      input.content.slice(0, 120),
+      `/rooms/${roomId}/posts/${postId}`,
+    );
+  }
 
   return c.json(post, 201);
 });
@@ -91,7 +115,7 @@ postsRouter.get('/:postId', authMiddleware, async (c) => {
   const { postId } = c.req.param();
 
   const post = await c.env.DB.prepare(
-    `SELECT p.*, m.username, m.display_name, m.avatar_r2_key
+    `SELECT p.*, m.username, m.display_name, m.avatar_r2_key, m.primary_house
      FROM posts p
      JOIN members m ON p.author_id = m.id
      WHERE p.id = ? AND p.deleted_at IS NULL`
@@ -102,7 +126,7 @@ postsRouter.get('/:postId', authMiddleware, async (c) => {
   }
 
   const comments = await c.env.DB.prepare(
-    `SELECT c.*, m.username, m.display_name, m.avatar_r2_key
+    `SELECT c.*, m.username, m.display_name, m.avatar_r2_key, m.primary_house
      FROM comments c
      JOIN members m ON c.author_id = m.id
      WHERE c.post_id = ? AND c.deleted_at IS NULL
@@ -148,8 +172,8 @@ postsRouter.post('/:postId/reactions', authMiddleware, async (c) => {
   const now = new Date().toISOString();
 
   const post = await c.env.DB.prepare(
-    'SELECT id FROM posts WHERE id = ? AND deleted_at IS NULL'
-  ).bind(postId).first();
+    'SELECT id, reaction_count FROM posts WHERE id = ? AND deleted_at IS NULL'
+  ).bind(postId).first<{ id: string; reaction_count: number }>();
 
   if (!post) {
     return c.json({ error: 'Post not found', code: ERROR_CODES.NOT_FOUND }, 404);
@@ -168,7 +192,7 @@ postsRouter.post('/:postId/reactions', authMiddleware, async (c) => {
       'UPDATE posts SET reaction_count = MAX(0, reaction_count - 1) WHERE id = ?'
     ).bind(postId).run();
 
-    return c.json({ action: 'removed', reaction_count: Math.max(0, (post as any).reaction_count - 1) });
+    return c.json({ action: 'removed', reaction_count: Math.max(0, (post.reaction_count ?? 1) - 1) });
   } else {
     await c.env.DB.prepare(
       'INSERT INTO reactions (id, target_type, target_id, member_id, emoji, created_at) VALUES (?, \'post\', ?, ?, ?, ?)'
@@ -178,7 +202,7 @@ postsRouter.post('/:postId/reactions', authMiddleware, async (c) => {
       'UPDATE posts SET reaction_count = reaction_count + 1 WHERE id = ?'
     ).bind(postId).run();
 
-    return c.json({ action: 'added', reaction_count: (post as any).reaction_count + 1 });
+    return c.json({ action: 'added', reaction_count: (post.reaction_count ?? 0) + 1 });
   }
 });
 
@@ -200,14 +224,14 @@ postsRouter.get('/:postId/comments', authMiddleware, async (c) => {
   let bindParams: any[];
 
   if (cursor) {
-    queryStr = `SELECT c.*, m.username, m.display_name, m.avatar_r2_key
+    queryStr = `SELECT c.*, m.username, m.display_name, m.avatar_r2_key, m.primary_house
                 FROM comments c
                 JOIN members m ON c.author_id = m.id
                 WHERE c.post_id = ? AND c.deleted_at IS NULL AND c.id > ?
                 ORDER BY c.id ASC LIMIT ?`;
     bindParams = [postId, cursor, actualLimit];
   } else {
-    queryStr = `SELECT c.*, m.username, m.display_name, m.avatar_r2_key
+    queryStr = `SELECT c.*, m.username, m.display_name, m.avatar_r2_key, m.primary_house
                 FROM comments c
                 JOIN members m ON c.author_id = m.id
                 WHERE c.post_id = ? AND c.deleted_at IS NULL
@@ -259,11 +283,29 @@ postsRouter.post('/:postId/comments', authMiddleware, async (c) => {
   ).bind(postId).run();
 
   await c.env.DB.prepare(
-    'UPDATE member_stats SET total_points = total_points + 1, connection_score = connection_score + 1, updated_at = ? WHERE member_id = ?'
+    'UPDATE member_stats SET total_points = total_points + 1, connection_score = connection_score + 1, total_score = total_score + 1, updated_at = ? WHERE member_id = ?'
   ).bind(now, session.member_id).run();
 
+  await touchActivity(c.env, session.member_id, new Date(now));
+
+  const postAuthor = await c.env.DB.prepare(
+    'SELECT author_id, room_id FROM posts WHERE id = ?'
+  ).bind(postId).first<{ author_id: string; room_id: string }>();
+
+  if (postAuthor && postAuthor.author_id !== session.member_id) {
+    const commenter = await c.env.DB.prepare(
+      'SELECT display_name FROM members WHERE id = ?'
+    ).bind(session.member_id).first<{ display_name: string }>();
+    await createNotification(
+      c.env, postAuthor.author_id, 'new_comment',
+      `${commenter?.display_name ?? 'Someone'} commented on your post`,
+      content.slice(0, 120),
+      `/rooms/${postAuthor.room_id}/posts/${postId}`,
+    );
+  }
+
   const comment = await c.env.DB.prepare(
-    `SELECT c.*, m.username, m.display_name, m.avatar_r2_key
+    `SELECT c.*, m.username, m.display_name, m.avatar_r2_key, m.primary_house
      FROM comments c
      JOIN members m ON c.author_id = m.id
      WHERE c.id = ?`

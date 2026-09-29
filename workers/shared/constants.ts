@@ -1,6 +1,6 @@
 // Shared application constants
 
-export const HOUSES = ['becoming', 'connection', 'wellness', 'play', 'humanity'] as const;
+export const HOUSES = ['becoming', 'connection', 'wellness', 'fun', 'humanity'] as const;
 export type House = typeof HOUSES[number];
 export type HouseOrGlobal = House | 'global';
 
@@ -29,7 +29,7 @@ export const WEEKLY_HOUSE_THEME: Record<string, HouseOrGlobal> = {
   tuesday: 'global',
   wednesday: 'connection',
   thursday: 'wellness',
-  friday: 'play',
+  friday: 'fun',
   saturday: 'global',
   sunday: 'humanity',
 };

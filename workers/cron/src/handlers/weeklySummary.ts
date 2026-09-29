@@ -1,4 +1,5 @@
 import { Env } from '../../../shared/types.js';
+import { parseSettings } from '../../../shared/settings.js';
 import { formatDate, startCronLog, completeCronLog, failCronLog } from '../lib.js';
 
 export async function handleWeeklySummary(env: Env, scheduledTime: Date): Promise<void> {
@@ -8,12 +9,16 @@ export async function handleWeeklySummary(env: Env, scheduledTime: Date): Promis
     const weekAgo = new Date(scheduledTime.getTime() - 7 * 86400000).toISOString();
 
     const members = await env.DB.prepare(`
-      SELECT id, email, username, display_name FROM members WHERE email_verified = 1 AND deleted_at IS NULL
-    `).all<{ id: string; email: string; username: string; display_name: string }>();
+      SELECT id, email, username, display_name, settings_json FROM members WHERE email_verified = 1 AND deleted_at IS NULL
+    `).all<{ id: string; email: string; username: string; display_name: string; settings_json: string | null }>();
 
     let recordsProcessed = 0;
 
     for (const member of members.results) {
+      const settings = parseSettings(member.settings_json);
+      const wantsEmail = (settings.emailNotifications ?? false) && (settings.emailWeeklyDigest ?? true);
+      if (!wantsEmail) continue;
+
       const stats = await env.DB.prepare(`
         SELECT total_score, impact_score, current_streak_days, volunteer_hours, challenges_completed, events_attended, detectors_completed
         FROM member_stats WHERE member_id = ?

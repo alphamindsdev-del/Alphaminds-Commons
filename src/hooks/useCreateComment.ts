@@ -11,6 +11,7 @@ export function useCreateComment(postId: string) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+      queryClient.invalidateQueries({ queryKey: ["me", "profile"] });
     },
   });
 }

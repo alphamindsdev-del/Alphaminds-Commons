@@ -116,7 +116,7 @@ describe('validation schemas', () => {
         display_name: 'Test User',
         password: 'password123',
         primary_house: 'becoming',
-        secondary_houses: ['connection', 'wellness', 'play'],
+        secondary_houses: ['connection', 'wellness', 'fun'],
       });
       expect(result.success).toBe(false);
     });
@@ -208,7 +208,7 @@ describe('validation schemas', () => {
     it('rejects more than 2 secondary houses', () => {
       const result = UpdateHousesSchema.safeParse({
         primary_house: 'connection',
-        secondary_houses: ['wellness', 'play', 'humanity'],
+        secondary_houses: ['wellness', 'fun', 'humanity'],
       });
       expect(result.success).toBe(false);
     });

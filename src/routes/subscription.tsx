@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Check, Sparkles } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { PageHeader } from "@/components/common/PageHeader";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/subscription")({
@@ -15,22 +16,26 @@ function SubscriptionPage() {
   const [billing, setBilling] = useState<"monthly" | "annual">("annual");
   const userTier = (subscription as any)?.tier ?? "free";
   const tiers = [
-    { id: "free", name: "Free", monthly: 0, annual: 0, features: ["Daily content & check-in", "Join up to 3 rooms", "Community events (limited)", "Basic progress tracking"], cta: "Current Plan" },
+    { id: "free", name: "Free", monthly: 0, annual: 0, features: ["Daily content & check in", "Join up to 3 rooms", "Community events (limited)", "Basic progress tracking"], cta: "Current Plan" },
     { id: "basic", name: "Basic", monthly: 9, annual: 86, features: ["Everything in Free", "Unlimited room access", "Full events calendar", "Community leaderboard", "Weekly progress summary"], cta: "Subscribe" },
-    { id: "premium", name: "Premium", monthly: 19, annual: 182, features: ["Everything in Basic", "Priority event RSVP", "Personal growth insights", "Monthly 1:1 with guide", "Exclusive content archive", "Ad-free experience"], cta: "Go Premium" },
+    { id: "premium", name: "Premium", monthly: 19, annual: 182, features: ["Everything in Basic", "Priority event RSVP", "Personal growth insights", "Monthly 1:1 with guide", "Exclusive content archive", "Ad free experience"], cta: "Go Premium" },
   ];
   return (
     <div className="space-y-10 max-w-5xl mx-auto">
-      <header className="text-center">
-        <h1 className="font-black text-3xl sm:text-4xl">Upgrade Your AlphaMinds Experience</h1>
-        <p className="text-text-secondary mt-2">Choose the plan that fits your journey.</p>
+      <div className="text-center">
+        <PageHeader
+          align="center"
+          eyebrow="Membership"
+          title="Upgrade Your AlphaMinds Experience"
+          subtitle="Choose the plan that fits your journey. Cancel or change anytime."
+        />
         <div className="mt-6 inline-flex items-center gap-1 rounded-full bg-card border border-border p-1">
-          <button onClick={() => setBilling("monthly")} className={cn("px-4 py-2 text-sm font-bold rounded-full", billing === "monthly" && "bg-primary text-white")}>Monthly</button>
-          <button onClick={() => setBilling("annual")} className={cn("px-4 py-2 text-sm font-bold rounded-full inline-flex items-center gap-1", billing === "annual" && "bg-primary text-white")}>
+          <button onClick={() => setBilling("monthly")} className={cn("px-4 py-2 text-sm font-bold rounded-full", billing === "monthly" && "bg-primary text-primary-foreground")}>Monthly</button>
+          <button onClick={() => setBilling("annual")} className={cn("px-4 py-2 text-sm font-bold rounded-full inline-flex items-center gap-1", billing === "annual" && "bg-primary text-primary-foreground")}>
             Annual <span className="text-[10px] font-black bg-accent text-primary px-1.5 py-0.5 rounded-full">SAVE 20%</span>
           </button>
         </div>
-      </header>
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-5">
         {tiers.map((t) => {
@@ -42,7 +47,7 @@ function SubscriptionPage() {
               "relative rounded-3xl p-7 border flex flex-col",
               isPremium ? "border-transparent text-white" : "border-border bg-card",
             )}
-              style={isPremium ? { background: "linear-gradient(160deg, #28555e 0%, #1e3f47 60%, #0F1923 100%)" } : undefined}
+              style={isPremium ? { background: "linear-gradient(160deg, var(--primary) 0%, var(--primary-dark) 60%, #0F1923 100%)" } : undefined}
             >
               {isBasic && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent text-primary px-3 py-1 text-xs font-black uppercase tracking-widest">Most Popular</span>}
               <h3 className="font-black text-2xl">{t.name}</h3>
@@ -64,8 +69,8 @@ function SubscriptionPage() {
                 className={cn(
                   "mt-7 w-full rounded-xl py-3 font-bold transition-transform active:scale-[0.98]",
                   userTier === t.id && "border border-border text-text-secondary",
-                  isBasic && "bg-primary text-white",
-                  isPremium && "bg-white text-primary-dark",
+                  isBasic && "bg-primary text-primary-foreground",
+                  isPremium && "bg-white text-[#141412]",
                 )}
               >
                 {t.id === "premium" && <Sparkles className="inline h-4 w-4 mr-1" />}

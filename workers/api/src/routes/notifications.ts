@@ -12,22 +12,18 @@ notificationsRouter.get('/', authMiddleware, async (c) => {
   const limit = Math.min(parseInt(c.req.query('limit') || '20', 10), 100);
   const actualLimit = limit + 1;
 
-  let query: ReturnType<typeof c.env.DB.prepare>;
+  let queryStr: string;
   let bindParams: any[];
 
   if (cursor) {
-    query = c.env.DB.prepare(
-      'SELECT * FROM notifications WHERE member_id = ? AND deleted_at IS NULL AND id > ? ORDER BY id ASC LIMIT ?'
-    );
+    queryStr = 'SELECT * FROM notifications WHERE member_id = ? AND deleted_at IS NULL AND created_at < ? ORDER BY created_at DESC LIMIT ?';
     bindParams = [session.member_id, cursor, actualLimit];
   } else {
-    query = c.env.DB.prepare(
-      'SELECT * FROM notifications WHERE member_id = ? AND deleted_at IS NULL ORDER BY id ASC LIMIT ?'
-    );
+    queryStr = 'SELECT * FROM notifications WHERE member_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ?';
     bindParams = [session.member_id, actualLimit];
   }
 
-  const result = await query.bind(...bindParams).all();
+  const result = await c.env.DB.prepare(queryStr).bind(...bindParams).all();
   const hasMore = result.results.length > limit;
   const data = hasMore ? result.results.slice(0, limit) : result.results;
   const lastItem = data[data.length - 1];
@@ -37,9 +33,12 @@ notificationsRouter.get('/', authMiddleware, async (c) => {
   ).bind(session.member_id).first<{ count: number }>();
 
   return c.json({
-    data,
+    data: data.map((n: any) => ({
+      ...n,
+      read: n.is_read === 1,
+    })),
     pagination: {
-      next_cursor: hasMore && lastItem ? (lastItem as any).id : null,
+      next_cursor: hasMore && lastItem ? (lastItem as any).created_at : null,
       has_more: hasMore,
       limit,
     },
@@ -53,6 +52,17 @@ notificationsRouter.post('/read-all', authMiddleware, async (c) => {
   await c.env.DB.prepare(
     'UPDATE notifications SET is_read = 1 WHERE member_id = ? AND deleted_at IS NULL'
   ).bind(session.member_id).run();
+
+  return c.json({ success: true });
+});
+
+notificationsRouter.post('/:id/read', authMiddleware, async (c) => {
+  const session = getSession(c as any);
+  const { id } = c.req.param();
+
+  await c.env.DB.prepare(
+    'UPDATE notifications SET is_read = 1 WHERE id = ? AND member_id = ? AND deleted_at IS NULL'
+  ).bind(id, session.member_id).run();
 
   return c.json({ success: true });
 });

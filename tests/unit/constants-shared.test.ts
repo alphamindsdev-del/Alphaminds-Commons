@@ -7,7 +7,7 @@ describe('shared constants', () => {
     expect(HOUSES).toContain('becoming');
     expect(HOUSES).toContain('connection');
     expect(HOUSES).toContain('wellness');
-    expect(HOUSES).toContain('play');
+    expect(HOUSES).toContain('fun');
     expect(HOUSES).toContain('humanity');
   });
 

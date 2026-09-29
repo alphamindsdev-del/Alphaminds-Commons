@@ -81,16 +81,16 @@ export async function apiFetch<T>(
   }
 
   if (response.status === 403) {
-    const body = await response.json().catch(() => ({}));
+    const body = await response.json().catch(() => ({} as Record<string, unknown>)) as Record<string, unknown>;
     if (body.upgrade_required) {
-      throw new UpgradeRequiredError(body.current_tier, body.required_tier);
+      throw new UpgradeRequiredError(body.current_tier as Tier, body.required_tier as Tier);
     }
-    throw new ApiError(403, body.error ?? "Forbidden");
+    throw new ApiError(403, (body.error as string) ?? "Forbidden");
   }
 
   if (!response.ok) {
-    const body = await response.json().catch(() => ({}));
-    throw new ApiError(response.status, body.error ?? `HTTP ${response.status}`, body.details);
+    const body = await response.json().catch(() => ({} as Record<string, unknown>)) as Record<string, unknown>;
+    throw new ApiError(response.status, (body.error as string) ?? `HTTP ${response.status}`, body.details as Record<string, unknown> | undefined);
   }
 
   return response.json() as Promise<T>;

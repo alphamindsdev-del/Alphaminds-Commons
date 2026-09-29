@@ -11,7 +11,8 @@ export function useUpdateAvatar() {
         headers: {},
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["me", "profile"] });
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+      queryClient.invalidateQueries({ queryKey: ["member"] });
     },
   });
 }

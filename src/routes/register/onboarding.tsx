@@ -76,7 +76,7 @@ function OnboardingPage() {
                       >
                         <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ background: h.color }} />
                         <div className="flex items-start gap-3">
-                          <div className="text-4xl">{h.emoji}</div>
+                          <div className="text-4xl" style={{ color: h.color }}><span className="font-black">{h.name[0]}</span></div>
                           <div className="flex-1">
                             <h3 className="font-bold text-lg text-text-primary">{h.fullName}</h3>
                             <p className="text-sm italic text-text-secondary mt-0.5">{h.tagline}</p>
@@ -89,16 +89,16 @@ function OnboardingPage() {
                             className="text-xs font-bold uppercase tracking-widest rounded-full px-2.5 py-1"
                             style={{ background: isPrimary ? h.color : "transparent", color: isPrimary ? "white" : h.color, border: `1px solid ${h.color}` }}
                           >
-                            {isPrimary ? "Primary ✓" : "Set Primary"}
+                            {isPrimary ? <>Primary <Check className="h-3 w-3 inline" /></> : "Set Primary"}
                           </button>
-                          {isSecondary && <span className="text-xs font-bold" style={{ color: h.color }}>Secondary ✓</span>}
+                          {isSecondary && <span className="text-xs font-bold" style={{ color: h.color }}>Secondary <Check className="h-3 w-3 inline" /></span>}
                         </div>
                       </button>
                     );
                   })}
                 </div>
                 <div className="mt-8 flex justify-end">
-                  <button disabled={!primary} onClick={() => setStep(2)} className="inline-flex items-center gap-2 rounded-xl bg-primary text-white font-bold px-6 py-3 disabled:opacity-50">Continue <ChevronRight className="h-4 w-4" /></button>
+                  <button disabled={!primary} onClick={() => setStep(2)} className="inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground font-bold px-6 py-3 disabled:opacity-50">Continue <ChevronRight className="h-4 w-4" /></button>
                 </div>
               </motion.div>
             )}
@@ -110,7 +110,7 @@ function OnboardingPage() {
                 <div className="mt-8 grid sm:grid-cols-2 gap-3">
                   {availableRooms.map((r) => {
                     const sel = selectedRooms.includes(r.id);
-                    const h = HOUSE_MAP[r.house as HouseId];
+                    const h = HOUSE_MAP[r.house as HouseId] ?? HOUSE_MAP.wellness;
                     return (
                       <button key={r.id} onClick={() => toggleRoom(r.id)} className="text-left rounded-2xl border-2 bg-card p-4 transition-all" style={{ borderColor: sel ? h.color : "var(--border)" }}>
                         <div className="flex items-start justify-between gap-2 mb-1">
@@ -126,14 +126,14 @@ function OnboardingPage() {
                 </div>
                 <div className="mt-8 flex justify-between">
                   <button onClick={() => setStep(1)} className="text-sm font-semibold text-text-secondary">← Back</button>
-                  <button disabled={selectedRooms.length === 0} onClick={() => setStep(3)} className="inline-flex items-center gap-2 rounded-xl bg-primary text-white font-bold px-6 py-3 disabled:opacity-50">Continue <ChevronRight className="h-4 w-4" /></button>
+                  <button disabled={selectedRooms.length === 0} onClick={() => setStep(3)} className="inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground font-bold px-6 py-3 disabled:opacity-50">Continue <ChevronRight className="h-4 w-4" /></button>
                 </div>
               </motion.div>
             )}
 
             {step === 3 && primary && (
               <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="text-center pt-8">
-                <div className="text-7xl mb-4">{HOUSE_MAP[primary].emoji}</div>
+                <div className="text-7xl mb-4" style={{ color: HOUSE_MAP[primary].color }}><span className="font-black">{HOUSE_MAP[primary].name[0]}</span></div>
                 <h1 className="font-black text-3xl sm:text-4xl text-text-primary">You're ready, {authMember?.display_name?.split(" ")[0] ?? "you"}!</h1>
                 <p className="mt-3 text-lg" style={{ color: HOUSE_MAP[primary].color }}>
                   Welcome to the <strong>{HOUSE_MAP[primary].fullName}</strong>
@@ -164,7 +164,7 @@ function OnboardingPage() {
                     }
                   } catch {}
                   navigate({ to: "/" });
-                }} className="mt-10 inline-flex items-center gap-2 rounded-xl bg-primary text-white font-bold px-8 py-4 text-lg">
+                }} className="mt-10 inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground font-bold px-8 py-4 text-lg">
                   Enter AlphaMinds Commons
                 </button>
               </motion.div>

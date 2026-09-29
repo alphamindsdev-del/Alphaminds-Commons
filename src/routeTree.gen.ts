@@ -9,27 +9,46 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WellnessClinicRouteImport } from './routes/wellness-clinic'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RelFiRouteImport } from './routes/rel-fi'
+import { Route as PlansRouteImport } from './routes/plans'
 import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as MyChapterRouteImport } from './routes/my-chapter'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as CodeRouteImport } from './routes/code'
+import { Route as AlphaMindsDailyRouteImport } from './routes/alpha-minds-daily'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as LibraryRouteRouteImport } from './routes/library/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RoomsIndexRouteImport } from './routes/rooms/index'
 import { Route as RegisterIndexRouteImport } from './routes/register/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
+import { Route as LibraryIndexRouteImport } from './routes/library/index'
 import { Route as HousesIndexRouteImport } from './routes/houses/index'
 import { Route as EventsIndexRouteImport } from './routes/events/index'
 import { Route as ChallengesIndexRouteImport } from './routes/challenges/index'
 import { Route as RoomsRoomIdRouteImport } from './routes/rooms/$roomId'
+import { Route as RelFiTutorialRouteImport } from './routes/rel-fi/tutorial'
+import { Route as RelFiAdminRouteImport } from './routes/rel-fi/admin'
 import { Route as RegisterOnboardingRouteImport } from './routes/register/onboarding'
 import { Route as ProfileUsernameRouteImport } from './routes/profile/$username'
+import { Route as PlansPlanIdRouteImport } from './routes/plans.$planId'
+import { Route as LibraryArticleIdRouteImport } from './routes/library/$articleId'
 import { Route as HousesHouseIdRouteImport } from './routes/houses/$houseId'
 import { Route as EventsEventIdRouteImport } from './routes/events/$eventId'
 import { Route as ChallengesChallengeIdRouteImport } from './routes/challenges/$challengeId'
+import { Route as RelFiBroadcastCodeRouteImport } from './routes/rel-fi/broadcast.$code'
 import { Route as RoomsRoomIdPostsPostIdRouteImport } from './routes/rooms/$roomId.posts.$postId'
 
+const WellnessClinicRoute = WellnessClinicRouteImport.update({
+  id: '/wellness-clinic',
+  path: '/wellness-clinic',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SubscriptionRoute = SubscriptionRouteImport.update({
   id: '/subscription',
   path: '/subscription',
@@ -40,9 +59,24 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RelFiRoute = RelFiRouteImport.update({
+  id: '/rel-fi',
+  path: '/rel-fi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlansRoute = PlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NotificationsRoute = NotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyChapterRoute = MyChapterRouteImport.update({
+  id: '/my-chapter',
+  path: '/my-chapter',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -50,14 +84,34 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JourneyRoute = JourneyRouteImport.update({
+  id: '/journey',
+  path: '/journey',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CodeRoute = CodeRouteImport.update({
+  id: '/code',
+  path: '/code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlphaMindsDailyRoute = AlphaMindsDailyRouteImport.update({
+  id: '/alpha-minds-daily',
+  path: '/alpha-minds-daily',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRouteRoute = LibraryRouteRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -80,6 +134,11 @@ const ProfileIndexRoute = ProfileIndexRouteImport.update({
   path: '/profile/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LibraryIndexRoute = LibraryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LibraryRouteRoute,
+} as any)
 const HousesIndexRoute = HousesIndexRouteImport.update({
   id: '/houses/',
   path: '/houses/',
@@ -100,6 +159,16 @@ const RoomsRoomIdRoute = RoomsRoomIdRouteImport.update({
   path: '/rooms/$roomId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RelFiTutorialRoute = RelFiTutorialRouteImport.update({
+  id: '/tutorial',
+  path: '/tutorial',
+  getParentRoute: () => RelFiRoute,
+} as any)
+const RelFiAdminRoute = RelFiAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => RelFiRoute,
+} as any)
 const RegisterOnboardingRoute = RegisterOnboardingRouteImport.update({
   id: '/register/onboarding',
   path: '/register/onboarding',
@@ -109,6 +178,16 @@ const ProfileUsernameRoute = ProfileUsernameRouteImport.update({
   id: '/profile/$username',
   path: '/profile/$username',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PlansPlanIdRoute = PlansPlanIdRouteImport.update({
+  id: '/$planId',
+  path: '/$planId',
+  getParentRoute: () => PlansRoute,
+} as any)
+const LibraryArticleIdRoute = LibraryArticleIdRouteImport.update({
+  id: '/$articleId',
+  path: '/$articleId',
+  getParentRoute: () => LibraryRouteRoute,
 } as any)
 const HousesHouseIdRoute = HousesHouseIdRouteImport.update({
   id: '/houses/$houseId',
@@ -125,6 +204,11 @@ const ChallengesChallengeIdRoute = ChallengesChallengeIdRouteImport.update({
   path: '/challenges/$challengeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RelFiBroadcastCodeRoute = RelFiBroadcastCodeRouteImport.update({
+  id: '/broadcast/$code',
+  path: '/broadcast/$code',
+  getParentRoute: () => RelFiRoute,
+} as any)
 const RoomsRoomIdPostsPostIdRoute = RoomsRoomIdPostsPostIdRouteImport.update({
   id: '/posts/$postId',
   path: '/posts/$postId',
@@ -133,148 +217,238 @@ const RoomsRoomIdPostsPostIdRoute = RoomsRoomIdPostsPostIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/library': typeof LibraryRouteRouteWithChildren
   '/admin': typeof AdminRoute
+  '/alpha-minds-daily': typeof AlphaMindsDailyRoute
+  '/code': typeof CodeRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/journey': typeof JourneyRoute
   '/login': typeof LoginRoute
+  '/my-chapter': typeof MyChapterRoute
   '/notifications': typeof NotificationsRoute
+  '/plans': typeof PlansRouteWithChildren
+  '/rel-fi': typeof RelFiRouteWithChildren
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/wellness-clinic': typeof WellnessClinicRoute
   '/challenges/$challengeId': typeof ChallengesChallengeIdRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/houses/$houseId': typeof HousesHouseIdRoute
+  '/library/$articleId': typeof LibraryArticleIdRoute
+  '/plans/$planId': typeof PlansPlanIdRoute
   '/profile/$username': typeof ProfileUsernameRoute
   '/register/onboarding': typeof RegisterOnboardingRoute
+  '/rel-fi/admin': typeof RelFiAdminRoute
+  '/rel-fi/tutorial': typeof RelFiTutorialRoute
   '/rooms/$roomId': typeof RoomsRoomIdRouteWithChildren
   '/challenges/': typeof ChallengesIndexRoute
   '/events/': typeof EventsIndexRoute
   '/houses/': typeof HousesIndexRoute
+  '/library/': typeof LibraryIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/register/': typeof RegisterIndexRoute
   '/rooms/': typeof RoomsIndexRoute
+  '/rel-fi/broadcast/$code': typeof RelFiBroadcastCodeRoute
   '/rooms/$roomId/posts/$postId': typeof RoomsRoomIdPostsPostIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/alpha-minds-daily': typeof AlphaMindsDailyRoute
+  '/code': typeof CodeRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/journey': typeof JourneyRoute
   '/login': typeof LoginRoute
+  '/my-chapter': typeof MyChapterRoute
   '/notifications': typeof NotificationsRoute
+  '/plans': typeof PlansRouteWithChildren
+  '/rel-fi': typeof RelFiRouteWithChildren
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/wellness-clinic': typeof WellnessClinicRoute
   '/challenges/$challengeId': typeof ChallengesChallengeIdRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/houses/$houseId': typeof HousesHouseIdRoute
+  '/library/$articleId': typeof LibraryArticleIdRoute
+  '/plans/$planId': typeof PlansPlanIdRoute
   '/profile/$username': typeof ProfileUsernameRoute
   '/register/onboarding': typeof RegisterOnboardingRoute
+  '/rel-fi/admin': typeof RelFiAdminRoute
+  '/rel-fi/tutorial': typeof RelFiTutorialRoute
   '/rooms/$roomId': typeof RoomsRoomIdRouteWithChildren
   '/challenges': typeof ChallengesIndexRoute
   '/events': typeof EventsIndexRoute
   '/houses': typeof HousesIndexRoute
+  '/library': typeof LibraryIndexRoute
   '/profile': typeof ProfileIndexRoute
   '/register': typeof RegisterIndexRoute
   '/rooms': typeof RoomsIndexRoute
+  '/rel-fi/broadcast/$code': typeof RelFiBroadcastCodeRoute
   '/rooms/$roomId/posts/$postId': typeof RoomsRoomIdPostsPostIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/library': typeof LibraryRouteRouteWithChildren
   '/admin': typeof AdminRoute
+  '/alpha-minds-daily': typeof AlphaMindsDailyRoute
+  '/code': typeof CodeRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/journey': typeof JourneyRoute
   '/login': typeof LoginRoute
+  '/my-chapter': typeof MyChapterRoute
   '/notifications': typeof NotificationsRoute
+  '/plans': typeof PlansRouteWithChildren
+  '/rel-fi': typeof RelFiRouteWithChildren
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
+  '/wellness-clinic': typeof WellnessClinicRoute
   '/challenges/$challengeId': typeof ChallengesChallengeIdRoute
   '/events/$eventId': typeof EventsEventIdRoute
   '/houses/$houseId': typeof HousesHouseIdRoute
+  '/library/$articleId': typeof LibraryArticleIdRoute
+  '/plans/$planId': typeof PlansPlanIdRoute
   '/profile/$username': typeof ProfileUsernameRoute
   '/register/onboarding': typeof RegisterOnboardingRoute
+  '/rel-fi/admin': typeof RelFiAdminRoute
+  '/rel-fi/tutorial': typeof RelFiTutorialRoute
   '/rooms/$roomId': typeof RoomsRoomIdRouteWithChildren
   '/challenges/': typeof ChallengesIndexRoute
   '/events/': typeof EventsIndexRoute
   '/houses/': typeof HousesIndexRoute
+  '/library/': typeof LibraryIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/register/': typeof RegisterIndexRoute
   '/rooms/': typeof RoomsIndexRoute
+  '/rel-fi/broadcast/$code': typeof RelFiBroadcastCodeRoute
   '/rooms/$roomId/posts/$postId': typeof RoomsRoomIdPostsPostIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/library'
     | '/admin'
+    | '/alpha-minds-daily'
+    | '/code'
     | '/forgot-password'
+    | '/journey'
     | '/login'
+    | '/my-chapter'
     | '/notifications'
+    | '/plans'
+    | '/rel-fi'
     | '/settings'
     | '/subscription'
+    | '/wellness-clinic'
     | '/challenges/$challengeId'
     | '/events/$eventId'
     | '/houses/$houseId'
+    | '/library/$articleId'
+    | '/plans/$planId'
     | '/profile/$username'
     | '/register/onboarding'
+    | '/rel-fi/admin'
+    | '/rel-fi/tutorial'
     | '/rooms/$roomId'
     | '/challenges/'
     | '/events/'
     | '/houses/'
+    | '/library/'
     | '/profile/'
     | '/register/'
     | '/rooms/'
+    | '/rel-fi/broadcast/$code'
     | '/rooms/$roomId/posts/$postId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
+    | '/alpha-minds-daily'
+    | '/code'
     | '/forgot-password'
+    | '/journey'
     | '/login'
+    | '/my-chapter'
     | '/notifications'
+    | '/plans'
+    | '/rel-fi'
     | '/settings'
     | '/subscription'
+    | '/wellness-clinic'
     | '/challenges/$challengeId'
     | '/events/$eventId'
     | '/houses/$houseId'
+    | '/library/$articleId'
+    | '/plans/$planId'
     | '/profile/$username'
     | '/register/onboarding'
+    | '/rel-fi/admin'
+    | '/rel-fi/tutorial'
     | '/rooms/$roomId'
     | '/challenges'
     | '/events'
     | '/houses'
+    | '/library'
     | '/profile'
     | '/register'
     | '/rooms'
+    | '/rel-fi/broadcast/$code'
     | '/rooms/$roomId/posts/$postId'
   id:
     | '__root__'
     | '/'
+    | '/library'
     | '/admin'
+    | '/alpha-minds-daily'
+    | '/code'
     | '/forgot-password'
+    | '/journey'
     | '/login'
+    | '/my-chapter'
     | '/notifications'
+    | '/plans'
+    | '/rel-fi'
     | '/settings'
     | '/subscription'
+    | '/wellness-clinic'
     | '/challenges/$challengeId'
     | '/events/$eventId'
     | '/houses/$houseId'
+    | '/library/$articleId'
+    | '/plans/$planId'
     | '/profile/$username'
     | '/register/onboarding'
+    | '/rel-fi/admin'
+    | '/rel-fi/tutorial'
     | '/rooms/$roomId'
     | '/challenges/'
     | '/events/'
     | '/houses/'
+    | '/library/'
     | '/profile/'
     | '/register/'
     | '/rooms/'
+    | '/rel-fi/broadcast/$code'
     | '/rooms/$roomId/posts/$postId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LibraryRouteRoute: typeof LibraryRouteRouteWithChildren
   AdminRoute: typeof AdminRoute
+  AlphaMindsDailyRoute: typeof AlphaMindsDailyRoute
+  CodeRoute: typeof CodeRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  JourneyRoute: typeof JourneyRoute
   LoginRoute: typeof LoginRoute
+  MyChapterRoute: typeof MyChapterRoute
   NotificationsRoute: typeof NotificationsRoute
+  PlansRoute: typeof PlansRouteWithChildren
+  RelFiRoute: typeof RelFiRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   SubscriptionRoute: typeof SubscriptionRoute
+  WellnessClinicRoute: typeof WellnessClinicRoute
   ChallengesChallengeIdRoute: typeof ChallengesChallengeIdRoute
   EventsEventIdRoute: typeof EventsEventIdRoute
   HousesHouseIdRoute: typeof HousesHouseIdRoute
@@ -291,6 +465,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wellness-clinic': {
+      id: '/wellness-clinic'
+      path: '/wellness-clinic'
+      fullPath: '/wellness-clinic'
+      preLoaderRoute: typeof WellnessClinicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/subscription': {
       id: '/subscription'
       path: '/subscription'
@@ -305,11 +486,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rel-fi': {
+      id: '/rel-fi'
+      path: '/rel-fi'
+      fullPath: '/rel-fi'
+      preLoaderRoute: typeof RelFiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plans': {
+      id: '/plans'
+      path: '/plans'
+      fullPath: '/plans'
+      preLoaderRoute: typeof PlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/notifications': {
       id: '/notifications'
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-chapter': {
+      id: '/my-chapter'
+      path: '/my-chapter'
+      fullPath: '/my-chapter'
+      preLoaderRoute: typeof MyChapterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -319,6 +521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/journey': {
+      id: '/journey'
+      path: '/journey'
+      fullPath: '/journey'
+      preLoaderRoute: typeof JourneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -326,11 +535,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/code': {
+      id: '/code'
+      path: '/code'
+      fullPath: '/code'
+      preLoaderRoute: typeof CodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alpha-minds-daily': {
+      id: '/alpha-minds-daily'
+      path: '/alpha-minds-daily'
+      fullPath: '/alpha-minds-daily'
+      preLoaderRoute: typeof AlphaMindsDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -361,6 +591,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library/': {
+      id: '/library/'
+      path: '/'
+      fullPath: '/library/'
+      preLoaderRoute: typeof LibraryIndexRouteImport
+      parentRoute: typeof LibraryRouteRoute
+    }
     '/houses/': {
       id: '/houses/'
       path: '/houses'
@@ -389,6 +626,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoomsRoomIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rel-fi/tutorial': {
+      id: '/rel-fi/tutorial'
+      path: '/tutorial'
+      fullPath: '/rel-fi/tutorial'
+      preLoaderRoute: typeof RelFiTutorialRouteImport
+      parentRoute: typeof RelFiRoute
+    }
+    '/rel-fi/admin': {
+      id: '/rel-fi/admin'
+      path: '/admin'
+      fullPath: '/rel-fi/admin'
+      preLoaderRoute: typeof RelFiAdminRouteImport
+      parentRoute: typeof RelFiRoute
+    }
     '/register/onboarding': {
       id: '/register/onboarding'
       path: '/register/onboarding'
@@ -402,6 +653,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/profile/$username'
       preLoaderRoute: typeof ProfileUsernameRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/plans/$planId': {
+      id: '/plans/$planId'
+      path: '/$planId'
+      fullPath: '/plans/$planId'
+      preLoaderRoute: typeof PlansPlanIdRouteImport
+      parentRoute: typeof PlansRoute
+    }
+    '/library/$articleId': {
+      id: '/library/$articleId'
+      path: '/$articleId'
+      fullPath: '/library/$articleId'
+      preLoaderRoute: typeof LibraryArticleIdRouteImport
+      parentRoute: typeof LibraryRouteRoute
     }
     '/houses/$houseId': {
       id: '/houses/$houseId'
@@ -424,6 +689,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChallengesChallengeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rel-fi/broadcast/$code': {
+      id: '/rel-fi/broadcast/$code'
+      path: '/broadcast/$code'
+      fullPath: '/rel-fi/broadcast/$code'
+      preLoaderRoute: typeof RelFiBroadcastCodeRouteImport
+      parentRoute: typeof RelFiRoute
+    }
     '/rooms/$roomId/posts/$postId': {
       id: '/rooms/$roomId/posts/$postId'
       path: '/posts/$postId'
@@ -433,6 +705,44 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface LibraryRouteRouteChildren {
+  LibraryArticleIdRoute: typeof LibraryArticleIdRoute
+  LibraryIndexRoute: typeof LibraryIndexRoute
+}
+
+const LibraryRouteRouteChildren: LibraryRouteRouteChildren = {
+  LibraryArticleIdRoute: LibraryArticleIdRoute,
+  LibraryIndexRoute: LibraryIndexRoute,
+}
+
+const LibraryRouteRouteWithChildren = LibraryRouteRoute._addFileChildren(
+  LibraryRouteRouteChildren,
+)
+
+interface PlansRouteChildren {
+  PlansPlanIdRoute: typeof PlansPlanIdRoute
+}
+
+const PlansRouteChildren: PlansRouteChildren = {
+  PlansPlanIdRoute: PlansPlanIdRoute,
+}
+
+const PlansRouteWithChildren = PlansRoute._addFileChildren(PlansRouteChildren)
+
+interface RelFiRouteChildren {
+  RelFiAdminRoute: typeof RelFiAdminRoute
+  RelFiTutorialRoute: typeof RelFiTutorialRoute
+  RelFiBroadcastCodeRoute: typeof RelFiBroadcastCodeRoute
+}
+
+const RelFiRouteChildren: RelFiRouteChildren = {
+  RelFiAdminRoute: RelFiAdminRoute,
+  RelFiTutorialRoute: RelFiTutorialRoute,
+  RelFiBroadcastCodeRoute: RelFiBroadcastCodeRoute,
+}
+
+const RelFiRouteWithChildren = RelFiRoute._addFileChildren(RelFiRouteChildren)
 
 interface RoomsRoomIdRouteChildren {
   RoomsRoomIdPostsPostIdRoute: typeof RoomsRoomIdPostsPostIdRoute
@@ -448,12 +758,20 @@ const RoomsRoomIdRouteWithChildren = RoomsRoomIdRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LibraryRouteRoute: LibraryRouteRouteWithChildren,
   AdminRoute: AdminRoute,
+  AlphaMindsDailyRoute: AlphaMindsDailyRoute,
+  CodeRoute: CodeRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  JourneyRoute: JourneyRoute,
   LoginRoute: LoginRoute,
+  MyChapterRoute: MyChapterRoute,
   NotificationsRoute: NotificationsRoute,
+  PlansRoute: PlansRouteWithChildren,
+  RelFiRoute: RelFiRouteWithChildren,
   SettingsRoute: SettingsRoute,
   SubscriptionRoute: SubscriptionRoute,
+  WellnessClinicRoute: WellnessClinicRoute,
   ChallengesChallengeIdRoute: ChallengesChallengeIdRoute,
   EventsEventIdRoute: EventsEventIdRoute,
   HousesHouseIdRoute: HousesHouseIdRoute,

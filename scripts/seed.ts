@@ -14,8 +14,8 @@ export async function seedDatabase(env: Env): Promise<void> {
       ('becoming',   'House of Becoming',   'Grow Well.',   'Career, leadership, purpose, transformation, personal growth.', '🏔', '#6366F1', 'monday',    1),
       ('connection', 'House of Connection', 'Love Well.',   'Friendships, relationships, family, community.',                '🤝', '#EC4899', 'wednesday', 2),
       ('wellness',   'House of Wellness',   'Live Well.',   'Physical health, mental health, recovery, fitness.',            '🌱', '#10B981', 'thursday',  3),
-      ('play',       'House of Play',       'Enjoy Well.',  'Fun, games, adventures, social experiences.',                  '🎭', '#F59E0B', 'friday',    4),
-      ('humanity',   'House of Humanity',   'Serve Well.',  'Volunteering, service, mentoring, humanitarian impact.',       '❤️', '#EF4444', 'sunday',    5)
+      ('fun',        'House of Fun',        'Enjoy Well.',  'Music, dance, games, adventures, and creative expression.',    '🎭', '#F59E0B', 'friday',    4),
+      ('humanity',   'House of Humanity',   'Serve Well.',  'Volunteering, service, mentoring, humanitarian impact.',       '💚', '#EF4444', 'sunday',    5)
   `).run();
 
   // Global chapter
@@ -32,7 +32,7 @@ export async function seedDatabase(env: Env): Promise<void> {
     { house: 'connection', name: 'Book Club',               slug: 'book-club',               chapter_id: 'global' },
     { house: 'wellness',   name: 'BeatLift Room',           slug: 'beatlift-room',           chapter_id: 'global' },
     { house: 'wellness',   name: 'Mindful Mornings',        slug: 'mindful-mornings',        chapter_id: 'global' },
-    { house: 'play',       name: 'Adventure Squad',         slug: 'adventure-squad',         chapter_id: 'global' },
+    { house: 'fun',        name: 'Adventure Squad',         slug: 'adventure-squad',         chapter_id: 'global' },
     { house: 'humanity',   name: 'Volunteer Hub',           slug: 'volunteer-hub',           chapter_id: 'global' },
   ];
 
@@ -63,7 +63,7 @@ export async function seedDatabase(env: Env): Promise<void> {
     { house: 'global',     content_type: 'challenge',     title: 'Learning Tuesday',       body: 'Learn something new today. Read an article, watch a TED talk, or take an online course.',                   day_of_week: 'tuesday' },
     { house: 'connection', content_type: 'question',      title: 'Connection Wednesday',   body: 'Reach out to someone you care about. Send a message, make a call, or plan a meetup.',                     day_of_week: 'wednesday' },
     { house: 'wellness',   content_type: 'wellness_tip',  title: 'Wellness Thursday',      body: 'Prioritize your health today. Take a walk, stretch, meditate, or prepare a healthy meal.',               day_of_week: 'thursday' },
-    { house: 'play',       content_type: 'challenge',     title: 'Fun Friday',             body: 'Do something fun today. Play a game, try a new hobby, laugh with friends, or explore somewhere new.',  day_of_week: 'friday' },
+    { house: 'fun',        content_type: 'challenge',     title: 'Fun Friday',             body: 'Do something fun today. Play a game, try a new hobby, laugh with friends, or explore somewhere new.',  day_of_week: 'friday' },
     { house: 'global',     content_type: 'insight',       title: 'Saturday Reflection',    body: 'Reflect on your week. What went well? What did you learn? What are you grateful for?',                    day_of_week: 'saturday' },
     { house: 'humanity',   content_type: 'humanity_action', title: 'Serve Sunday',         body: 'Make a difference today. Volunteer, help a neighbor, donate, or simply show kindness to a stranger.',   day_of_week: 'sunday' },
   ];

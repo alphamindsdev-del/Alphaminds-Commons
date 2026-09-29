@@ -7,6 +7,7 @@ import { SkeletonCard } from "@/components/common/SkeletonCard";
 import { HOUSES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Calendar } from "lucide-react";
+import { PageHeader } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/events/")({
   head: () => ({ meta: [{ title: "Events · AlphaMinds" }] }),
@@ -31,7 +32,9 @@ function EventsPage() {
     format: e.format, location: e.location_name ?? "", description: e.description ?? "",
     host: { name: e.host?.display_name ?? "", avatar: "" },
     rsvpCount: e.rsvp_count ?? 0, capacity: e.rsvp_limit ?? 100,
-    rsvped: false, full: false, tags: e.tags ?? [],
+    rsvped: e.is_rsvped === "going", full: (e.rsvp_count ?? 0) >= (e.rsvp_limit ?? 999999),
+    tags: e.tags ?? [],
+    coverImage: e.cover_r2_key ? `/v1/media/${e.cover_r2_key}` : undefined,
   }));
   const [active, setActive] = useState("all");
   const filtered = events.filter((e) => {
@@ -41,11 +44,12 @@ function EventsPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="font-black text-3xl sm:text-4xl text-text-primary">Events</h1>
-        <p className="text-text-secondary mt-1">Show up. Online or in person. Always together.</p>
-      </header>
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Show Up"
+        title="Events"
+        subtitle="Online or in person — together. RSVP, show up, and leave a little more connected."
+      />
 
       <div className="flex gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
         {filters.map((f) => (
@@ -53,8 +57,8 @@ function EventsPage() {
             key={f.id}
             onClick={() => setActive(f.id)}
             className={cn(
-              "shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors",
-              active === f.id ? "bg-primary text-white" : "bg-card border border-border text-text-secondary hover:text-text-primary",
+              "shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all",
+              active === f.id ? "bg-primary text-primary-foreground shadow-[0_8px_20px_-8px_rgba(20,20,18,0.5)]" : "bg-card border border-border text-text-secondary hover:text-text-primary hover:border-primary/30",
             )}
           >
             {f.label}

@@ -8,6 +8,62 @@ type AuthEnv = { Bindings: Env; Variables: { session: SessionPayload } };
 
 export const mediaRouter = new Hono<{ Bindings: Env }>();
 
+mediaRouter.get('/*', async (c) => {
+  const key = c.req.path.replace('/v1/media/', '');
+  const rangeHeader = c.req.header('range');
+
+  if (rangeHeader) {
+    const head = await c.env.MEDIA_BUCKET.head(key);
+    if (!head) return c.json({ error: 'Not found', code: ERROR_CODES.NOT_FOUND }, 404);
+
+    const size = head.size;
+    const match = rangeHeader.match(/bytes=(\d*)-(\d*)/);
+    if (!match) return c.json({ error: 'Invalid range', code: ERROR_CODES.VALIDATION_ERROR }, 416);
+
+    const g1 = match[1] ?? '';
+    const g2 = match[2] ?? '';
+    const start = g1 !== '' ? parseInt(g1, 10) : undefined;
+    const end = g2 !== '' ? parseInt(g2, 10) : undefined;
+
+    let offset = 0;
+    let length = size;
+    if (start !== undefined && end !== undefined) {
+      offset = start;
+      length = end - start + 1;
+    } else if (start !== undefined) {
+      offset = start;
+      length = size - start;
+    } else if (end !== undefined) {
+      offset = size - end;
+      length = end;
+    }
+
+    if (offset >= size || length <= 0) {
+      return c.json({ error: 'Range not satisfiable', code: ERROR_CODES.VALIDATION_ERROR }, 416);
+    }
+
+    const ranged = await c.env.MEDIA_BUCKET.get(key, { range: { offset, length } });
+    if (!ranged) return c.json({ error: 'Not found' }, 404);
+
+    const headers = new Headers();
+    head.writeHttpMetadata(headers);
+    headers.set('Content-Range', `bytes ${offset}-${offset + length - 1}/${size}`);
+    headers.set('Content-Length', String(length));
+    headers.set('Accept-Ranges', 'bytes');
+    headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+    return new Response(ranged.body, { status: 206, headers });
+  }
+
+  const obj = await c.env.MEDIA_BUCKET.get(key);
+  if (!obj) return c.json({ error: 'Not found', code: ERROR_CODES.NOT_FOUND }, 404);
+
+  const headers = new Headers();
+  obj.writeHttpMetadata(headers);
+  headers.set('Accept-Ranges', 'bytes');
+  headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  return new Response(obj.body, { headers });
+});
+
 mediaRouter.post('/upload', authMiddleware, async (c) => {
   const session = getSession(c as any);
 
