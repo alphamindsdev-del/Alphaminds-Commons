@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
-import { Play, Users, LogOut, AlertCircle, Eye, Copy, Check } from "lucide-react";
+import { Play, Users, LogOut, AlertCircle, Eye, Copy, Check, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useGame } from "../state/store";
 import { useAuth } from "../state/auth-store";
 import { RoomCodeDisplay } from "../components/RoomCodeDisplay";
 import { Avatar } from "../components/Avatar";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { cn } from "../lib/utils";
 
 export function Lobby() {
   const roomCode = useGame((s) => s.roomCode);
@@ -25,6 +26,7 @@ export function Lobby() {
   const canStart = !!isHost && players.length >= minPlayers && connected && (mode === 'solo' || nonHostReady);
   const [dismissedError, setDismissedError] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [showBroadcast, setShowBroadcast] = useState(false);
 
   useEffect(() => {
     if (error) setDismissedError(false)
@@ -64,7 +66,16 @@ export function Lobby() {
         <RoomCodeDisplay code={roomCode} />
       </div>
 
-      <BroadcastLink roomCode={roomCode} />
+      <div className="mt-4">
+        <button onClick={() => setShowBroadcast(!showBroadcast)} className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary hover:underline">
+          <Eye className="h-3.5 w-3.5" />
+          {showBroadcast ? "Hide Broadcast" : "Share Broadcast"}
+          <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showBroadcast && "rotate-180")} />
+        </button>
+        <div className={cn("overflow-hidden transition-all", !showBroadcast && "max-h-0")}>
+          <BroadcastLink roomCode={roomCode} />
+        </div>
+      </div>
 
       {error && !dismissedError && (
         <div className="mt-4 flex items-center gap-2 rounded-2xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Play, LogIn, UserPlus, Mail, ArrowLeft, Loader2, Send, Settings } from "lucide-react";
+import { Play, LogIn, UserPlus, Mail, ArrowLeft, Loader2, Send, Settings, Users } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useGame } from "../state/store";
 import { useAuth } from "../state/auth-store";
@@ -33,6 +33,7 @@ export function Landing() {
   const [deckError, setDeckError] = useState("");
   const [selectedDeckId, setSelectedDeckId] = useState("");
   const [selectedMode, setSelectedMode] = useState<"seer_skeptic" | "multiplayer_seer" | "solo">("seer_skeptic");
+  const [subMode, setSubMode] = useState<"idle" | "host">("idle");
   const [timerSeconds, setTimerSeconds] = useState(45);
   const [gameRounds, setGameRounds] = useState(5);
   const [loading, setLoading] = useState(false);

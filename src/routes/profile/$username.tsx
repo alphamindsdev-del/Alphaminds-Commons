@@ -1,9 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemberProfile } from "@/hooks/useMemberProfile";
-import { HOUSE_MAP, HOUSES } from "@/lib/constants";
 import { Avatar } from "@/components/common/Avatar";
-import { HouseBadge } from "@/components/common/HouseBadge";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { getMediaUrl } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
@@ -32,23 +30,20 @@ function MemberProfilePage() {
   const m = memberData ? {
     name: memberData.display_name ?? memberData.name ?? username,
     username: memberData.username ?? username,
-    primaryHouse: memberData.primary_house ?? "wellness",
     bio: memberData.bio ?? "",
     chapter: memberData.chapter ?? "",
     avatarUrl: memberData.avatar_url ?? null,
     coverPhotoUrl: memberData.cover_photo_url ?? null,
-    scores: memberData.scores ?? { wellness: 0, becoming: 0, connection: 0, fun: 0, humanity: 0 },
   } : null;
   if (!m) {
     if (isLoading) return <div className="p-8 text-center text-text-secondary">Loading...</div>;
     throw notFound();
   }
-  const primary = HOUSE_MAP[m.primaryHouse] ?? HOUSE_MAP.wellness;
   const showFollow = isAuthenticated && !memberData?.is_self;
   return (
     <div className="space-y-8">
       <div className="-mx-4 sm:-mx-6 lg:-mx-8">
-        <div className="relative z-0 h-40 sm:h-56 overflow-hidden" style={m.coverPhotoUrl ? undefined : { background: `linear-gradient(135deg, ${primary.color}, ${primary.color}99, var(--primary-dark))` }}>
+        <div className="relative z-0 h-40 sm:h-56 overflow-hidden">
           {m.coverPhotoUrl ? (
             <img src={getMediaUrl(m.coverPhotoUrl)} alt="Cover" className="h-full w-full object-cover" />
           ) : (
@@ -66,7 +61,7 @@ function MemberProfilePage() {
             {m.avatarUrl ? (
               <img src={getMediaUrl(m.avatarUrl)} alt={m.name} className="h-24 w-24 rounded-full object-cover" />
             ) : (
-              <Avatar name={m.name} size="xl" color={primary.color} />
+              <Avatar name={m.name} size="xl" />
             )}
           </div>
           <div className="flex-1">
@@ -78,7 +73,6 @@ function MemberProfilePage() {
               </p>
             )}
             {m.bio && <p className="mt-2 text-text-primary">{m.bio}</p>}
-            <div className="mt-3"><HouseBadge house={m.primaryHouse} /></div>
           </div>
           {showFollow && (
             <button
@@ -93,14 +87,6 @@ function MemberProfilePage() {
           )}
         </div>
       </div>
-      <section className="rounded-3xl border border-border bg-card p-6 card-shadow">
-        <h2 className="text-display font-semibold text-2xl tracking-tighter mb-4">Five Houses Score</h2>
-        <div className="space-y-3">
-          {HOUSES.map((h) => (
-            <ProgressBar key={h.id} value={m.scores[h.id]} max={250} color={h.color} label={<span className="font-semibold">{h.name}</span>} />
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

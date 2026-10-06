@@ -86,10 +86,6 @@ export function AdminMembers() {
           <option value="">All roles</option>
           {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
         </TSelect>
-        <TSelect value={houseFilter} onChange={(e) => setHouseFilter(e.target.value)} className="w-auto min-w-[150px]">
-          <option value="">All houses</option>
-          {HOUSES.map((h) => <option key={h.id} value={h.id}>{h.name}</option>)}
-        </TSelect>
       </div>
 
       <AdminTable

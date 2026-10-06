@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Avatar } from "@/components/common/Avatar";
 import { useAuthStore } from "@/store/authStore";
-import { HOUSE_MAP } from "@/lib/constants";
 import { useCreatePost } from "@/hooks/useCreatePost";
 import { toast } from "sonner";
 
@@ -11,7 +10,6 @@ export function PostComposer({ roomId, roomName }: { roomId: string; roomName: s
   if (!member) return null;
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
-  const h = HOUSE_MAP[member.primary_house] ?? Object.values(HOUSE_MAP)[0];
 
   async function submit() {
     if (!text.trim()) return;
@@ -28,7 +26,7 @@ export function PostComposer({ roomId, roomName }: { roomId: string; roomName: s
   return (
     <div className="rounded-2xl border border-border bg-card p-4 card-shadow">
       <div className="flex items-start gap-3">
-        <Avatar name={member.display_name} size="md" color={h.color} />
+        <Avatar name={member.display_name} size="md" />
         {open ? (
           <div className="flex-1">
             <textarea
