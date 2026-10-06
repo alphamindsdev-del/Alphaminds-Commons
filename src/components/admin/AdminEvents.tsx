@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
-import { HOUSES, HOUSE_MAP, type HouseId } from "@/lib/constants";
 import {
   AdminModal,
   MemberCell,
@@ -75,7 +74,6 @@ function EventModal({ onClose, editItem }: { onClose: () => void; editItem: Even
   const [slug, setSlug] = useState(editItem?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(!!editItem);
   const [description, setDescription] = useState(editItem?.description ?? "");
-  const [house, setHouse] = useState(editItem?.house ?? "");
   const [eventType, setEventType] = useState(editItem?.event_type ?? "alpha_circle");
   const [format, setFormat] = useState(editItem?.format ?? "physical");
   const [startsAt, setStartsAt] = useState(toLocalInput(editItem?.starts_at));
@@ -98,7 +96,6 @@ function EventModal({ onClose, editItem }: { onClose: () => void; editItem: Even
         title: title.trim(),
         slug: slug.trim(),
         description: description.trim() || null,
-        house: house || null,
         event_type: eventType,
         format,
         starts_at: fromLocalInput(startsAt),
@@ -160,13 +157,7 @@ function EventModal({ onClose, editItem }: { onClose: () => void; editItem: Even
         <Field label="Description">
           <TArea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
         </Field>
-        <div className="grid sm:grid-cols-3 gap-4">
-          <Field label="House (optional)">
-            <TSelect value={house} onChange={(e) => setHouse(e.target.value)}>
-              <option value="">No house (global)</option>
-              {HOUSES.map((h) => <option key={h.id} value={h.id}>{h.name}</option>)}
-            </TSelect>
-          </Field>
+        <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Type">
             <TSelect value={eventType} onChange={(e) => setEventType(e.target.value)}>
               {EVENT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -288,7 +279,6 @@ export function AdminEvents() {
           <tr>
             <th className="text-left px-4 py-3 font-bold">Title</th>
             <th className="text-left px-4 py-3 font-bold">Type</th>
-            <th className="text-left px-4 py-3 font-bold">House</th>
             <th className="text-left px-4 py-3 font-bold">Starts</th>
             <th className="text-left px-4 py-3 font-bold">Format</th>
             <th className="text-right px-4 py-3 font-bold">Actions</th>
@@ -296,26 +286,15 @@ export function AdminEvents() {
         }
       >
         {isLoading ? (
-          <EmptyRow colSpan={6} message="Loading…" />
+          <EmptyRow colSpan={5} message="Loading…" />
         ) : items.length === 0 ? (
-          <EmptyRow colSpan={6} message="No events yet. Create the first one." />
+          <EmptyRow colSpan={5} message="No events yet. Create the first one." />
         ) : (
           items.map((item) => {
-            const house = item.house ? HOUSE_MAP[item.house as HouseId] : null;
             return (
               <tr key={item.id} className="border-t border-border">
                 <td className="px-4 py-3 font-semibold text-text-primary max-w-[260px] truncate">{item.title}</td>
                 <td className="px-4 py-3 text-text-secondary">{TYPE_LABEL[item.event_type] ?? item.event_type}</td>
-                <td className="px-4 py-3">
-                  {house ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold" style={{ color: house.color }}>
-                      <span className="h-2 w-2 rounded-full" style={{ background: house.color }} />
-                      {house.name}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-text-secondary">Global</span>
-                  )}
-                </td>
                 <td className="px-4 py-3 text-text-secondary">{fmtDate(item.starts_at)}</td>
                 <td className="px-4 py-3 text-text-secondary capitalize">{item.format}</td>
                 <td className="px-4 py-3">

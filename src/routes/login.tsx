@@ -46,7 +46,7 @@ function LoginPage() {
       {/* Hero side */}
       <div className="hidden lg:flex relative overflow-hidden flex-col justify-between p-12 text-white bg-[#0C0C0E]">
         <div className="absolute inset-0 opacity-100" style={{
-          background: "radial-gradient(circle at 85% 15%, rgba(204,255,61,0.16) 0%, transparent 42%), radial-gradient(circle at 15% 90%, rgba(99,102,241,0.18) 0%, transparent 45%)",
+          background: "radial-gradient(circle at 85% 15%, rgba(181,212,50,0.16) 0%, transparent 42%), radial-gradient(circle at 15% 90%, rgba(99,102,241,0.18) 0%, transparent 45%)",
         }} />
         <div className="absolute -top-32 -right-24 w-96 h-96 rounded-full bg-accent/10 blur-3xl" />
         <div className="relative">

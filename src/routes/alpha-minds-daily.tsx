@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { getMediaUrl } from "@/lib/utils";
-import { HOUSE_MAP, houseOfToday, type HouseId } from "@/lib/constants";
 import { Sparkles, Play, X, Calendar, ChevronRight } from "lucide-react";
 import type { DailyContentResponse } from "@/lib/types";
 
@@ -59,13 +58,11 @@ function AlphaMindsDaily() {
 
   const content = todayData?.content;
   const c = content ? {
-    house: content.house ?? "wellness",
     title: content.title ?? "",
     body: content.body ?? "",
     mediaUrl: content.media_r2_key ? getMediaUrl(content.media_r2_key) : null,
   } : null;
   const isVideo = c?.mediaUrl ? /\.(mp4|webm|mov|avi|mkv|ogv|ogg|3gp|3gpp|mpeg|mpg)$/i.test(c.mediaUrl) : false;
-  const houseColor = c ? (HOUSE_MAP[c.house as HouseId]?.color ?? "#10B981") : "#10B981";
   const previous = prevData?.data ?? [];
 
   const today = new Date();
@@ -99,7 +96,7 @@ function AlphaMindsDaily() {
       {/* ─── Today's Edition (Hero) ─── */}
       <section className="mb-14">
         <div className="flex items-center gap-3 mb-5">
-          <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-white" style={{ background: houseColor }}>
+          <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-white" style={{ background: "var(--accent)" }}>
             <span className="h-1.5 w-1.5 rounded-full bg-white/90 animate-pulse" />
             Today's Edition
           </span>
@@ -130,7 +127,7 @@ function AlphaMindsDaily() {
                   <img src={c.mediaUrl} alt={c.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
                 )
               ) : (
-                <div className="w-full h-full bg-gradient-to-br" style={{ background: `linear-gradient(135deg, ${houseColor}22, ${houseColor}44)` }} />
+                <div className="w-full h-full bg-gradient-to-br" style={{ background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, transparent), color-mix(in srgb, var(--accent) 27%, transparent))" }} />
               )}
               {/* Gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -141,16 +138,6 @@ function AlphaMindsDaily() {
                   </div>
                 </div>
               )}
-              {/* House badge */}
-              <div className="absolute bottom-4 left-4">
-                <span
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white backdrop-blur-md"
-                  style={{ backgroundColor: `${houseColor}cc` }}
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
-                  {HOUSE_MAP[c.house as HouseId]?.name ?? c.house}
-                </span>
-              </div>
             </div>
 
             {/* ─── Text Content ─── */}
@@ -183,7 +170,6 @@ function AlphaMindsDaily() {
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {previous.map((item, i) => {
-              const h = HOUSE_MAP[item.house as HouseId] ?? HOUSE_MAP.wellness;
               const mediaUrl = item.media_r2_key ? getMediaUrl(item.media_r2_key) : null;
               const vid = mediaUrl ? /\.(mp4|webm|mov|avi|mkv|ogv|ogg|3gp|3gpp|mpeg|mpg)$/i.test(mediaUrl) : false;
 
@@ -201,8 +187,8 @@ function AlphaMindsDaily() {
                         <img src={mediaUrl} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
                       )
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${h.color}18, ${h.color}30)` }}>
-                        <Calendar className="h-8 w-8" style={{ color: h.color }} />
+                      <div className="w-full h-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, transparent), color-mix(in srgb, var(--accent) 19%, transparent))" }}>
+                        <Calendar className="h-8 w-8" style={{ color: "var(--accent)" }} />
                       </div>
                     )}
                     {vid && (
@@ -220,7 +206,6 @@ function AlphaMindsDaily() {
                     </div>
                   </div>
                   <div className="p-4 space-y-2">
-                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: h.color }}>{h.name}</span>
                     <p className="text-sm font-semibold text-text-primary leading-snug line-clamp-2">{item.title}</p>
                     <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">{item.body}</p>
                   </div>
@@ -252,7 +237,6 @@ function AlphaMindsDaily() {
 
       {/* ─── Previous Item Detail Modal ─── */}
       {selectedPrev && (() => {
-        const h = HOUSE_MAP[selectedPrev.house as HouseId] ?? HOUSE_MAP.wellness;
         const mediaUrl = selectedPrev.media_r2_key ? getMediaUrl(selectedPrev.media_r2_key) : null;
         const vid = mediaUrl ? /\.(mp4|webm|mov|avi|mkv|ogv|ogg|3gp|3gpp|mpeg|mpg)$/i.test(mediaUrl) : false;
         return (
@@ -271,9 +255,8 @@ function AlphaMindsDaily() {
                 )}
                 <div className="p-6 sm:p-8">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: h.color }}>{h.name}</span>
                     {selectedPrev.scheduled_date && (
-                      <span className="text-[10px] text-text-secondary">· {previous[0]?.id === selectedPrev.id ? "Yesterday" : formatDate(selectedPrev.scheduled_date)}</span>
+                      <span className="text-[10px] text-text-secondary">{previous[0]?.id === selectedPrev.id ? "Yesterday" : formatDate(selectedPrev.scheduled_date)}</span>
                     )}
                   </div>
                   <h3 className="font-black text-2xl text-text-primary leading-tight">{selectedPrev.title}</h3>

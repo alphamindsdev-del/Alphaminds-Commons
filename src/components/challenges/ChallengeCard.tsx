@@ -15,17 +15,15 @@ interface Challenge {
   daysLeft: number;
   points: number;
 }
-import { HOUSE_MAP } from "@/lib/constants";
-import { HouseBadge } from "@/components/common/HouseBadge";
 import { ProgressBar } from "@/components/common/ProgressBar";
 import { useJoinChallenge } from "@/hooks/useJoinChallenge";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "@/components/common/Toast";
-import { Users, Clock, Flame, Loader2, CheckCircle2, ArrowRight } from "lucide-react";
+import { Users, Clock, Flame, Loader2, CheckCircle2, ArrowRight, Target } from "lucide-react";
 
 export function ChallengeCard({ challenge, compact = false }: { challenge: Challenge; compact?: boolean }) {
-  const h = HOUSE_MAP[challenge.house] ?? HOUSE_MAP.wellness;
-  const HouseIcon = h.icon;
+  const accent = "var(--accent)";
+  const Icon = Target;
   const pct = challenge.target > 0 ? Math.min(100, Math.round((challenge.current / challenge.target) * 100)) : 0;
   const joinChallenge = useJoinChallenge();
   const { member } = useAuthStore();
@@ -38,12 +36,12 @@ export function ChallengeCard({ challenge, compact = false }: { challenge: Chall
       <div className="relative">
         <div
           className="h-1.5 w-full"
-          style={{ background: `linear-gradient(90deg, ${h.color}, ${h.color}66 65%, transparent)` }}
+          style={{ background: `linear-gradient(90deg, ${accent}, color-mix(in srgb, var(--accent) 40%, transparent) 65%, transparent)` }}
         />
-        <HouseIcon
+        <Icon
           aria-hidden
           className="pointer-events-none absolute -right-4 -top-2 h-24 w-24 rotate-12 opacity-[0.07] transition-transform duration-500 group-hover:rotate-6 group-hover:scale-110"
-          style={{ color: h.color }}
+          style={{ color: accent }}
         />
       </div>
 
@@ -52,9 +50,9 @@ export function ChallengeCard({ challenge, compact = false }: { challenge: Chall
           <div className="flex items-start gap-3.5">
             <span
               className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border"
-              style={{ background: `${h.color}14`, borderColor: `${h.color}30`, color: h.color }}
+              style={{ background: "color-mix(in srgb, var(--accent) 8%, transparent)", borderColor: "color-mix(in srgb, var(--accent) 19%, transparent)", color: accent }}
             >
-              <HouseIcon className="h-6 w-6" />
+              <Icon className="h-6 w-6" />
             </span>
             <div className="min-w-0">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-secondary">{challenge.metric}</p>
@@ -64,13 +62,9 @@ export function ChallengeCard({ challenge, compact = false }: { challenge: Chall
             </div>
           </div>
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-subtle px-2.5 py-1 text-xs font-black text-text-primary">
-            <Flame className="h-3.5 w-3.5" style={{ color: h.color }} />
+            <Flame className="h-3.5 w-3.5" style={{ color: accent }} />
             {challenge.points} pts
           </span>
-        </div>
-
-        <div className="mt-3">
-          <HouseBadge house={challenge.house} size="sm" />
         </div>
 
         <div className="mt-4 flex-1">
@@ -79,12 +73,12 @@ export function ChallengeCard({ challenge, compact = false }: { challenge: Chall
               <div className="mb-1.5 flex items-center justify-between text-xs">
                 <span className="font-semibold text-text-secondary">{pct}% complete</span>
                 {!compact && (
-                  <span className="font-bold tabular-nums" style={{ color: h.color }}>
+                  <span className="font-bold tabular-nums" style={{ color: accent }}>
                     {challenge.current.toLocaleString()} / {challenge.target.toLocaleString()}
                   </span>
                 )}
               </div>
-              <ProgressBar value={challenge.current} max={challenge.target} color={h.color} showValue={false} />
+              <ProgressBar value={challenge.current} max={challenge.target} color={accent} showValue={false} />
             </div>
           ) : (
             !compact && <p className="text-sm leading-relaxed text-text-secondary line-clamp-2">{challenge.description}</p>
@@ -101,7 +95,7 @@ export function ChallengeCard({ challenge, compact = false }: { challenge: Chall
             {challenge.daysLeft}d left
           </span>
           {challenge.joined && (
-            <span className="ml-auto inline-flex items-center gap-1 font-bold" style={{ color: h.color }}>
+            <span className="ml-auto inline-flex items-center gap-1 font-bold" style={{ color: accent }}>
               <CheckCircle2 className="h-3.5 w-3.5" />
               Joined
             </span>
@@ -125,8 +119,8 @@ export function ChallengeCard({ challenge, compact = false }: { challenge: Chall
           className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-black uppercase tracking-wider transition-all hover:brightness-105 active:scale-[0.98] disabled:opacity-60"
           style={
             challenge.joined
-              ? { background: `${h.color}14`, color: h.color }
-              : { background: h.color, color: "#fff" }
+              ? { background: "color-mix(in srgb, var(--accent) 8%, transparent)", color: accent }
+              : { background: accent, color: "#fff" }
           }
         >
           {joinChallenge.isPending ? (

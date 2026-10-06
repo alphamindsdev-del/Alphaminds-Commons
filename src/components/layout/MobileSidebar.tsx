@@ -4,10 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
 import { Avatar } from "@/components/common/Avatar";
-import { HouseBadge } from "@/components/common/HouseBadge";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuthStore } from "@/store/authStore";
-import { HOUSE_MAP } from "@/lib/constants";
 import { levelIndex } from "@/lib/levels";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
@@ -19,7 +17,7 @@ const navItems = [
   { to: "/alpha-minds-daily", label: "Alpha Minds Daily", icon: Newspaper, minLevel: 0 },
   { to: "/plans", label: "Plans", icon: Target, minLevel: 1 },
   { to: "/wellness-clinic", label: "Wellness Clinic", icon: Leaf, minLevel: 1 },
-  { to: "/rel-fi", label: "Rel-Fi — Play Now", icon: Flame, minLevel: 1 },
+  { to: "/rel-fi", label: "Rel-Fi Game", icon: Flame, minLevel: 1 },
   { to: "/my-chapter", label: "My Chapter", icon: Map, minLevel: 0 },
   { to: "/events", label: "Events", icon: Calendar, minLevel: 1 },
   { to: "/library", label: "Library", icon: Library, minLevel: 0 },
@@ -42,7 +40,6 @@ export function MobileSidebar({ open, onClose }: { open: boolean; onClose: () =>
   if (!member) return null;
   const memberLevelIndex = levelIndex(member.membership_level);
   const bypassLocks = member.role === "admin";
-  const h = HOUSE_MAP[member.primary_house] ?? Object.values(HOUSE_MAP)[0];
 
   const handleLogout = () => {
     clearSession();
@@ -78,13 +75,10 @@ export function MobileSidebar({ open, onClose }: { open: boolean; onClose: () =>
 
             <div className="px-4 py-4 shrink-0">
               <Link to="/profile" onClick={onClose} className="flex items-center gap-3">
-                <Avatar name={member.display_name} size="md" color={h.color} />
+                <Avatar name={member.display_name} size="md" src={member.avatar_url} />
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-sm truncate text-text-primary">{member.display_name}</p>
                   <p className="text-xs text-text-secondary truncate">@{member.username}</p>
-                  <div className="mt-1">
-                    <HouseBadge house={member.primary_house} size="sm" />
-                  </div>
                 </div>
               </Link>
             </div>

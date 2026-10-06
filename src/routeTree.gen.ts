@@ -28,7 +28,6 @@ import { Route as RoomsIndexRouteImport } from './routes/rooms/index'
 import { Route as RegisterIndexRouteImport } from './routes/register/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile/index'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
-import { Route as HousesIndexRouteImport } from './routes/houses/index'
 import { Route as EventsIndexRouteImport } from './routes/events/index'
 import { Route as ChallengesIndexRouteImport } from './routes/challenges/index'
 import { Route as RoomsRoomIdRouteImport } from './routes/rooms/$roomId'
@@ -38,7 +37,6 @@ import { Route as RegisterOnboardingRouteImport } from './routes/register/onboar
 import { Route as ProfileUsernameRouteImport } from './routes/profile/$username'
 import { Route as PlansPlanIdRouteImport } from './routes/plans.$planId'
 import { Route as LibraryArticleIdRouteImport } from './routes/library/$articleId'
-import { Route as HousesHouseIdRouteImport } from './routes/houses/$houseId'
 import { Route as EventsEventIdRouteImport } from './routes/events/$eventId'
 import { Route as ChallengesChallengeIdRouteImport } from './routes/challenges/$challengeId'
 import { Route as RelFiBroadcastCodeRouteImport } from './routes/rel-fi/broadcast.$code'
@@ -139,11 +137,6 @@ const LibraryIndexRoute = LibraryIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LibraryRouteRoute,
 } as any)
-const HousesIndexRoute = HousesIndexRouteImport.update({
-  id: '/houses/',
-  path: '/houses/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
@@ -189,11 +182,6 @@ const LibraryArticleIdRoute = LibraryArticleIdRouteImport.update({
   path: '/$articleId',
   getParentRoute: () => LibraryRouteRoute,
 } as any)
-const HousesHouseIdRoute = HousesHouseIdRouteImport.update({
-  id: '/houses/$houseId',
-  path: '/houses/$houseId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const EventsEventIdRoute = EventsEventIdRouteImport.update({
   id: '/events/$eventId',
   path: '/events/$eventId',
@@ -233,7 +221,6 @@ export interface FileRoutesByFullPath {
   '/wellness-clinic': typeof WellnessClinicRoute
   '/challenges/$challengeId': typeof ChallengesChallengeIdRoute
   '/events/$eventId': typeof EventsEventIdRoute
-  '/houses/$houseId': typeof HousesHouseIdRoute
   '/library/$articleId': typeof LibraryArticleIdRoute
   '/plans/$planId': typeof PlansPlanIdRoute
   '/profile/$username': typeof ProfileUsernameRoute
@@ -243,7 +230,6 @@ export interface FileRoutesByFullPath {
   '/rooms/$roomId': typeof RoomsRoomIdRouteWithChildren
   '/challenges/': typeof ChallengesIndexRoute
   '/events/': typeof EventsIndexRoute
-  '/houses/': typeof HousesIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/register/': typeof RegisterIndexRoute
@@ -268,7 +254,6 @@ export interface FileRoutesByTo {
   '/wellness-clinic': typeof WellnessClinicRoute
   '/challenges/$challengeId': typeof ChallengesChallengeIdRoute
   '/events/$eventId': typeof EventsEventIdRoute
-  '/houses/$houseId': typeof HousesHouseIdRoute
   '/library/$articleId': typeof LibraryArticleIdRoute
   '/plans/$planId': typeof PlansPlanIdRoute
   '/profile/$username': typeof ProfileUsernameRoute
@@ -278,7 +263,6 @@ export interface FileRoutesByTo {
   '/rooms/$roomId': typeof RoomsRoomIdRouteWithChildren
   '/challenges': typeof ChallengesIndexRoute
   '/events': typeof EventsIndexRoute
-  '/houses': typeof HousesIndexRoute
   '/library': typeof LibraryIndexRoute
   '/profile': typeof ProfileIndexRoute
   '/register': typeof RegisterIndexRoute
@@ -305,7 +289,6 @@ export interface FileRoutesById {
   '/wellness-clinic': typeof WellnessClinicRoute
   '/challenges/$challengeId': typeof ChallengesChallengeIdRoute
   '/events/$eventId': typeof EventsEventIdRoute
-  '/houses/$houseId': typeof HousesHouseIdRoute
   '/library/$articleId': typeof LibraryArticleIdRoute
   '/plans/$planId': typeof PlansPlanIdRoute
   '/profile/$username': typeof ProfileUsernameRoute
@@ -315,7 +298,6 @@ export interface FileRoutesById {
   '/rooms/$roomId': typeof RoomsRoomIdRouteWithChildren
   '/challenges/': typeof ChallengesIndexRoute
   '/events/': typeof EventsIndexRoute
-  '/houses/': typeof HousesIndexRoute
   '/library/': typeof LibraryIndexRoute
   '/profile/': typeof ProfileIndexRoute
   '/register/': typeof RegisterIndexRoute
@@ -343,7 +325,6 @@ export interface FileRouteTypes {
     | '/wellness-clinic'
     | '/challenges/$challengeId'
     | '/events/$eventId'
-    | '/houses/$houseId'
     | '/library/$articleId'
     | '/plans/$planId'
     | '/profile/$username'
@@ -353,7 +334,6 @@ export interface FileRouteTypes {
     | '/rooms/$roomId'
     | '/challenges/'
     | '/events/'
-    | '/houses/'
     | '/library/'
     | '/profile/'
     | '/register/'
@@ -378,7 +358,6 @@ export interface FileRouteTypes {
     | '/wellness-clinic'
     | '/challenges/$challengeId'
     | '/events/$eventId'
-    | '/houses/$houseId'
     | '/library/$articleId'
     | '/plans/$planId'
     | '/profile/$username'
@@ -388,7 +367,6 @@ export interface FileRouteTypes {
     | '/rooms/$roomId'
     | '/challenges'
     | '/events'
-    | '/houses'
     | '/library'
     | '/profile'
     | '/register'
@@ -414,7 +392,6 @@ export interface FileRouteTypes {
     | '/wellness-clinic'
     | '/challenges/$challengeId'
     | '/events/$eventId'
-    | '/houses/$houseId'
     | '/library/$articleId'
     | '/plans/$planId'
     | '/profile/$username'
@@ -424,7 +401,6 @@ export interface FileRouteTypes {
     | '/rooms/$roomId'
     | '/challenges/'
     | '/events/'
-    | '/houses/'
     | '/library/'
     | '/profile/'
     | '/register/'
@@ -451,13 +427,11 @@ export interface RootRouteChildren {
   WellnessClinicRoute: typeof WellnessClinicRoute
   ChallengesChallengeIdRoute: typeof ChallengesChallengeIdRoute
   EventsEventIdRoute: typeof EventsEventIdRoute
-  HousesHouseIdRoute: typeof HousesHouseIdRoute
   ProfileUsernameRoute: typeof ProfileUsernameRoute
   RegisterOnboardingRoute: typeof RegisterOnboardingRoute
   RoomsRoomIdRoute: typeof RoomsRoomIdRouteWithChildren
   ChallengesIndexRoute: typeof ChallengesIndexRoute
   EventsIndexRoute: typeof EventsIndexRoute
-  HousesIndexRoute: typeof HousesIndexRoute
   ProfileIndexRoute: typeof ProfileIndexRoute
   RegisterIndexRoute: typeof RegisterIndexRoute
   RoomsIndexRoute: typeof RoomsIndexRoute
@@ -598,13 +572,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryIndexRouteImport
       parentRoute: typeof LibraryRouteRoute
     }
-    '/houses/': {
-      id: '/houses/'
-      path: '/houses'
-      fullPath: '/houses/'
-      preLoaderRoute: typeof HousesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/events/': {
       id: '/events/'
       path: '/events'
@@ -667,13 +634,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/library/$articleId'
       preLoaderRoute: typeof LibraryArticleIdRouteImport
       parentRoute: typeof LibraryRouteRoute
-    }
-    '/houses/$houseId': {
-      id: '/houses/$houseId'
-      path: '/houses/$houseId'
-      fullPath: '/houses/$houseId'
-      preLoaderRoute: typeof HousesHouseIdRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/events/$eventId': {
       id: '/events/$eventId'
@@ -774,13 +734,11 @@ const rootRouteChildren: RootRouteChildren = {
   WellnessClinicRoute: WellnessClinicRoute,
   ChallengesChallengeIdRoute: ChallengesChallengeIdRoute,
   EventsEventIdRoute: EventsEventIdRoute,
-  HousesHouseIdRoute: HousesHouseIdRoute,
   ProfileUsernameRoute: ProfileUsernameRoute,
   RegisterOnboardingRoute: RegisterOnboardingRoute,
   RoomsRoomIdRoute: RoomsRoomIdRouteWithChildren,
   ChallengesIndexRoute: ChallengesIndexRoute,
   EventsIndexRoute: EventsIndexRoute,
-  HousesIndexRoute: HousesIndexRoute,
   ProfileIndexRoute: ProfileIndexRoute,
   RegisterIndexRoute: RegisterIndexRoute,
   RoomsIndexRoute: RoomsIndexRoute,

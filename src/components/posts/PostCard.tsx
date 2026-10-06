@@ -15,12 +15,10 @@ interface Post {
   poll?: { question: string; options: { label: string; votes: number }[] };
 }
 import { Avatar } from "@/components/common/Avatar";
-import { HOUSE_MAP } from "@/lib/constants";
 import { cleanWriteup } from "@/lib/utils";
 import { Heart, MessageCircle, Share2 } from "lucide-react";
 
 export function PostCard({ post }: { post: Post }) {
-  const h = HOUSE_MAP[post.author.primaryHouse] ?? HOUSE_MAP.wellness;
   const toggleReaction = useToggleReaction(post.id);
 
   const handleLike = async () => {
@@ -44,7 +42,7 @@ export function PostCard({ post }: { post: Post }) {
   return (
     <article className="rounded-2xl border border-border bg-card p-5 card-shadow">
       <header className="flex items-center gap-3 mb-3">
-        <Avatar name={post.author.name} size="md" color={h.color} />
+        <Avatar name={post.author.name} size="md" color="var(--accent)" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-text-primary truncate">{post.author.name}</span>
@@ -59,7 +57,7 @@ export function PostCard({ post }: { post: Post }) {
       {post.image && (
         <div
           className="mt-4 h-56 rounded-xl"
-          style={{ background: `linear-gradient(135deg, ${h.color}, ${h.color}66, var(--primary))` }}
+          style={{ background: `linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 40%, transparent), var(--primary))` }}
         />
       )}
 

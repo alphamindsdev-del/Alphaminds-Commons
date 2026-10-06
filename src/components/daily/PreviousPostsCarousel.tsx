@@ -2,7 +2,6 @@ import { useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { usePreviousDailyContent, type PreviousDailyItem } from "@/hooks/usePreviousDailyContent";
 import { getMediaUrl } from "@/lib/utils";
-import { HOUSE_MAP, type HouseId } from "@/lib/constants";
 import { X, ChevronDown, ChevronRight, Play, Calendar } from "lucide-react";
 
 function formatDate(dateStr: string | null): string {
@@ -12,7 +11,6 @@ function formatDate(dateStr: string | null): string {
 }
 
 function Card({ item, index, onSelect }: { item: PreviousDailyItem; index: number; onSelect: (item: PreviousDailyItem) => void }) {
-  const h = HOUSE_MAP[item.house as HouseId] ?? HOUSE_MAP.wellness;
   const mediaUrl = item.media_r2_key ? getMediaUrl(item.media_r2_key) : null;
   const isVideo = mediaUrl ? /\.(mp4|webm|mov|avi|mkv|ogv|ogg|3gp|3gpp|mpeg|mpg)$/i.test(mediaUrl) : false;
 
@@ -29,8 +27,8 @@ function Card({ item, index, onSelect }: { item: PreviousDailyItem; index: numbe
             <img src={mediaUrl} alt={item.title} className="w-full h-full object-cover" />
           )
         ) : (
-          <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${h.color}22, ${h.color}44)` }}>
-            <Calendar className="h-6 w-6" style={{ color: h.color }} />
+          <div className="w-full h-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, transparent), color-mix(in srgb, var(--accent) 27%, transparent))" }}>
+            <Calendar className="h-6 w-6" style={{ color: "var(--accent)" }} />
           </div>
         )}
         {isVideo && (
@@ -42,9 +40,6 @@ function Card({ item, index, onSelect }: { item: PreviousDailyItem; index: numbe
         )}
       </div>
       <div className="p-2.5 space-y-1">
-        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: h.color }}>
-          {h.name}
-        </p>
         <p className="text-xs font-semibold text-text-primary leading-snug line-clamp-2">
           {item.title}
         </p>
@@ -107,11 +102,8 @@ export function PreviousPostsCarousel() {
               })()}
               <div className="p-5">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: HOUSE_MAP[selectedItem.house as HouseId]?.color ?? "#10B981" }}>
-                    {HOUSE_MAP[selectedItem.house as HouseId]?.name ?? selectedItem.house}
-                  </span>
                   {selectedItem.scheduled_date && (
-                    <span className="text-[10px] text-text-secondary">· {items[0]?.id === selectedItem.id ? "Yesterday" : formatDate(selectedItem.scheduled_date)}</span>
+                    <span className="text-[10px] text-text-secondary">{items[0]?.id === selectedItem.id ? "Yesterday" : formatDate(selectedItem.scheduled_date)}</span>
                   )}
                 </div>
                 <h3 className="font-bold text-lg text-text-primary">{selectedItem.title}</h3>

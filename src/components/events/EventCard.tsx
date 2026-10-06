@@ -25,10 +25,8 @@ interface AlphaEvent {
   tags: string[];
   coverImage?: string;
 }
-import { HOUSE_MAP } from "@/lib/constants";
 
 export function EventCard({ event }: { event: AlphaEvent }) {
-  const h = HOUSE_MAP[event.house] ?? HOUSE_MAP.wellness;
   const [loading, setLoading] = useState(false);
   const { member } = useAuthStore();
 
@@ -98,7 +96,7 @@ export function EventCard({ event }: { event: AlphaEvent }) {
               : event.full
                 ? { border: "1px solid var(--border)", color: "var(--text-secondary)" }
                 : event.rsvped
-                  ? { background: `${h.color}15`, color: h.color, border: `1px solid ${h.color}40` }
+                  ? { background: "color-mix(in srgb, var(--accent) 8%, transparent)", color: "var(--accent)", border: "1px solid color-mix(in srgb, var(--accent) 25%, transparent)" }
                   : { background: "var(--primary)", color: "var(--primary-foreground)" }
           }
         >

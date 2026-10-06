@@ -79,8 +79,16 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         email: data.member?.email ?? data.email,
         username: data.member?.username ?? data.username,
         display_name: data.member?.display_name ?? data.display_name,
-        avatar_url: data.member?.avatar_url ?? data.avatar_url,
-        cover_photo_url: data.member?.cover_photo_url ?? data.cover_photo_url,
+        avatar_url:
+          data.member?.avatar_url ??
+          data.member?.avatar_r2_key ??
+          data.avatar_url ??
+          data.avatar_r2_key,
+        cover_photo_url:
+          data.member?.cover_photo_url ??
+          data.member?.cover_photo_r2_key ??
+          data.cover_photo_url ??
+          data.cover_photo_r2_key,
         primary_house: data.member?.primary_house ?? data.primary_house,
         secondary_houses: data.member?.secondary_houses ?? data.secondary_houses,
         role: data.member?.role ?? data.role,

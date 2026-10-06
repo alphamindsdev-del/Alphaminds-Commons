@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { HOUSE_MAP, type HouseId } from "@/lib/constants";
 import {
   AdminModal,
   AdminTable,
@@ -104,7 +103,7 @@ function DailyContentModal({ onClose, editItem }: { onClose: () => void; editIte
     >
       <div className="space-y-4">
         <p className="text-xs text-text-secondary rounded-xl bg-subtle/60 border border-border px-3.5 py-2.5">
-          The House is assigned automatically from the weekly theme based on the publish date. It appears on the member's Home feed on that date.
+          Content is published to the member's Home feed on the selected date.
         </p>
         <Field label="Title">
           <TInput value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} placeholder="Today's headline" />
@@ -158,7 +157,7 @@ export function AdminDailyContent() {
     <div>
       <SectionHeader
         title="Daily Content"
-        subtitle="What members see on Home each day, matched to the day's House theme."
+        subtitle="What members see on Home each day."
         action={
           <PrimaryBtn onClick={() => { setEditItem(null); setModalOpen(true); }}>
             New Daily Content
@@ -170,29 +169,21 @@ export function AdminDailyContent() {
           <tr>
             <th className="text-left px-4 py-3 font-bold">Title</th>
             <th className="text-left px-4 py-3 font-bold">Type</th>
-            <th className="text-left px-4 py-3 font-bold">House</th>
             <th className="text-left px-4 py-3 font-bold">Date</th>
             <th className="text-right px-4 py-3 font-bold">Actions</th>
           </tr>
         }
       >
         {isLoading ? (
-          <EmptyRow colSpan={5} message="Loading…" />
+          <EmptyRow colSpan={4} message="Loading…" />
         ) : sorted.length === 0 ? (
-          <EmptyRow colSpan={5} message="Nothing published yet. Create the first daily post." />
+          <EmptyRow colSpan={4} message="Nothing published yet. Create the first daily post." />
         ) : (
           sorted.map((item) => {
-            const house = HOUSE_MAP[item.house as HouseId];
             return (
               <tr key={item.id} className="border-t border-border">
                 <td className="px-4 py-3 font-semibold text-text-primary max-w-[320px] truncate">{item.title}</td>
                 <td className="px-4 py-3 text-text-secondary">{TYPE_LABEL[item.content_type] ?? item.content_type}</td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold" style={{ color: house?.color }}>
-                    <span className="h-2 w-2 rounded-full" style={{ background: house?.color }} />
-                    {house?.name ?? item.house}
-                  </span>
-                </td>
                 <td className="px-4 py-3 text-text-secondary">{fmtDate(item.scheduled_date)}</td>
                 <td className="px-4 py-3">
                   <RowActions onEdit={() => { setEditItem(item); setModalOpen(true); }} onDelete={() => handleDelete(item)} />

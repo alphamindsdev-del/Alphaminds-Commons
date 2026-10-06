@@ -3,8 +3,6 @@ import { useEventDetail } from "@/hooks/useEventDetail";
 import { useEvents } from "@/hooks/useEvents";
 import { useRsvp } from "@/hooks/useRsvp";
 import { useAuthStore } from "@/store/authStore";
-import { HOUSE_MAP } from "@/lib/constants";
-import { HouseBadge } from "@/components/common/HouseBadge";
 import { EventCard } from "@/components/events/EventCard";
 import { Avatar } from "@/components/common/Avatar";
 import { Calendar, Clock, MapPin, Check, ExternalLink, Link2, Globe, Loader2 } from "lucide-react";
@@ -44,7 +42,7 @@ function RsvpButton({ eventId, rsvpStatus, rsvpCount, rsvpLimit, format }: { eve
       <button
         onClick={() => rsvp.mutate("not_going")}
         className="w-full rounded-xl py-3 font-bold transition-colors"
-        style={{ background: `${HOUSE_MAP.wellness.color}20`, color: HOUSE_MAP.wellness.color }}
+        style={{ background: "color-mix(in srgb, var(--accent) 12%, transparent)", color: "var(--accent)" }}
       >
         <Check className="h-4 w-4 inline mr-1" /> Going · Click to cancel
       </button>
@@ -107,7 +105,7 @@ function EventDetailPage() {
     throw notFound();
   }
 
-  const h = HOUSE_MAP[event.house] ?? HOUSE_MAP.wellness;
+  const accent = "var(--accent)";
   const others = ((allEvents?.data ?? []) as any[]).filter((e: any) => e.id !== event.id).slice(0, 2).map((e: any) => ({
     id: e.id, title: e.title, type: e.event_type, house: e.house,
     date: e.starts_at ? new Date(e.starts_at).toLocaleDateString() : "",
@@ -138,7 +136,7 @@ function EventDetailPage() {
 
   return (
     <div className="space-y-8">
-      <div className="relative -mx-4 sm:-mx-6 lg:-mx-8 h-56 sm:h-72 flex items-end p-6 sm:p-10 text-white overflow-hidden" style={{ background: `linear-gradient(135deg, ${h.color}, ${h.color}99, var(--primary-dark))` }}>
+      <div className="relative -mx-4 sm:-mx-6 lg:-mx-8 h-56 sm:h-72 flex items-end p-6 sm:p-10 text-white overflow-hidden" style={{ background: `linear-gradient(135deg, ${accent}, color-mix(in srgb, var(--accent) 60%, transparent), var(--primary-dark))` }}>
         <span className="absolute -top-14 -right-4 font-display font-bold text-[12rem] sm:text-[17rem] leading-none text-white/[0.09] tracking-tighter select-none pointer-events-none">
           {event.title.charAt(0).toUpperCase()}
         </span>
@@ -182,7 +180,7 @@ function EventDetailPage() {
               >
                 <div className="absolute inset-0 opacity-50" style={{ background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.05) 100%), repeating-linear-gradient(45deg, var(--border) 0, var(--border) 1px, transparent 1px, transparent 24px)" }} />
                 <div className="relative flex flex-col items-center text-text-secondary group-hover:text-primary transition-colors">
-                  <div className="h-10 w-10 rounded-full flex items-center justify-center text-white" style={{ background: h.color }}><MapPin className="h-5 w-5" /></div>
+                  <div className="h-10 w-10 rounded-full flex items-center justify-center text-white" style={{ background: accent }}><MapPin className="h-5 w-5" /></div>
                   <span className="text-xs mt-2 font-semibold">Open in Google Maps</span>
                 </div>
               </a>
@@ -207,7 +205,6 @@ function EventDetailPage() {
             {event.tags.map((t: string) => (
               <span key={t} className="rounded-full bg-subtle px-3 py-1 text-xs font-bold text-text-secondary">{t}</span>
             ))}
-            <HouseBadge house={event.house} />
             <button
               onClick={handleCopyLink}
               className="rounded-full bg-card border border-border px-3 py-1 text-xs font-bold text-text-secondary hover:text-primary transition-colors inline-flex items-center gap-1"
@@ -223,7 +220,7 @@ function EventDetailPage() {
               <p className="text-xs font-bold uppercase tracking-widest text-text-secondary">Spots remaining</p>
               <p className="mt-1 font-black text-2xl">{event.capacity - event.rsvpCount} / {event.capacity}</p>
               <div className="mt-2 h-2 bg-subtle rounded-full overflow-hidden">
-                <div className="h-full" style={{ width: `${(event.rsvpCount / event.capacity) * 100}%`, background: h.color }} />
+                <div className="h-full" style={{ width: `${(event.rsvpCount / event.capacity) * 100}%`, background: accent }} />
               </div>
             </div>
 

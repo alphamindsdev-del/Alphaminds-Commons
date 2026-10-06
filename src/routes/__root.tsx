@@ -72,7 +72,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "AlphaMinds" },
       { title: "AlphaMinds Commons" },
-      { name: "description", content: "A digital community for human flourishing, organized around the Five Houses." },
+      { name: "description", content: "A digital community for human flourishing." },
       { property: "og:title", content: "AlphaMinds Commons" },
       { property: "og:description", content: "A digital community for human flourishing." },
       { property: "og:type", content: "website" },

@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { toast } from "sonner";
-import { HOUSE_MAP, type HouseId } from "@/lib/constants";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { useEvents } from "@/hooks/useEvents";
 import { useMyChallenges } from "@/hooks/useMyChallenges";
@@ -41,7 +40,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "AlphaMinds Commons" },
-      { name: "description", content: "A digital community for human flourishing, organized around the Five Houses." },
+      { name: "description", content: "A digital community for human flourishing." },
     ],
   }),
   component: IndexRoute,
@@ -383,14 +382,12 @@ function Home() {
   const { data: myChallengesData, isLoading: challengesLoading } = useMyChallenges();
   const { data: homePlans, isLoading: plansLoading } = useQuery({ queryKey: ["plans"], queryFn: () => apiFetch<any[]>("/v1/plans"), staleTime: 60000 });
 
-  const scoresDefault = { wellness: 0, becoming: 0, connection: 0, fun: 0, humanity: 0 };
   const member = profile
     ? {
         name: profile.display_name ?? authMember?.display_name ?? "Member",
         username: profile.username ?? "",
-        primaryHouse: (profile.primary_house ?? authMember?.primary_house ?? "wellness") as HouseId,
+        chapter: profile.chapter ?? authMember?.chapter_id ?? "",
         streak: profile.streak ?? 0,
-        scores: profile.scores ?? scoresDefault,
         membershipLevel: (profile.membership_level ?? authMember?.membership_level ?? "SEEKER") as string,
         id: profile.id,
       }
@@ -398,16 +395,14 @@ function Home() {
       ? {
           name: authMember.display_name,
           username: authMember.username,
-          primaryHouse: authMember.primary_house as HouseId,
+          chapter: authMember.chapter_id ?? "",
           streak: 0,
-          scores: scoresDefault,
           membershipLevel: authMember.membership_level ?? "SEEKER",
           id: authMember.id,
         }
       : null;
 
-  const house = member ? HOUSE_MAP[member.primaryHouse] : HOUSE_MAP.wellness;
-  const chapterName = `${house.name} Chapter`;
+  const chapterName = member?.chapter || "My Chapter";
 
   return (
     <div className="mx-auto max-w-[720px] space-y-8 pb-4">

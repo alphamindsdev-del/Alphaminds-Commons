@@ -3,17 +3,14 @@ import { Check } from "lucide-react";
 import { useState } from "react";
 import confetti from "canvas-confetti";
 import { useDailyContent } from "@/hooks/useDailyContent";
-import { HOUSE_MAP } from "@/lib/constants";
 import { cleanWriteup } from "@/lib/utils";
 
 export function DailyContentCard() {
   const { data: dailyData, isLoading } = useDailyContent();
   const c = dailyData?.content ? {
-    house: dailyData.content.house ?? "wellness",
     title: dailyData.content.title ?? "",
     body: dailyData.content.body ?? "",
   } : null;
-  const h = c ? (HOUSE_MAP[c.house] ?? HOUSE_MAP.wellness) : HOUSE_MAP.wellness;
   const [done, setDone] = useState(false);
 
   if (isLoading || !c) return (
@@ -37,7 +34,7 @@ export function DailyContentCard() {
       particleCount: 80,
       spread: 70,
       origin: { y: 0.6 },
-      colors: [h.color, "var(--accent)", "var(--primary)", "#ffffff"],
+      colors: ["var(--accent)", "var(--accent)", "var(--primary)", "#ffffff"],
     });
   }
 
@@ -48,16 +45,13 @@ export function DailyContentCard() {
       transition={{ duration: 0.4 }}
       className="relative overflow-hidden rounded-3xl p-7 sm:p-10 text-white"
       style={{
-        background: `radial-gradient(120% 100% at 0% 0%, ${h.color} 0%, ${h.color}dd 40%, var(--primary-dark) 100%)`,
+        background: `radial-gradient(120% 100% at 0% 0%, var(--accent) 0%, color-mix(in srgb, var(--accent) 87%, transparent) 40%, var(--primary-dark) 100%)`,
       }}
     >
-      <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full opacity-30 blur-3xl" style={{ background: h.color }} />
+      <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full opacity-30 blur-3xl" style={{ background: "var(--accent)" }} />
       <div className="absolute -bottom-32 -left-10 h-72 w-72 rounded-full opacity-20 blur-3xl bg-white" />
 
       <div className="relative">
-        <div className="mb-3">
-          <span className="text-sm font-semibold text-white/80">{h.name}</span>
-        </div>
         <h2 className="font-black text-3xl sm:text-4xl lg:text-5xl leading-tight mb-4 max-w-2xl">
           {c.title}
         </h2>

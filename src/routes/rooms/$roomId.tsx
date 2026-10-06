@@ -5,7 +5,6 @@ import { useRoomPosts } from "@/hooks/useRoomPosts";
 import { useJoinRoom } from "@/hooks/useJoinRoom";
 import { useLeaveRoom } from "@/hooks/useLeaveRoom";
 import { useAuthStore } from "@/store/authStore";
-import { HouseBadge } from "@/components/common/HouseBadge";
 import { PostComposer } from "@/components/posts/PostComposer";
 import { PostCard } from "@/components/posts/PostCard";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -67,7 +66,6 @@ function RoomDetailPage() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="text-display font-semibold text-2xl tracking-tighter truncate">{room.name}</h1>
-              <HouseBadge house={room.house} size="sm" />
             </div>
             <p className="text-xs text-text-secondary inline-flex items-center gap-1">
               <Users className="h-3 w-3" /> {room.memberCount ?? 0} members

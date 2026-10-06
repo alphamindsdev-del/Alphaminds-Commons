@@ -4,7 +4,6 @@ import { useEvents } from "@/hooks/useEvents";
 import { EventCard } from "@/components/events/EventCard";
 import { EmptyState } from "@/components/common/EmptyState";
 import { SkeletonCard } from "@/components/common/SkeletonCard";
-import { HOUSES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Calendar } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -18,7 +17,6 @@ const filters = [
   { id: "all", label: "All" },
   { id: "Online", label: "Online" },
   { id: "Physical", label: "Physical" },
-  ...HOUSES.map((h) => ({ id: h.id, label: h.name })),
 ];
 
 const filterLabel = (id: string) => filters.find((f) => f.id === id)?.label ?? id;
@@ -39,8 +37,7 @@ function EventsPage() {
   const [active, setActive] = useState("all");
   const filtered = events.filter((e) => {
     if (active === "all") return true;
-    if (active === "Online" || active === "Physical") return e.format === active;
-    return e.house === active;
+    return e.format === active;
   });
 
   return (

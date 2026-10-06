@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { HOUSE_MAP, type HouseId } from "@/lib/constants";
 import { apiFetch } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, ArrowRight, Loader2, Clock } from "lucide-react";
@@ -39,7 +38,6 @@ function LibraryPage() {
       ) : (
         <div className="grid sm:grid-cols-2 gap-5">
           {articles.map((a: any) => {
-            const h = HOUSE_MAP[a.house as HouseId] ?? HOUSE_MAP.wellness;
             return (
               <article
                 key={a.id}
@@ -47,7 +45,7 @@ function LibraryPage() {
               >
                 <div
                   className="relative h-44 overflow-hidden"
-                  style={{ background: a.cover_r2_key ? `url(/v1/media/${a.cover_r2_key}) center/cover` : `linear-gradient(135deg, ${h.color}66, ${h.color}22 60%, var(--primary-dark))` }}
+                  style={{ background: a.cover_r2_key ? `url(/v1/media/${a.cover_r2_key}) center/cover` : `linear-gradient(135deg, color-mix(in srgb, var(--accent) 40%, transparent), color-mix(in srgb, var(--accent) 13%, transparent) 60%, var(--primary-dark))` }}
                 >
                   {!a.cover_r2_key && (
                     <span className="absolute -bottom-6 -right-1 font-display font-bold text-[8rem] leading-none text-white/[0.16] tracking-tighter select-none">
@@ -55,10 +53,6 @@ function LibraryPage() {
                     </span>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                  <span className="absolute top-4 left-4 rounded-full bg-white/95 text-text-primary text-[10px] font-black uppercase tracking-widest px-3 py-1 inline-flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: h.color }} />
-                    {h.name}
-                  </span>
                 </div>
                 <div className="p-5">
                   <h2 className="text-display font-semibold text-2xl tracking-tighter text-text-primary leading-tight group-hover:text-primary transition-colors">{a.title}</h2>

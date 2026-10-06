@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useDailyContent } from "@/hooks/useDailyContent";
 import { useCompleteDaily } from "@/hooks/useCompleteDaily";
 import { useAuthStore } from "@/store/authStore";
-import { HOUSE_MAP, houseOfToday } from "@/lib/constants";
 import { cleanWriteup, getMediaUrl } from "@/lib/utils";
 import { ChevronDown, ChevronUp, Play, X, Check, Loader2 } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -11,7 +10,6 @@ export function VideoOfTheDay() {
   const { member } = useAuthStore();
   const { data: dailyData, isLoading, isError } = useDailyContent();
   const completeDaily = useCompleteDaily(dailyData?.content?.id ?? "");
-  const today = houseOfToday();
   const [mediaOpen, setMediaOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [done, setDone] = useState(false);
@@ -46,7 +44,6 @@ export function VideoOfTheDay() {
   }
 
   const c = dailyData?.content ? {
-    house: dailyData.content.house ?? "wellness",
     title: dailyData.content.title ?? "",
     body: dailyData.content.body ?? "",
     mediaUrl: dailyData.content.media_r2_key ? getMediaUrl(dailyData.content.media_r2_key) : null,
@@ -54,8 +51,6 @@ export function VideoOfTheDay() {
 
   const noContent = !!dailyData && !dailyData.content;
   const isVideo = c?.mediaUrl ? /\.(mp4|webm|mov|avi|mkv|ogv|ogg|3gp|3gpp|mpeg|mpg)$/i.test(c.mediaUrl) : false;
-
-  const h = c ? (HOUSE_MAP[c.house] ?? HOUSE_MAP.wellness) : HOUSE_MAP[today.id];
 
   function complete() {
     if (done || completeDaily.isPending) return;
@@ -72,7 +67,7 @@ export function VideoOfTheDay() {
           particleCount: 80,
           spread: 70,
           origin: { y: 0.7 },
-          colors: ["#CCFF3D", "#FFFFFF", h.color],
+          colors: ["#A8C92B", "#FFFFFF", "var(--accent)"],
         });
       },
       onError: (err: any) => {
@@ -85,7 +80,7 @@ export function VideoOfTheDay() {
   return (
     <section className="relative overflow-hidden rounded-3xl bg-[#0C0C0E] text-white border border-white/10 shadow-[0_30px_70px_-30px_rgba(0,0,0,0.55)]">
       <div className="absolute -top-28 right-[-10%] h-72 w-72 rounded-full bg-accent/15 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-20%] left-[15%] h-56 w-56 rounded-full blur-3xl pointer-events-none" style={{ background: `${h.color}22` }} />
+      <div className="absolute bottom-[-20%] left-[15%] h-56 w-56 rounded-full blur-3xl pointer-events-none" style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)" }} />
       <div className="absolute right-0 bottom-6 select-none pointer-events-none font-display font-bold text-[18vw] sm:text-[9rem] leading-none text-white/[0.04] tracking-tighter pr-4">
         {c?.title ? "TODAY" : ""}
       </div>
@@ -122,10 +117,6 @@ export function VideoOfTheDay() {
         {c ? (
           <>
             <div className="flex items-center justify-between gap-4">
-              <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.22em] text-white/70">
-                <span className="h-2 w-2 rounded-full" style={{ background: h.color }} />
-                {h.name}
-              </span>
               <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/35">Alpha Minds Daily</span>
             </div>
 

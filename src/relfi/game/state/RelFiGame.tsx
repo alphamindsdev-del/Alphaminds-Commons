@@ -25,7 +25,6 @@ export type RelFiGameProps = {
 
 export function RelFiGame({ mode = "standalone", containerMode = "fullscreen", authToken }: RelFiGameProps) {
   const phase = useGame((s) => s.phase);
-  const setPhase = useGame((s) => s.setPhase);
   const applyWsEvent = useGame((s) => s.applyWsEvent);
   const resetGame = useGame((s) => s.resetGame);
   const tryReconnect = useGame((s) => s.tryReconnect);
@@ -64,10 +63,6 @@ export function RelFiGame({ mode = "standalone", containerMode = "fullscreen", a
     })
     return unsub
   }, [applyWsEvent])
-
-  useEffect(() => {
-    if (mode === "embedded" && phase === "landing" && initialized) setPhase("lobby");
-  }, [mode, phase, setPhase, initialized]);
 
   const handleBackToAlphaMinds = () => {
     navigate({ to: '/' })

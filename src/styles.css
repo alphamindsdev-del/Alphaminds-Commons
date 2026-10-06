@@ -366,7 +366,7 @@
   height: 76vmax;
   top: -30vmax;
   left: -20vmax;
-  background: radial-gradient(circle at 50% 50%, rgba(204, 255, 61, 0.5), transparent 58%);
+  background: radial-gradient(circle at 50% 50%, rgba(181, 212, 50, 0.5), transparent 58%);
   filter: blur(72px);
   animation: splash-glow-1 26s ease-in-out infinite alternate;
 }
@@ -386,7 +386,7 @@
   height: 42vmax;
   top: 34%;
   right: 22%;
-  background: radial-gradient(circle at 50% 50%, rgba(204, 255, 61, 0.24), transparent 62%);
+  background: radial-gradient(circle at 50% 50%, rgba(181, 212, 50, 0.24), transparent 62%);
   filter: blur(92px);
   animation: splash-glow-3 23s ease-in-out infinite alternate;
 }
@@ -397,7 +397,7 @@
   background: conic-gradient(
     from 0deg at 50% 50%,
     transparent 0deg,
-    rgba(204, 255, 61, 0.05) 40deg,
+    rgba(181, 212, 50, 0.05) 40deg,
     rgba(255, 255, 255, 0.03) 80deg,
     transparent 130deg,
     transparent 360deg
@@ -429,7 +429,7 @@
   width: 440px;
   height: 440px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(204, 255, 61, 0.13), transparent 60%);
+  background: radial-gradient(circle, rgba(181, 212, 50, 0.13), transparent 60%);
   animation: splash-halo 7s ease-in-out infinite;
 }
 
@@ -439,7 +439,7 @@
   width: min(220px, 62vw);
   height: auto;
   filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.65))
-    drop-shadow(0 0 22px rgba(204, 255, 61, 0.28));
+    drop-shadow(0 0 22px rgba(181, 212, 50, 0.28));
   animation: splash-logo-breathe 4.5s ease-in-out infinite;
 }
 

@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { HouseBadge } from "@/components/common/HouseBadge";
 import { ArrowLeft, Clock, BookOpen } from "lucide-react";
 import { EmptyState } from "@/components/common/EmptyState";
 
@@ -47,7 +46,6 @@ function ArticleDetailPage() {
           </div>
         )}
         <div className="flex items-center gap-2 mb-4 mt-6">
-          <HouseBadge house={article.house} size="sm" />
           {article.read_time_min && (
             <span className="text-xs text-text-secondary flex items-center gap-1">
               <Clock className="h-3 w-3" /> {article.read_time_min} min read

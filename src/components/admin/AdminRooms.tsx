@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { HOUSES, HOUSE_MAP, type HouseId } from "@/lib/constants";
 import { Lock } from "lucide-react";
 import {
   AdminModal,
@@ -14,7 +13,6 @@ import {
   SectionHeader,
   TArea,
   TInput,
-  TSelect,
   Toggle,
   adminSend,
   confirmDelete,
@@ -41,7 +39,6 @@ function RoomModal({ onClose, editItem }: { onClose: () => void; editItem: RoomI
   const [name, setName] = useState(editItem?.name ?? "");
   const [slug, setSlug] = useState(editItem?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(!!editItem);
-  const [house, setHouse] = useState<string>(editItem?.house ?? "wellness");
   const [description, setDescription] = useState(editItem?.description ?? "");
   const [isPrivate, setIsPrivate] = useState(editItem ? editItem.is_private === 1 : false);
 
@@ -55,7 +52,7 @@ function RoomModal({ onClose, editItem }: { onClose: () => void; editItem: RoomI
       const payload = {
         name: name.trim(),
         slug: slug.trim(),
-        house,
+        house: editItem?.house ?? "wellness",
         description: description.trim() || null,
         is_private: isPrivate,
       };
@@ -96,11 +93,6 @@ function RoomModal({ onClose, editItem }: { onClose: () => void; editItem: RoomI
         <Field label="Slug" hint="Used in the room URL.">
           <TInput value={slug} onChange={(e) => { setSlugTouched(true); setSlug(slugify(e.target.value)); }} />
         </Field>
-        <Field label="House">
-          <TSelect value={house} onChange={(e) => setHouse(e.target.value)}>
-            {HOUSES.map((h) => <option key={h.id} value={h.id}>{h.name}</option>)}
-          </TSelect>
-        </Field>
         <Field label="Description">
           <TArea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
         </Field>
@@ -135,14 +127,13 @@ export function AdminRooms() {
     <div>
       <SectionHeader
         title="Rooms"
-        subtitle="House rooms where members gather and talk."
+        subtitle="Rooms where members gather and talk."
         action={<PrimaryBtn onClick={() => { setEditItem(null); setModalOpen(true); }}>Create Room</PrimaryBtn>}
       />
       <AdminTable
         head={
           <tr>
             <th className="text-left px-4 py-3 font-bold">Name</th>
-            <th className="text-left px-4 py-3 font-bold">House</th>
             <th className="text-left px-4 py-3 font-bold">Privacy</th>
             <th className="text-left px-4 py-3 font-bold">Created</th>
             <th className="text-right px-4 py-3 font-bold">Actions</th>
@@ -150,23 +141,16 @@ export function AdminRooms() {
         }
       >
         {isLoading ? (
-          <EmptyRow colSpan={5} message="Loading…" />
+          <EmptyRow colSpan={4} message="Loading…" />
         ) : items.length === 0 ? (
-          <EmptyRow colSpan={5} message="No rooms yet. Create the first one." />
+          <EmptyRow colSpan={4} message="No rooms yet. Create the first one." />
         ) : (
           items.map((item) => {
-            const house = HOUSE_MAP[item.house as HouseId];
             return (
               <tr key={item.id} className="border-t border-border">
                 <td className="px-4 py-3">
                   <p className="font-semibold text-text-primary">{item.name}</p>
                   <p className="text-xs text-text-secondary">/{item.slug}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold" style={{ color: house?.color }}>
-                    <span className="h-2 w-2 rounded-full" style={{ background: house?.color }} />
-                    {house?.name ?? item.house}
-                  </span>
                 </td>
                 <td className="px-4 py-3">
                   {item.is_private === 1 ? (

@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { HOUSES, HOUSE_MAP, type HouseId } from "@/lib/constants";
 import {
   AdminModal,
   AdminTable,
@@ -15,7 +14,6 @@ import {
   StatusPill,
   TArea,
   TInput,
-  TSelect,
   Toggle,
   adminSend,
   confirmDelete,
@@ -41,7 +39,6 @@ interface LibraryArticle {
 function LibraryModal({ onClose, editItem }: { onClose: () => void; editItem: LibraryArticle | null }) {
   const qc = useQueryClient();
   const editId = editItem?.id ?? null;
-  const [house, setHouse] = useState<string>(editItem?.house ?? "becoming");
   const [title, setTitle] = useState(editItem?.title ?? "");
   const [slug, setSlug] = useState(editItem?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(!!editItem);
@@ -60,7 +57,7 @@ function LibraryModal({ onClose, editItem }: { onClose: () => void; editItem: Li
   const save = useMutation({
     mutationFn: async () => {
       const payload: Record<string, unknown> = {
-        house,
+        house: editItem?.house ?? "wellness",
         title: title.trim(),
         slug: slug.trim(),
         excerpt: excerpt.trim() || undefined,
@@ -106,18 +103,9 @@ function LibraryModal({ onClose, editItem }: { onClose: () => void; editItem: Li
       }
     >
       <div className="space-y-4">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="House">
-            <TSelect value={house} onChange={(e) => setHouse(e.target.value)}>
-              {HOUSES.map((h) => (
-                <option key={h.id} value={h.id}>{h.name}</option>
-              ))}
-            </TSelect>
-          </Field>
-          <Field label="Author">
-            <TInput value={authorName} onChange={(e) => setAuthorName(e.target.value)} placeholder="AlphaMinds Guides" />
-          </Field>
-        </div>
+        <Field label="Author">
+          <TInput value={authorName} onChange={(e) => setAuthorName(e.target.value)} placeholder="AlphaMinds Guides" />
+        </Field>
         <Field label="Title">
           <TInput value={title} onChange={(e) => onTitleChange(e.target.value)} maxLength={200} placeholder="Article title" />
         </Field>
@@ -178,7 +166,7 @@ export function AdminLibrary() {
     <div>
       <SectionHeader
         title="Library"
-        subtitle="Guides and long-form articles organized by House."
+        subtitle="Guides and long-form articles."
         action={
           <PrimaryBtn onClick={() => { setEditItem(null); setModalOpen(true); }}>
             New Article
@@ -189,7 +177,6 @@ export function AdminLibrary() {
         head={
           <tr>
             <th className="text-left px-4 py-3 font-bold">Title</th>
-            <th className="text-left px-4 py-3 font-bold">House</th>
             <th className="text-left px-4 py-3 font-bold">Author</th>
             <th className="text-left px-4 py-3 font-bold">Status</th>
             <th className="text-left px-4 py-3 font-bold">Created</th>
@@ -198,23 +185,16 @@ export function AdminLibrary() {
         }
       >
         {isLoading ? (
-          <EmptyRow colSpan={6} message="Loading…" />
+          <EmptyRow colSpan={5} message="Loading…" />
         ) : sorted.length === 0 ? (
-          <EmptyRow colSpan={6} message="No articles yet. Write the first one." />
+          <EmptyRow colSpan={5} message="No articles yet. Write the first one." />
         ) : (
           sorted.map((item) => {
-            const house = HOUSE_MAP[item.house as HouseId];
             return (
               <tr key={item.id} className="border-t border-border">
                 <td className="px-4 py-3">
                   <p className="font-semibold text-text-primary max-w-[280px] truncate">{item.title}</p>
                   <p className="text-xs text-text-secondary truncate max-w-[280px]">/{item.slug}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold" style={{ color: house?.color }}>
-                    <span className="h-2 w-2 rounded-full" style={{ background: house?.color }} />
-                    {house?.name ?? item.house}
-                  </span>
                 </td>
                 <td className="px-4 py-3 text-text-secondary">{item.author_name}</td>
                 <td className="px-4 py-3"><StatusPill ok={item.is_published === 1} /></td>

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export function RoomCodeDisplay({ code, joinUrl }: { code: string; joinUrl?: string }) {
   const [copied, setCopied] = useState(false);
-  const url = joinUrl ?? (typeof window !== "undefined" ? `${window.location.origin}/?join=${code}` : `/?join=${code}`);
+  const url = joinUrl ?? (typeof window !== "undefined" ? `${window.location.origin}/rel-fi?join=${code}` : `/rel-fi?join=${code}`);
   return (
     <div className="flex flex-col items-center gap-6 rounded-3xl border bg-card-elevated p-6 md:flex-row md:p-8">
       <div className="rounded-2xl bg-white p-3">

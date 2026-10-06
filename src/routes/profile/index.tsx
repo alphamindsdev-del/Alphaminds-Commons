@@ -3,10 +3,7 @@ import { useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { useMyChallenges } from "@/hooks/useMyChallenges";
-import { HOUSE_MAP, HOUSES, type HouseId } from "@/lib/constants";
 import { Avatar } from "@/components/common/Avatar";
-import { HouseBadge } from "@/components/common/HouseBadge";
-import { ProgressBar } from "@/components/common/ProgressBar";
 import { ChallengeCard } from "@/components/challenges/ChallengeCard";
 import { SkeletonCard } from "@/components/common/SkeletonCard";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
@@ -116,15 +113,14 @@ function ProfilePage() {
   }
 
   const m: {
-    name: string; username: string; primaryHouse: HouseId; bio: string; chapter: string;
+    name: string; username: string; bio: string; chapter: string;
     joinedAt: string; streak: number; totalPoints: number; challengesCompleted: number;
-    eventsAttended: number; scores: Record<string, number>;
-    badges: any[]; secondaryHouses: string[]; id: string;
+    eventsAttended: number;
+    badges: any[]; id: string;
     avatarUrl: string | null; coverPhotoUrl: string | null;
   } = profile ? {
     name: profile.display_name ?? authMember?.display_name ?? "Member",
     username: profile.username ?? "",
-    primaryHouse: profile.primary_house ?? (authMember?.primary_house as HouseId ?? "wellness"),
     bio: profile.bio ?? "",
     chapter: profile.chapter ?? authMember?.chapter_id ?? "",
     joinedAt: fmtMonth(profile.joined_at),
@@ -132,16 +128,13 @@ function ProfilePage() {
     totalPoints: profile.total_points ?? 0,
     challengesCompleted: profile.challenges_completed ?? 0,
     eventsAttended: profile.events_attended ?? 0,
-    scores: profile.scores ?? { wellness: 0, becoming: 0, connection: 0, fun: 0, humanity: 0 },
     badges: profile.badges ?? [],
-    secondaryHouses: profile.secondary_houses ?? [],
     id: authMember?.id ?? "",
     avatarUrl: profile.avatar_url ?? authMember?.avatar_url ?? null,
     coverPhotoUrl: profile.cover_photo_url ?? null,
   } : authMember ? {
     name: authMember.display_name,
     username: authMember.username,
-    primaryHouse: authMember.primary_house as HouseId,
     bio: "",
     chapter: authMember.chapter_id ?? "",
     joinedAt: "",
@@ -149,15 +142,12 @@ function ProfilePage() {
     totalPoints: 0,
     challengesCompleted: 0,
     eventsAttended: 0,
-    scores: { wellness: 0, becoming: 0, connection: 0, fun: 0, humanity: 0 },
     badges: [],
-    secondaryHouses: [],
     id: authMember.id,
     avatarUrl: authMember.avatar_url ?? null,
     coverPhotoUrl: null,
-  } : { name: "Member", username: "", primaryHouse: "wellness" as HouseId, bio: "", chapter: "", joinedAt: "", streak: 0, totalPoints: 0, challengesCompleted: 0, eventsAttended: 0, scores: { wellness: 0, becoming: 0, connection: 0, fun: 0, humanity: 0 }, badges: [], secondaryHouses: [], id: "", avatarUrl: null, coverPhotoUrl: null };
+  } : { name: "Member", username: "", bio: "", chapter: "", joinedAt: "", streak: 0, totalPoints: 0, challengesCompleted: 0, eventsAttended: 0, badges: [], id: "", avatarUrl: null, coverPhotoUrl: null };
 
-  const primary = HOUSE_MAP[m.primaryHouse] ?? HOUSE_MAP.wellness;
   const membershipLevel = authMember?.membership_level;
   const roleLabel = authMember?.role && authMember.role !== "member"
     ? authMember.role.replace(/_/g, " ")
@@ -187,7 +177,7 @@ function ProfilePage() {
       <header className="-mx-4 sm:-mx-6 lg:-mx-10">
         <div
           className="relative h-36 sm:h-48 overflow-hidden"
-          style={m.coverPhotoUrl ? undefined : { background: `linear-gradient(135deg, ${primary.color}, ${primary.color}99, var(--primary-dark))` }}
+          style={m.coverPhotoUrl ? undefined : { background: "linear-gradient(135deg, var(--primary-dark), var(--accent-dark-green))" }}
         >
           {m.coverPhotoUrl ? (
             <img src={getMediaUrl(m.coverPhotoUrl)} alt="Cover" className="h-full w-full object-cover" />
@@ -203,11 +193,11 @@ function ProfilePage() {
 
         <div className="px-4 sm:px-6 lg:px-10">
           <div className="-mt-10 sm:-mt-12 flex items-end justify-between gap-4">
-            <div className="ring-4 ring-background rounded-full shrink-0">
+            <div className="relative z-10 ring-4 ring-background rounded-full shrink-0">
               {m.avatarUrl ? (
                 <img src={getMediaUrl(m.avatarUrl)} alt={m.name} className="h-20 w-20 sm:h-24 sm:w-24 rounded-full object-cover" />
               ) : (
-                <Avatar name={m.name} size="2xl" color={primary.color} />
+                <Avatar name={m.name} size="2xl" />
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -232,7 +222,6 @@ function ProfilePage() {
           <div className="mt-4">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               <h1 className="text-display font-semibold text-2xl sm:text-3xl tracking-tight leading-tight">{m.name}</h1>
-              <HouseBadge house={m.primaryHouse} size="sm" />
               {roleLabel && (
                 <span className="rounded-full border border-border bg-subtle px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-text-secondary">
                   {roleLabel}
@@ -281,35 +270,6 @@ function ProfilePage() {
             <p className="mt-1.5 text-[10px] uppercase font-bold tracking-widest text-text-secondary">{s.label}</p>
           </div>
         ))}
-      </section>
-
-      {/* House Memberships */}
-      <section>
-        <h2 className={SECTION_TITLE + " mb-3"}>Houses</h2>
-        <div className="rounded-3xl border border-border bg-card p-5 card-shadow space-y-4">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <span className="w-24 text-[10px] font-bold uppercase tracking-widest text-text-secondary">Primary</span>
-            <HouseBadge house={m.primaryHouse} size="md" />
-          </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <span className="w-24 text-[10px] font-bold uppercase tracking-widest text-text-secondary">Secondary</span>
-            {m.secondaryHouses.length > 0 ? (
-              m.secondaryHouses.map((h: string) => <HouseBadge key={h} house={h as HouseId} size="md" />)
-            ) : (
-              <span className="text-sm text-text-secondary">None selected yet</span>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Five Houses Score */}
-      <section className="rounded-3xl border border-border bg-card p-6 card-shadow">
-        <h2 className={SECTION_TITLE + " mb-4"}>Five Houses Score</h2>
-        <div className="space-y-3">
-          {HOUSES.map((h) => (
-            <ProgressBar key={h.id} value={m.scores[h.id]} max={250} color={h.color} label={<span className="font-semibold">{h.name}</span>} />
-          ))}
-        </div>
       </section>
 
       {/* Badges */}

@@ -5,7 +5,6 @@ import { useMyChallenges } from "@/hooks/useMyChallenges";
 import { ChallengeCard } from "@/components/challenges/ChallengeCard";
 import { EmptyState } from "@/components/common/EmptyState";
 import { SkeletonCard } from "@/components/common/SkeletonCard";
-import { HOUSES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Target } from "lucide-react";
 import { PageHeader, SectionHeading } from "@/components/common/PageHeader";
@@ -18,7 +17,6 @@ export const Route = createFileRoute("/challenges/")({
 const filters = [
   { id: "all", label: "All" },
   { id: "active", label: "Active" },
-  ...HOUSES.map((h) => ({ id: h.id, label: h.name })),
 ];
 
 const filterLabel = (id: string) => filters.find((f) => f.id === id)?.label ?? id;
@@ -34,7 +32,7 @@ function ChallengesPage() {
   const [f, setF] = useState("all");
   const active = allChallenges.filter((c: any) => c.joined);
   const discover = allChallenges.filter((c: any) => !c.joined);
-  const list = f === "all" ? allChallenges : f === "active" ? active : allChallenges.filter((c: any) => c.house === f);
+  const list = f === "all" ? allChallenges : active;
 
   const header = (
     <PageHeader

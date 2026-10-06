@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
-import { HOUSES, HOUSE_MAP, type HouseId } from "@/lib/constants";
 import {
   AdminTable,
   EmptyRow,
@@ -32,7 +31,6 @@ interface Member {
 const ROLES = [
   { value: "member", label: "Member" },
   { value: "moderator", label: "Moderator" },
-  { value: "house_lead", label: "House Lead" },
   { value: "admin", label: "Admin" },
   { value: "founder", label: "Founder" },
 ] as const;
@@ -43,17 +41,15 @@ export function AdminMembers() {
   const { data, isLoading } = useAdminList<Member>("members", "/v1/admin/members?limit=100");
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
-  const [houseFilter, setHouseFilter] = useState("");
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (data?.data ?? []).filter((m) => {
       if (roleFilter && m.role !== roleFilter) return false;
-      if (houseFilter && m.primary_house !== houseFilter) return false;
       if (q && !`${m.display_name} ${m.username} ${m.email}`.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [data, search, roleFilter, houseFilter]);
+  }, [data, search, roleFilter]);
 
   const update = useMutation({
     mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
@@ -92,7 +88,6 @@ export function AdminMembers() {
         head={
           <tr>
             <th className="text-left px-4 py-3 font-bold">Member</th>
-            <th className="text-left px-4 py-3 font-bold">House</th>
             <th className="text-left px-4 py-3 font-bold">Role</th>
             <th className="text-left px-4 py-3 font-bold">Status</th>
             <th className="text-left px-4 py-3 font-bold">Joined</th>
@@ -101,27 +96,16 @@ export function AdminMembers() {
         }
       >
         {isLoading ? (
-          <EmptyRow colSpan={6} message="Loading…" />
+          <EmptyRow colSpan={5} message="Loading…" />
         ) : filtered.length === 0 ? (
-          <EmptyRow colSpan={6} message={search || roleFilter || houseFilter ? "No members match these filters." : "No members found."} />
+          <EmptyRow colSpan={5} message={search || roleFilter ? "No members match these filters." : "No members found."} />
         ) : (
           filtered.map((m) => {
-            const house = m.primary_house ? HOUSE_MAP[m.primary_house as HouseId] : null;
             const isSelf = me?.id === m.id;
             return (
               <tr key={m.id} className="border-t border-border">
                 <td className="px-4 py-3">
                   <MemberCell name={m.display_name || m.username} email={m.email} avatarKey={m.avatar_r2_key} />
-                </td>
-                <td className="px-4 py-3">
-                  {house ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold" style={{ color: house.color }}>
-                      <span className="h-2 w-2 rounded-full" style={{ background: house.color }} />
-                      {house.name}
-                    </span>
-                  ) : (
-                    <span className="text-text-secondary text-xs">—</span>
-                  )}
                 </td>
                 <td className="px-4 py-3">
                   {isSelf ? (

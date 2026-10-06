@@ -15,7 +15,7 @@ const mainNav = [
   { to: "/alpha-minds-daily", label: "Alpha Minds Daily", icon: Newspaper, minLevel: 0 },
   { to: "/plans", label: "Plans", icon: Target, minLevel: 1 },
   { to: "/wellness-clinic", label: "Wellness Clinic", icon: Leaf, minLevel: 1 },
-  { to: "/rel-fi", label: "Rel-Fi — Play Now", icon: Flame, minLevel: 1 },
+  { to: "/rel-fi", label: "Rel-Fi Game", icon: Flame, minLevel: 1 },
   { to: "/my-chapter", label: "My Chapter", icon: Map, minLevel: 0 },
   { to: "/events", label: "Events", icon: Calendar, minLevel: 1 },
   { to: "/library", label: "Library", icon: Library, minLevel: 0 },

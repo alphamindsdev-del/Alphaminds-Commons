@@ -15,7 +15,6 @@ interface Room {
   last_activity?: string;
   last_post_preview?: string;
 }
-import { HouseBadge } from "@/components/common/HouseBadge";
 import { useJoinRoom } from "@/hooks/useJoinRoom";
 import { useAuthStore } from "@/store/authStore";
 import { queryClient } from "@/lib/queryClient";
@@ -44,7 +43,6 @@ export function RoomCard({ room, suggested = false }: { room: Room; suggested?: 
             <Users className="h-3 w-3" /> {memberCount} members{lastActivity ? ` · ${lastActivity}` : ""}
           </p>
         </div>
-        <HouseBadge house={room.house} size="sm" />
       </div>
       {suggested ? (
         <p className="text-sm text-text-secondary line-clamp-2">{room.description}</p>

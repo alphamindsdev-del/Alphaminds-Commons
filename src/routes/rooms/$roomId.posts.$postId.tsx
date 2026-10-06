@@ -5,7 +5,6 @@ import { usePostDetail } from "@/hooks/usePostDetail";
 import { usePostComments } from "@/hooks/usePostComments";
 import { useCreateComment } from "@/hooks/useCreateComment";
 import { useAuthStore } from "@/store/authStore";
-import { HOUSE_MAP } from "@/lib/constants";
 import { PostCard } from "@/components/posts/PostCard";
 import { Avatar } from "@/components/common/Avatar";
 import { cleanWriteup } from "@/lib/utils";
@@ -65,7 +64,7 @@ function PostDetailPage() {
       },
     })),
   }));
-  const meColor = (HOUSE_MAP[authMember?.primary_house ?? "wellness"] ?? HOUSE_MAP.wellness).color;
+  const meColor = "var(--accent)";
 
   async function submitComment() {
     const content = text.trim();
@@ -95,21 +94,21 @@ function PostDetailPage() {
         ) : (
           <div className="space-y-4">
             {comments.map((c) => {
-              const ch = HOUSE_MAP[c.author.primaryHouse as keyof typeof HOUSE_MAP] ?? HOUSE_MAP.wellness;
+              const ch = "var(--accent)";
               return (
                 <div key={c.id} className="rounded-2xl border border-border bg-card p-4">
                   <div className="flex items-start gap-3">
-                    <Avatar name={c.author.name} size="sm" color={ch.color} />
+                    <Avatar name={c.author.name} size="sm" color={ch} />
                     <div className="flex-1">
                       <div className="text-sm"><span className="font-bold">{c.author.name}</span> <span className="text-text-secondary">· {c.timestamp}</span></div>
                       <p className="text-text-primary mt-1">{cleanWriteup(c.content)}</p>
                       {c.replies?.length > 0 && (
                         <div className="mt-3 pl-4 border-l-2 border-border space-y-3">
                           {c.replies.map((r: any) => {
-                            const rh = HOUSE_MAP[r.author.primaryHouse as keyof typeof HOUSE_MAP] ?? HOUSE_MAP.wellness;
+                            const rh = "var(--accent)";
                             return (
                               <div key={r.id} className="flex items-start gap-2">
-                                <Avatar name={r.author.name} size="sm" color={rh.color} />
+                                <Avatar name={r.author.name} size="sm" color={rh} />
                                 <div>
                                   <div className="text-sm"><span className="font-bold">{r.author.name}</span> <span className="text-text-secondary">· {r.timestamp}</span></div>
                                   <p className="text-text-primary mt-1 text-sm">{cleanWriteup(r.content)}</p>

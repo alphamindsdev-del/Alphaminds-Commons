@@ -220,7 +220,6 @@ function SettingsPage() {
             ))}
           </div>
         </Row>
-        <Row label="Show house scores on profile"><Toggle checked={settings.showScoresOnProfile} onChange={() => update({ showScoresOnProfile: !settings.showScoresOnProfile })} /></Row>
       </Section>
 
       <Section title="Subscription">

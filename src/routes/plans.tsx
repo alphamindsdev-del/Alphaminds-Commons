@@ -42,7 +42,7 @@ function PlansPage() {
       <PageHeader
         eyebrow="Your Learning Path"
         title="Plans"
-        subtitle="Curated, structured learning journeys. Pick a plan and start moving — every item you complete builds your Five Houses score."
+        subtitle="Curated, structured learning journeys. Pick a plan and start moving — every item you complete builds your progress."
       />
 
       {isLoading ? (

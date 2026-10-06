@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Play, LogIn, UserPlus, Mail, ArrowLeft, Loader2, Send, Settings, Users } from "lucide-react";
+import { Play, LogIn, UserPlus, User, Mail, ArrowLeft, Loader2, Send, Settings, Users } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useGame } from "../state/store";
 import { useAuth } from "../state/auth-store";
@@ -9,7 +9,6 @@ import * as api from "../lib/api";
 import type { ApiDeck } from "../lib/types";
 
 export function Landing() {
-  const startGame = useGame((s) => s.startGame);
   const createAndHost = useGame((s) => s.createAndHost);
   const joinByCode = useGame((s) => s.joinByCode);
   const user = useAuth((s) => s.user);
@@ -33,7 +32,6 @@ export function Landing() {
   const [deckError, setDeckError] = useState("");
   const [selectedDeckId, setSelectedDeckId] = useState("");
   const [selectedMode, setSelectedMode] = useState<"seer_skeptic" | "multiplayer_seer" | "solo">("seer_skeptic");
-  const [subMode, setSubMode] = useState<"idle" | "host">("idle");
   const [timerSeconds, setTimerSeconds] = useState(45);
   const [gameRounds, setGameRounds] = useState(5);
   const [loading, setLoading] = useState(false);
@@ -63,6 +61,16 @@ export function Landing() {
 
   function handleHost() {
     unlockAudio()
+    if (!user) {
+      setMode("login")
+      return
+    }
+    setMode("host")
+  }
+
+  function handleSolo() {
+    unlockAudio()
+    setSelectedMode("solo")
     if (!user) {
       setMode("login")
       return
@@ -187,6 +195,16 @@ export function Landing() {
               <span className="text-sm opacity-70 group-hover:opacity-100">→</span>
             </button>
             <button
+              onClick={handleSolo}
+              className="group inline-flex items-center justify-between rounded-2xl border border-primary/40 bg-primary/10 px-6 py-5 font-display text-lg font-semibold transition-transform hover:scale-[1.02]"
+            >
+              <span className="inline-flex items-center gap-3">
+                <User className="h-5 w-5 text-primary" />
+                Play Solo
+              </span>
+              <span className="text-sm text-muted-foreground group-hover:text-foreground">→</span>
+            </button>
+            <button
               onClick={() => { unlockAudio(); setMode("join"); }}
               className="inline-flex items-center justify-between rounded-2xl border px-6 py-5 font-display text-lg font-semibold hover:bg-card"
             >
@@ -217,7 +235,9 @@ export function Landing() {
 
         {mode === "host" && user && (
           <div className="flex flex-col gap-4">
-            <h3 className="text-center font-display text-lg font-bold">Host a Game</h3>
+            <h3 className="text-center font-display text-lg font-bold">
+              {selectedMode === "solo" ? "Set up your solo game" : "Host a Game"}
+            </h3>
 
             {decks.length === 0 ? (
               <p className="text-center text-sm text-muted-foreground">Loading decks...</p>
