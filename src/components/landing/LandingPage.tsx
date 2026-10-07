@@ -1,20 +1,16 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Logo } from "@/components/layout/Logo";
+import logoMark from "@/assets/alphaminds-logo.png";
 
 function LogoMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
-      <path
-        d="M16 3 L6 29 M16 3 L26 29 M13 23.5 L19 23.5"
-        stroke="currentColor"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <circle cx="25" cy="25" r="3.2" fill="var(--accent)" />
-    </svg>
+    <img
+      src={logoMark}
+      alt=""
+      aria-hidden="true"
+      className={`object-contain ${className ?? ""}`}
+    />
   );
 }
 import {

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import logoWhite from "@/assets/alphaminds-logo-white.svg";
+import logoMark from "@/assets/alphaminds-logo.png";
 
 export function SplashScreen() {
   return (
@@ -18,13 +18,10 @@ export function SplashScreen() {
 
       <div className="splash-logo-wrap">
         <div className="splash-logo-halo" />
-        <img
-          src={logoWhite}
-          alt=""
-          width="180"
-          height="40"
-          className="splash-logo"
-        />
+        <div className="splash-brand">
+          <img src={logoMark} alt="" width="110" height="110" />
+          <span>AlphaMinds</span>
+        </div>
       </div>
     </motion.div>
   );

@@ -443,6 +443,30 @@
   animation: splash-logo-breathe 4.5s ease-in-out infinite;
 }
 
+.splash-brand {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  animation: splash-logo-breathe 4.5s ease-in-out infinite;
+}
+
+.splash-brand img {
+  width: min(110px, 30vw);
+  height: auto;
+  filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.65))
+    drop-shadow(0 0 22px rgba(181, 212, 50, 0.28));
+}
+
+.splash-brand span {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8vw, 3.25rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+}
+
 @keyframes splash-glow-1 {
   from {
     transform: translate3d(0, 0, 0) scale(1);

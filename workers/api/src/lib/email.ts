@@ -8,7 +8,7 @@ export async function sendOtpEmail(env: Env, to: string, otp: string): Promise<v
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'AlphaMinds <noreply@alphaminds.com>',
+      from: 'AlphaMinds <noreply@alphamindscommons.com>',
       to: [to],
       subject: 'Your AlphaMinds OTP Code',
       html: `<p>Your one-time password is: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p>`,
@@ -28,7 +28,7 @@ export async function sendDataExportEmail(env: Env, to: string, data: unknown): 
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'AlphaMinds <noreply@alphaminds.com>',
+      from: 'AlphaMinds <noreply@alphamindscommons.com>',
       to: [to],
       subject: 'Your AlphaMinds Data Export',
       html: '<p>Your requested data export is attached as a JSON file.</p><p>If you did not request this, you can ignore this email.</p>',
@@ -59,7 +59,7 @@ export async function sendWeeklySummaryEmail(env: Env, to: string, summaryHtml: 
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'AlphaMinds <noreply@alphaminds.com>',
+      from: 'AlphaMinds <noreply@alphamindscommons.com>',
       to: [to],
       subject: 'Your AlphaMinds Weekly Summary',
       html: summaryHtml,

@@ -137,10 +137,28 @@ describe('POST /v1/auth/login', () => {
 
 describe('POST /v1/auth/forgot-password', () => {
   let env: any;
+  let fetchSpy: any;
 
   beforeEach(() => {
     env = createMockEnv();
     env.ALPHAMINDS_SESSIONS.put.mockResolvedValue(undefined);
+    // The handler only mints an OTP when the account exists, so the member
+    // lookup has to resolve; keep the SMTP call off the network.
+    env.DB.prepare.mockReturnValue({
+      bind: vi.fn().mockReturnValue({
+        first: vi.fn().mockResolvedValue({ id: 'user-1' }),
+        run: vi.fn().mockResolvedValue({ success: true }),
+      }),
+    });
+    fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        new Response(JSON.stringify({ id: 'email-id' }), { status: 200 }) as any,
+      );
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
   });
 
   it('returns 400 for missing email', async () => {
@@ -162,6 +180,30 @@ describe('POST /v1/auth/forgot-password', () => {
     const body = await res.json();
     expect(body.success).toBe(true);
     expect(env.ALPHAMINDS_SESSIONS.put).toHaveBeenCalledOnce();
+    expect(env.ALPHAMINDS_SESSIONS.put).toHaveBeenCalledWith(
+      'otp:user@test.com',
+      expect.stringMatching(/^\d{6}$/),
+      { expirationTtl: 600 },
+    );
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns 200 without storing OTP for an unknown account', async () => {
+    env.DB.prepare.mockReturnValue({
+      bind: vi.fn().mockReturnValue({
+        first: vi.fn().mockResolvedValue(null),
+      }),
+    });
+    const res = await app.request('/v1/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'nobody@test.com' }),
+    }, env);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.success).toBe(true);
+    expect(env.ALPHAMINDS_SESSIONS.put).not.toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });
 
