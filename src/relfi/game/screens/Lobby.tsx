@@ -1,5 +1,17 @@
 import { motion } from "framer-motion";
-import { Play, Users, LogOut, AlertCircle, Eye, Copy, Check, ChevronDown, ArrowRight, ArrowLeft, Share2 } from "lucide-react";
+import {
+  Play,
+  Users,
+  LogOut,
+  AlertCircle,
+  Eye,
+  Copy,
+  Check,
+  ChevronDown,
+  ArrowRight,
+  ArrowLeft,
+  Share2,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useGame } from "../state/store";
 import { useAuth } from "../state/auth-store";
@@ -23,19 +35,20 @@ export function Lobby() {
   const mode = useGame((s) => s.mode);
   const isSolo = mode === "solo";
   const nonHostReady = players.filter((p) => p.id !== hostUserId).every((p) => p.ready);
-  const minPlayers = isSolo ? 1 : mode === 'seer_skeptic' ? 2 : 3;
-  const canStart = !!isHost && players.length >= minPlayers && connected && (isSolo || nonHostReady);
+  const minPlayers = isSolo ? 1 : mode === "seer_skeptic" ? 2 : 3;
+  const canStart =
+    !!isHost && players.length >= minPlayers && connected && (isSolo || nonHostReady);
   const [dismissedError, setDismissedError] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [showBroadcast, setShowBroadcast] = useState(false);
   const [step, setStep] = useState<1 | 2>(isSolo ? 2 : 1);
 
   useEffect(() => {
-    if (error) setDismissedError(false)
-  }, [error])
+    if (error) setDismissedError(false);
+  }, [error]);
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 pt-16 pb-12">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-5xl flex-col px-6 pt-14 pb-8">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
@@ -63,7 +76,7 @@ export function Lobby() {
       </div>
 
       {!isSolo && (
-        <div className="mt-6 flex items-center gap-2">
+        <div className="mt-4 flex items-center gap-2">
           {[1, 2].map((i) => (
             <div key={i} className="h-1.5 flex-1 rounded-full bg-card overflow-hidden">
               <motion.div
@@ -81,7 +94,10 @@ export function Lobby() {
         open={confirmLeave}
         title="Leave game?"
         message="You will be disconnected from this room."
-        onConfirm={() => { setConfirmLeave(false); resetGame() }}
+        onConfirm={() => {
+          setConfirmLeave(false);
+          resetGame();
+        }}
         onCancel={() => setConfirmLeave(false)}
       />
 
@@ -105,7 +121,7 @@ export function Lobby() {
           transition={{ duration: 0.35 }}
           className="flex flex-col"
         >
-          <div className="mt-8">
+          <div className="mt-5">
             <RoomCodeDisplay code={roomCode} />
           </div>
 
@@ -116,14 +132,16 @@ export function Lobby() {
             >
               <Eye className="h-3.5 w-3.5" />
               {showBroadcast ? "Hide Broadcast" : "Share Broadcast"}
-              <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showBroadcast && "rotate-180")} />
+              <ChevronDown
+                className={cn("h-3.5 w-3.5 transition-transform", showBroadcast && "rotate-180")}
+              />
             </button>
             <div className={cn("overflow-hidden transition-all", !showBroadcast && "max-h-0")}>
               <BroadcastLink roomCode={roomCode} />
             </div>
           </div>
 
-          <div className="mt-8 flex items-center gap-2 rounded-2xl border bg-card p-4 text-sm text-muted-foreground">
+          <div className="mt-4 flex items-center gap-2 rounded-2xl border bg-card p-4 text-sm text-muted-foreground">
             <Users className="h-4 w-4 shrink-0 text-primary" />
             <span className="flex-1">
               {players.length === 0
@@ -132,7 +150,7 @@ export function Lobby() {
             </span>
           </div>
 
-          <div className="mt-auto pt-10">
+          <div className="mt-auto pt-6">
             <button
               onClick={() => setStep(2)}
               className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-primary-gradient px-8 py-5 font-display text-lg font-bold text-primary-foreground shadow-lock transition-transform hover:scale-[1.01]"
@@ -150,7 +168,7 @@ export function Lobby() {
           transition={{ duration: 0.35 }}
           className="flex flex-1 flex-col"
         >
-          <div className="mt-8">
+          <div className="mt-5">
             <div className="mb-4 flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground">
               <Users className="h-3.5 w-3.5" /> Players ({players.length})
             </div>
@@ -167,7 +185,9 @@ export function Lobby() {
                   <div className="min-w-0">
                     <div className="truncate font-semibold">
                       {p.name}
-                      {user && p.id === user.id && <span className="ml-1 text-xs text-primary">(you)</span>}
+                      {user && p.id === user.id && (
+                        <span className="ml-1 text-xs text-primary">(you)</span>
+                      )}
                     </div>
                     <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
                       {p.ready ? "ready" : p.connected ? "getting ready" : "disconnected"}
@@ -183,7 +203,7 @@ export function Lobby() {
             </div>
           </div>
 
-          <div className="mt-auto flex flex-col gap-3 pt-10 sm:flex-row">
+          <div className="mt-auto flex flex-col gap-3 pt-6 sm:flex-row">
             {!isSolo && (
               <button
                 onClick={() => setStep(1)}
@@ -225,7 +245,7 @@ export function Lobby() {
 
 function BroadcastLink({ roomCode }: { roomCode: string }) {
   const [copied, setCopied] = useState(false);
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
   const broadcastUrl = `${origin}/rel-fi/broadcast/${roomCode}`;
 
   const handleCopy = () => {
@@ -255,8 +275,12 @@ function BroadcastLink({ roomCode }: { roomCode: string }) {
           onClick={handleCopy}
           className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold hover:bg-card"
         >
-          {copied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
-          {copied ? 'Copied' : 'Copy'}
+          {copied ? (
+            <Check className="h-3.5 w-3.5 text-primary" />
+          ) : (
+            <Copy className="h-3.5 w-3.5" />
+          )}
+          {copied ? "Copied" : "Copy"}
         </button>
       </div>
     </div>

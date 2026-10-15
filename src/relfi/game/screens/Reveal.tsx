@@ -39,11 +39,11 @@ export function Reveal() {
   const correct = categories.find((c) => c.id === correctCategoryId)!;
 
   const handleContinue = () => {
-    hostAdvanceRound()
-  }
+    hostAdvanceRound();
+  };
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center px-6 pt-16 pb-10">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-3xl flex-col items-center px-6 pt-14 pb-8">
       <div className="flex w-full items-center justify-between">
         <button
           onClick={() => setConfirmLeave(true)}
@@ -83,7 +83,7 @@ export function Reveal() {
         </motion.p>
       )}
 
-      <div className="mt-10 w-full max-w-lg space-y-2">
+      <div className="mt-6 w-full max-w-lg space-y-2">
         {players.map((p, i) => {
           const r = round[p.id];
           const pick = categories.find((c) => c.id === r?.pick);
@@ -99,7 +99,9 @@ export function Reveal() {
               <Avatar name={p.name} hue={p.avatarHue} size={36} />
               <div className="flex-1">
                 <div className="font-semibold">{p.name}</div>
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{r?.role}</div>
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {r?.role}
+                </div>
               </div>
               {pick && <CategoryChip category={pick} size="sm" showLabel={false} />}
               <div className="w-8 grid place-items-center">
@@ -110,7 +112,11 @@ export function Reveal() {
                 )}
               </div>
               <div className="w-16 text-right">
-                {r?.awarded ? <TokenCounter value={r.awarded} size="sm" /> : <span className="text-xs text-muted-foreground">0</span>}
+                {r?.awarded ? (
+                  <TokenCounter value={r.awarded} size="sm" />
+                ) : (
+                  <span className="text-xs text-muted-foreground">0</span>
+                )}
               </div>
             </motion.div>
           );
@@ -120,19 +126,22 @@ export function Reveal() {
       {user && hostUserId && user.id === hostUserId ? (
         <button
           onClick={handleContinue}
-          className="mt-10 inline-flex items-center gap-2 rounded-full bg-primary-gradient px-8 py-4 font-display font-bold uppercase tracking-widest text-primary-foreground shadow-lock"
+          className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary-gradient px-8 py-4 font-display font-bold uppercase tracking-widest text-primary-foreground shadow-lock"
         >
           Standings <ArrowRight className="h-4 w-4" />
         </button>
       ) : (
-        <p className="mt-10 text-sm text-muted-foreground">Next up: standings…</p>
+        <p className="mt-8 text-sm text-muted-foreground">Next up: standings…</p>
       )}
 
       <ConfirmModal
         open={confirmLeave}
         title="Leave game?"
         message="You will be disconnected from this round."
-        onConfirm={() => { setConfirmLeave(false); resetGame() }}
+        onConfirm={() => {
+          setConfirmLeave(false);
+          resetGame();
+        }}
         onCancel={() => setConfirmLeave(false)}
       />
       <ConfirmModal
@@ -140,7 +149,10 @@ export function Reveal() {
         title="End game now?"
         message="The game will end immediately and final standings will be shown."
         confirmLabel="End Game"
-        onConfirm={() => { setConfirmEnd(false); hostEndGame() }}
+        onConfirm={() => {
+          setConfirmEnd(false);
+          hostEndGame();
+        }}
         onCancel={() => setConfirmEnd(false)}
       />
     </div>

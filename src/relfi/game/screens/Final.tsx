@@ -50,7 +50,7 @@ export function Final() {
   }, []);
 
   return (
-    <div className="relative mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center px-6 py-12">
+    <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-3xl flex-col items-center px-6 py-8">
       <Confetti />
       <div className="relative">
         <div className="text-center text-xs uppercase tracking-[0.4em] text-primary">Game over</div>
@@ -59,15 +59,15 @@ export function Final() {
         </h1>
       </div>
 
-      <div className="relative mt-12 w-full">
+      <div className="relative mt-8 w-full">
         <Podium players={players} />
       </div>
 
-      <div className="relative mt-12 w-full max-w-lg">
+      <div className="relative mt-8 w-full max-w-lg">
         <Leaderboard players={players} youId={youId} />
       </div>
 
-      <div className="relative mt-10 flex flex-wrap justify-center gap-3">
+      <div className="relative mt-8 flex flex-wrap justify-center gap-3">
         <button
           onClick={resetGame}
           className="inline-flex items-center gap-2 rounded-full bg-primary-gradient px-6 py-3 font-display font-bold uppercase tracking-widest text-primary-foreground shadow-lock"

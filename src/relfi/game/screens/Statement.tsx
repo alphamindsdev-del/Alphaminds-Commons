@@ -43,12 +43,12 @@ export function Statement() {
   const [secretOpen, setSecretOpen] = useState(false);
 
   const clueVariant = useMemo(() => {
-    if (!clue) return { kind: 'none' as const }
-    return parseClueVariant(clue.variant, clue.payload, clue.clueType, clue.clueContent)
-  }, [clue])
+    if (!clue) return { kind: "none" as const };
+    return parseClueVariant(clue.variant, clue.payload, clue.clueType, clue.clueContent);
+  }, [clue]);
 
-  const isSeer = youRole === 'seer';
-  const isSoloMode = mode === 'solo';
+  const isSeer = youRole === "seer";
+  const isSoloMode = mode === "solo";
 
   if (!you) return null;
   const locked = you.locked;
@@ -60,28 +60,28 @@ export function Statement() {
   const currentCategory = (id: string) => categories.find((c) => c.id === id);
 
   const handleLock = () => {
-    if (!you.pick) return
-    lockIn(youId, you.pick)
-  }
+    if (!you.pick) return;
+    lockIn(youId, you.pick);
+  };
 
   const handlePick = (categoryId: string) => {
-    if (locked) return
-    if (soundOn) sfx.select()
-    setPick(youId, categoryId)
-  }
+    if (locked) return;
+    if (soundOn) sfx.select();
+    setPick(youId, categoryId);
+  };
 
   const handleFollow = () => {
-    if (!revealedSeer || !seerPick) return
-    lockIn(youId, seerPick, 'follow', revealedSeer.id)
-  }
+    if (!revealedSeer || !seerPick) return;
+    lockIn(youId, seerPick, "follow", revealedSeer.id);
+  };
 
   const handleSolo = () => {
-    if (!you.pick) return
-    lockIn(youId, you.pick, 'solo')
-  }
+    if (!you.pick) return;
+    lockIn(youId, you.pick, "solo");
+  };
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center px-6 pt-16 pb-8">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-3xl flex-col items-center px-6 pt-14 pb-6">
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-2">
           <button
@@ -92,7 +92,8 @@ export function Statement() {
             <LogOut className="h-4 w-4" />
           </button>
           <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-            Round {roundIndex + 1}{maxRounds > 0 ? ` of ${maxRounds}` : ''}
+            Round {roundIndex + 1}
+            {maxRounds > 0 ? ` of ${maxRounds}` : ""}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -105,36 +106,37 @@ export function Statement() {
               <XCircle className="h-4 w-4" />
             </button>
           )}
-          <CountdownRing seconds={timerSeconds} endsAt={timerEnd || undefined} size={72} />
+          <CountdownRing seconds={timerSeconds} endsAt={timerEnd || undefined} size={56} />
         </div>
       </div>
 
-      <div className="mt-8 w-full">
-        <div className="rounded-2xl border bg-card-elevated p-6 md:p-8">
+      <div className="mt-4 w-full">
+        <div className="rounded-2xl border bg-card-elevated p-4 md:p-6">
           <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Statement</div>
           {statementImageUrl ? (
-            <div className="mt-4 flex justify-center">
+            <div className="mt-3 flex justify-center">
               <img
                 src={statementImageUrl}
                 alt="Statement"
-                className="max-h-[55vh] w-auto max-w-full rounded-2xl object-contain shadow-elevated"
+                className="max-h-[30vh] w-auto max-w-full rounded-2xl object-contain shadow-elevated"
               />
             </div>
           ) : (
-            <p className="mt-3 font-display text-xl leading-relaxed md:text-2xl">
-              {useGame.getState().statementText || 'Analyze the statement and choose the correct category.'}
+            <p className="mt-2 font-display text-lg leading-relaxed md:text-xl">
+              {useGame.getState().statementText ||
+                "Analyze the statement and choose the correct category."}
             </p>
           )}
-          <div className="mt-4 text-xs text-muted-foreground">
-            What kind of statement is this?
-          </div>
+          <div className="mt-3 text-xs text-muted-foreground">What kind of statement is this?</div>
         </div>
       </div>
 
       {isSeer && (
-        <div className="mt-6 w-full">
+        <div className="mt-4 w-full">
           {!locked && (
-            <div className="mb-3 text-xs uppercase tracking-widest text-primary">Pick your mapping</div>
+            <div className="mb-3 text-xs uppercase tracking-widest text-primary">
+              Pick your mapping
+            </div>
           )}
           {!locked ? (
             <>
@@ -149,7 +151,7 @@ export function Statement() {
                   />
                 ))}
               </div>
-              <div className="mt-6 text-center">
+              <div className="mt-4 text-center">
                 <LockInButton disabled={!you.pick} locked={locked} onLock={handleLock} />
               </div>
             </>
@@ -171,8 +173,10 @@ export function Statement() {
 
       {/* Non-seer answering: wait for the Seer to map first, then follow or go solo */}
       {!isSeer && isSoloMode && (
-        <div className="mt-8 w-full">
-          <div className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">Pick your mapping</div>
+        <div className="mt-4 w-full">
+          <div className="mb-3 text-xs uppercase tracking-widest text-muted-foreground">
+            Pick your mapping
+          </div>
           <div className="flex flex-wrap justify-center gap-2 md:gap-3">
             {categories.map((c) => (
               <CategoryChip
@@ -184,14 +188,14 @@ export function Statement() {
               />
             ))}
           </div>
-          <div className="mt-6">
+          <div className="mt-4">
             <LockInButton disabled={!you.pick} locked={locked} onLock={handleLock} />
           </div>
         </div>
       )}
 
       {!isSeer && !isSoloMode && (
-        <div className="mt-8 w-full">
+        <div className="mt-4 w-full">
           {!revealedSeer && (
             <>
               <p className="mb-4 text-center text-sm text-muted-foreground animate-heartbeat">
@@ -208,7 +212,9 @@ export function Statement() {
           {revealedSeer && seerPick && (
             <>
               <div className="mb-4 rounded-2xl border border-primary/20 bg-primary/5 p-3">
-                <div className="text-xs uppercase tracking-widest text-muted-foreground">The Seer mapped</div>
+                <div className="text-xs uppercase tracking-widest text-muted-foreground">
+                  The Seer mapped
+                </div>
                 <div className="mt-1 flex items-center gap-3">
                   <div className="text-sm font-semibold">{revealedSeer.name}</div>
                   {currentCategory(seerPick) && (
@@ -232,7 +238,7 @@ export function Statement() {
                     </div>
                   </button>
 
-                  <div className="mb-3 mt-6 text-center text-xs uppercase tracking-widest text-muted-foreground">
+                  <div className="mb-3 mt-4 text-center text-xs uppercase tracking-widest text-muted-foreground">
                     Or go solo — choose your own mapping
                   </div>
                   <div className="flex flex-wrap justify-center gap-2 md:gap-3">
@@ -246,12 +252,14 @@ export function Statement() {
                       />
                     ))}
                   </div>
-                  <div className="mt-6">
+                  <div className="mt-4">
                     <LockInButton disabled={!you.pick} locked={locked} onLock={handleSolo} />
                   </div>
                 </>
               ) : (
-                <p className="mt-4 text-center text-sm text-muted-foreground">Your pick is locked.</p>
+                <p className="mt-4 text-center text-sm text-muted-foreground">
+                  Your pick is locked.
+                </p>
               )}
             </>
           )}
@@ -262,7 +270,7 @@ export function Statement() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mt-8 flex items-center gap-3 text-sm text-muted-foreground"
+          className="mt-4 flex items-center gap-3 text-sm text-muted-foreground"
         >
           <span className="animate-heartbeat">Waiting for {waitingOthers.length}…</span>
           <AvatarStack
@@ -279,7 +287,7 @@ export function Statement() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
           onClick={() => setSecretOpen(true)}
-          className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary/20"
+          className="mt-3 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-5 py-2 text-sm font-semibold text-primary hover:bg-primary/20"
         >
           <Eye className="h-4 w-4" />
           View Secret Room
@@ -288,7 +296,7 @@ export function Statement() {
 
       {/* Host: reveal now */}
       {isHost && !locked && (
-        <div className="mt-10 flex flex-col items-center gap-4">
+        <div className="mt-4 flex flex-col items-center gap-4">
           <button
             onClick={hostForceReveal}
             className="inline-flex items-center gap-2 rounded-full border border-primary/50 bg-primary/10 px-8 py-4 font-display font-bold uppercase tracking-widest text-primary hover:bg-primary/20 shadow-lock"
@@ -309,7 +317,10 @@ export function Statement() {
         open={confirmLeave}
         title="Leave game?"
         message="You will be disconnected from this round."
-        onConfirm={() => { setConfirmLeave(false); resetGame() }}
+        onConfirm={() => {
+          setConfirmLeave(false);
+          resetGame();
+        }}
         onCancel={() => setConfirmLeave(false)}
       />
       <ConfirmModal
@@ -317,7 +328,10 @@ export function Statement() {
         title="End game now?"
         message="The game will end immediately and final standings will be shown."
         confirmLabel="End Game"
-        onConfirm={() => { setConfirmEnd(false); hostEndGame() }}
+        onConfirm={() => {
+          setConfirmEnd(false);
+          hostEndGame();
+        }}
         onCancel={() => setConfirmEnd(false)}
       />
     </div>

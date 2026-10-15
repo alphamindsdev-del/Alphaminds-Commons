@@ -177,476 +177,478 @@ export function Landing() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
+    <div className="relative flex min-h-[100dvh] flex-col items-center justify-center px-4 py-10 sm:px-6 md:py-6">
       <div className="absolute inset-0 -z-10 bg-hero" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="text-center"
-      >
-        <div className="text-xs uppercase tracking-[0.4em] text-primary">REL-Fi</div>
-        <h1 className="mt-3 font-display text-4xl font-black leading-none sm:text-5xl md:text-7xl">
-          Read the card.
-          <br />
-          <span className="text-shimmer">Map the fiction.</span>
-        </h1>
-        <p className="mx-auto mt-5 max-w-md text-sm text-muted-foreground md:text-base">
-          A live social deduction party game. Bluff, decode, and lock in one statement at a time.
-        </p>
-      </motion.div>
+      <div className="flex w-full flex-col items-center md:flex-row md:items-center md:justify-center md:gap-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center md:max-w-md md:text-left"
+        >
+          <div className="text-xs uppercase tracking-[0.4em] text-primary">REL-Fi</div>
+          <h1 className="mt-3 font-display text-4xl font-black leading-none sm:text-5xl md:text-5xl lg:text-6xl">
+            Read the card.
+            <br />
+            <span className="text-shimmer">Map the fiction.</span>
+          </h1>
+          <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground md:mx-0 md:text-base">
+            A live social deduction party game. Bluff, decode, and lock in one statement at a time.
+          </p>
+        </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.8 }}
-        className="mt-12 w-full max-w-md rounded-3xl border p-6 md:p-8 bg-card-elevated"
-      >
-        {mode === "idle" && (
-          <div className="flex flex-col gap-3">
-            {user && (
-              <div className="mb-2 text-center text-xs text-muted-foreground">
-                Logged in as <span className="text-foreground">{user.display_name}</span>
-                <button onClick={logout} className="ml-2 underline hover:text-primary">
-                  sign out
-                </button>
-                <button
-                  onClick={() => {
-                    setProfileName(user.display_name);
-                    setProfileAvatar(user.avatar_url || "");
-                    setProfileError("");
-                    setProfileSuccess("");
-                    setMode("profile");
-                  }}
-                  className="ml-2 underline hover:text-primary"
-                >
-                  edit profile
-                </button>
-              </div>
-            )}
-            <button
-              onClick={handleHost}
-              className="group inline-flex items-center justify-between rounded-2xl bg-primary-gradient px-6 py-5 font-display text-lg font-bold text-primary-foreground shadow-lock transition-transform hover:scale-[1.02]"
-            >
-              <span className="inline-flex items-center gap-3">
-                <Play className="h-5 w-5" fill="currentColor" />
-                Host a game
-              </span>
-              <span className="text-sm opacity-70 group-hover:opacity-100">→</span>
-            </button>
-            <button
-              onClick={handleSolo}
-              className="group inline-flex items-center justify-between rounded-2xl border border-primary/40 bg-primary/10 px-6 py-5 font-display text-lg font-semibold transition-transform hover:scale-[1.02]"
-            >
-              <span className="inline-flex items-center gap-3">
-                <User className="h-5 w-5 text-primary" />
-                Play Solo
-              </span>
-              <span className="text-sm text-muted-foreground group-hover:text-foreground">→</span>
-            </button>
-            <button
-              onClick={() => {
-                unlockAudio();
-                if (soundOn) {
-                  sfx.click();
-                  startBackground();
-                }
-                setMode("join");
-              }}
-              className="inline-flex items-center justify-between rounded-2xl border px-6 py-5 font-display text-lg font-semibold hover:bg-card"
-            >
-              <span className="inline-flex items-center gap-3">
-                <LogIn className="h-5 w-5" />
-                Join with code
-              </span>
-              <span className="text-sm text-muted-foreground">→</span>
-            </button>
-            {!user && (
-              <button
-                onClick={() => setMode("login")}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border px-6 py-4 text-sm font-semibold hover:bg-card"
-              >
-                <UserPlus className="h-4 w-4" />
-                Sign in / Create account
-              </button>
-            )}
-            <Link
-              to="/rel-fi/tutorial"
-              className="mt-2 inline-flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors"
-            >
-              <Play className="h-3 w-3" />
-              How to play: watch the tutorial
-            </Link>
-          </div>
-        )}
-
-        {mode === "host" && user && (
-          <div className="flex flex-col gap-4">
-            <h3 className="text-center font-display text-lg font-bold">
-              {selectedMode === "solo" ? "Set up your solo game" : "Host a Game"}
-            </h3>
-
-            {decks.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground">Loading decks...</p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                  Choose a Deck
-                </label>
-                {decks.map((d) => (
-                  <button
-                    key={d.id}
-                    onClick={() => setSelectedDeckId(d.id)}
-                    className={`rounded-xl border px-4 py-3 text-left transition ${selectedDeckId === d.id ? "border-primary bg-primary/10" : "hover:bg-card"}`}
-                  >
-                    <div className="font-semibold">{d.title}</div>
-                    {d.description && (
-                      <div className="text-xs text-muted-foreground">{d.description}</div>
-                    )}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.8 }}
+          className="mt-10 w-full max-w-md rounded-3xl border p-6 bg-card-elevated md:mt-0 md:max-h-[calc(100dvh-6rem)] md:overflow-y-auto md:p-7"
+        >
+          {mode === "idle" && (
+            <div className="flex flex-col gap-3">
+              {user && (
+                <div className="mb-2 text-center text-xs text-muted-foreground">
+                  Logged in as <span className="text-foreground">{user.display_name}</span>
+                  <button onClick={logout} className="ml-2 underline hover:text-primary">
+                    sign out
                   </button>
-                ))}
-              </div>
-            )}
-
-            {selectedDeckId && (
-              <>
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                    Game Mode
-                  </label>
-                  <select
-                    value={selectedMode}
-                    onChange={(e) => setSelectedMode(e.target.value as any)}
-                    className="rounded-xl border bg-background/50 px-4 py-3"
+                  <button
+                    onClick={() => {
+                      setProfileName(user.display_name);
+                      setProfileAvatar(user.avatar_url || "");
+                      setProfileError("");
+                      setProfileSuccess("");
+                      setMode("profile");
+                    }}
+                    className="ml-2 underline hover:text-primary"
                   >
-                    <option value="seer_skeptic">Seer & Skeptic (2 players)</option>
-                    <option value="multiplayer_seer">Multiplayer Seer (3-6 players)</option>
-                    <option value="solo">Solo Mode (1 player)</option>
-                  </select>
+                    edit profile
+                  </button>
                 </div>
+              )}
+              <button
+                onClick={handleHost}
+                className="group inline-flex items-center justify-between rounded-2xl bg-primary-gradient px-6 py-4 font-display text-lg font-bold text-primary-foreground shadow-lock transition-transform hover:scale-[1.02]"
+              >
+                <span className="inline-flex items-center gap-3">
+                  <Play className="h-5 w-5" fill="currentColor" />
+                  Host a game
+                </span>
+                <span className="text-sm opacity-70 group-hover:opacity-100">→</span>
+              </button>
+              <button
+                onClick={handleSolo}
+                className="group inline-flex items-center justify-between rounded-2xl border border-primary/40 bg-primary/10 px-6 py-4 font-display text-lg font-semibold transition-transform hover:scale-[1.02]"
+              >
+                <span className="inline-flex items-center gap-3">
+                  <User className="h-5 w-5 text-primary" />
+                  Play Solo
+                </span>
+                <span className="text-sm text-muted-foreground group-hover:text-foreground">→</span>
+              </button>
+              <button
+                onClick={() => {
+                  unlockAudio();
+                  if (soundOn) {
+                    sfx.click();
+                    startBackground();
+                  }
+                  setMode("join");
+                }}
+                className="inline-flex items-center justify-between rounded-2xl border px-6 py-4 font-display text-lg font-semibold hover:bg-card"
+              >
+                <span className="inline-flex items-center gap-3">
+                  <LogIn className="h-5 w-5" />
+                  Join with code
+                </span>
+                <span className="text-sm text-muted-foreground">→</span>
+              </button>
+              {!user && (
+                <button
+                  onClick={() => setMode("login")}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border px-6 py-4 text-sm font-semibold hover:bg-card"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Sign in / Create account
+                </button>
+              )}
+              <Link
+                to="/rel-fi/tutorial"
+                className="mt-2 inline-flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors"
+              >
+                <Play className="h-3 w-3" />
+                How to play: watch the tutorial
+              </Link>
+            </div>
+          )}
 
+          {mode === "host" && user && (
+            <div className="flex flex-col gap-4">
+              <h3 className="text-center font-display text-lg font-bold">
+                {selectedMode === "solo" ? "Set up your solo game" : "Host a Game"}
+              </h3>
+
+              {decks.length === 0 ? (
+                <p className="text-center text-sm text-muted-foreground">Loading decks...</p>
+              ) : (
                 <div className="flex flex-col gap-2">
                   <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                    Round Timer: {timerSeconds}s
+                    Choose a Deck
                   </label>
-                  <input
-                    type="range"
-                    min={15}
-                    max={120}
-                    step={5}
-                    value={timerSeconds}
-                    onChange={(e) => setTimerSeconds(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-[10px] text-muted-foreground">
-                    <span>15s</span>
-                    <span>120s</span>
-                  </div>
+                  {decks.map((d) => (
+                    <button
+                      key={d.id}
+                      onClick={() => setSelectedDeckId(d.id)}
+                      className={`rounded-xl border px-4 py-3 text-left transition ${selectedDeckId === d.id ? "border-primary bg-primary/10" : "hover:bg-card"}`}
+                    >
+                      <div className="font-semibold">{d.title}</div>
+                      {d.description && (
+                        <div className="text-xs text-muted-foreground">{d.description}</div>
+                      )}
+                    </button>
+                  ))}
                 </div>
+              )}
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                    Number of Rounds: {gameRounds}
-                  </label>
-                  <input
-                    type="range"
-                    min={1}
-                    max={20}
-                    step={1}
-                    value={gameRounds}
-                    onChange={(e) => setGameRounds(Number(e.target.value))}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-[10px] text-muted-foreground">
-                    <span>1</span>
-                    <span>20</span>
+              {selectedDeckId && (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                      Game Mode
+                    </label>
+                    <select
+                      value={selectedMode}
+                      onChange={(e) => setSelectedMode(e.target.value as any)}
+                      className="rounded-xl border bg-background/50 px-4 py-3"
+                    >
+                      <option value="seer_skeptic">Seer & Skeptic (2 players)</option>
+                      <option value="multiplayer_seer">Multiplayer Seer (3-6 players)</option>
+                      <option value="solo">Solo Mode (1 player)</option>
+                    </select>
                   </div>
-                  <p className="text-[10px] text-primary/80">
-                    Pick how long the game lasts — it ends after these rounds.
-                  </p>
-                </div>
-              </>
-            )}
 
-            {authError && <p className="text-xs text-destructive">{authError}</p>}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                      Round Timer: {timerSeconds}s
+                    </label>
+                    <input
+                      type="range"
+                      min={15}
+                      max={120}
+                      step={5}
+                      value={timerSeconds}
+                      onChange={(e) => setTimerSeconds(Number(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <span>15s</span>
+                      <span>120s</span>
+                    </div>
+                  </div>
 
-            <button
-              onClick={handleCreateGame}
-              disabled={!selectedDeckId || loading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground disabled:opacity-50"
-            >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              Create Room
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setMode("idle")}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              ← back
-            </button>
-          </div>
-        )}
-
-        {mode === "join" && (
-          <form onSubmit={handleJoin} className="flex flex-col gap-3">
-            <label className="text-xs uppercase tracking-widest text-muted-foreground">
-              Room code
-            </label>
-            <input
-              autoFocus
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 5))}
-              placeholder="ABC42"
-              className="rounded-2xl border bg-background/50 px-6 py-5 text-center font-mono text-3xl tracking-[0.4em] outline-none focus:border-primary"
-            />
-            {joinError && <p className="text-xs text-destructive">{joinError}</p>}
-            <button
-              type="submit"
-              disabled={code.length !== 5 || loading}
-              className="rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground disabled:opacity-50"
-            >
-              {loading ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Join room"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("idle")}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              ← back
-            </button>
-          </form>
-        )}
-
-        {mode === "login" && (
-          <form onSubmit={handleLogin} className="flex flex-col gap-3">
-            <h3 className="text-center font-display text-lg font-bold">Sign In</h3>
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
-              required
-            />
-            {authError && <p className="text-xs text-destructive">{authError}</p>}
-            <button
-              type="submit"
-              disabled={authLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
-            >
-              {authLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <LogIn className="h-4 w-4" />
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                      Number of Rounds: {gameRounds}
+                    </label>
+                    <input
+                      type="range"
+                      min={1}
+                      max={20}
+                      step={1}
+                      value={gameRounds}
+                      onChange={(e) => setGameRounds(Number(e.target.value))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                      <span>1</span>
+                      <span>20</span>
+                    </div>
+                    <p className="text-[10px] text-primary/80">
+                      Pick how long the game lasts — it ends after these rounds.
+                    </p>
+                  </div>
+                </>
               )}
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("signup")}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              No account? Create one
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("magic-link")}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              Send magic link instead
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("idle")}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              ← back
-            </button>
-          </form>
-        )}
 
-        {mode === "magic-link" && (
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setAuthError("");
-              try {
-                await api.requestMagicLink(email);
-                setAuthError("Magic link sent! Check your email.");
-              } catch (err: any) {
-                setAuthError(err.message);
-              }
-            }}
-            className="flex flex-col gap-3"
-          >
-            <h3 className="text-center font-display text-lg font-bold">Magic Link</h3>
-            <p className="text-center text-xs text-muted-foreground">
-              Enter your email and we'll send you a sign-in link.
-            </p>
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
-              required
-            />
-            {authError && <p className="text-xs text-destructive">{authError}</p>}
-            <button
-              type="submit"
-              disabled={!email}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
-            >
-              <Send className="h-4 w-4" /> Send Magic Link
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("login")}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              ← back to sign in
-            </button>
-          </form>
-        )}
+              {authError && <p className="text-xs text-destructive">{authError}</p>}
 
-        {mode === "signup" && (
-          <form onSubmit={handleSignup} className="flex flex-col gap-3">
-            <h3 className="text-center font-display text-lg font-bold">Create Account</h3>
-            <input
-              type="text"
-              placeholder="Display name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
-              required
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password (min 8 chars)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
-              required
-              minLength={8}
-            />
-            {authError && <p className="text-xs text-destructive">{authError}</p>}
-            <button
-              type="submit"
-              disabled={authLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
-            >
-              {authLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <UserPlus className="h-4 w-4" />
-              )}
-              Create Account
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("login")}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              Already have an account? Sign in
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("idle")}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              ← back
-            </button>
-          </form>
-        )}
+              <button
+                onClick={handleCreateGame}
+                disabled={!selectedDeckId || loading}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground disabled:opacity-50"
+              >
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                Create Room
+              </button>
 
-        {mode === "profile" && user && (
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setProfileError("");
-              setProfileSuccess("");
-              setProfileLoading(true);
-              try {
-                await api.updateMe({
-                  display_name: profileName,
-                  avatar_url: profileAvatar || undefined,
-                });
-                setProfileSuccess("Profile updated!");
-              } catch (err: any) {
-                setProfileError(err.message || "Failed to update profile");
-              }
-              setProfileLoading(false);
-            }}
-            className="flex flex-col gap-3"
-          >
-            <h3 className="text-center font-display text-lg font-bold">Edit Profile</h3>
-            <label className="text-xs uppercase tracking-widest text-muted-foreground">
-              Display name
-            </label>
-            <input
-              type="text"
-              value={profileName}
-              onChange={(e) => setProfileName(e.target.value)}
-              className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
-              required
-              minLength={1}
-              maxLength={50}
-            />
-            <label className="text-xs uppercase tracking-widest text-muted-foreground">
-              Avatar URL (optional)
-            </label>
-            <input
-              type="url"
-              value={profileAvatar}
-              placeholder="https://example.com/avatar.jpg"
-              onChange={(e) => setProfileAvatar(e.target.value)}
-              className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
-            />
-            {profileError && <p className="text-xs text-destructive">{profileError}</p>}
-            {profileSuccess && <p className="text-xs text-primary">{profileSuccess}</p>}
-            <button
-              type="submit"
-              disabled={profileLoading}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
-            >
-              {profileLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Settings className="h-4 w-4" />
-              )}
-              Save Changes
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("idle")}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              ← back
-            </button>
-          </form>
-        )}
-      </motion.div>
+              <button
+                type="button"
+                onClick={() => setMode("idle")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                ← back
+              </button>
+            </div>
+          )}
 
-      <div className="mt-10 flex items-center gap-6 text-xs text-muted-foreground">
+          {mode === "join" && (
+            <form onSubmit={handleJoin} className="flex flex-col gap-3">
+              <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                Room code
+              </label>
+              <input
+                autoFocus
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 5))}
+                placeholder="ABC42"
+                className="rounded-2xl border bg-background/50 px-6 py-5 text-center font-mono text-3xl tracking-[0.4em] outline-none focus:border-primary"
+              />
+              {joinError && <p className="text-xs text-destructive">{joinError}</p>}
+              <button
+                type="submit"
+                disabled={code.length !== 5 || loading}
+                className="rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground disabled:opacity-50"
+              >
+                {loading ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Join room"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("idle")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                ← back
+              </button>
+            </form>
+          )}
+
+          {mode === "login" && (
+            <form onSubmit={handleLogin} className="flex flex-col gap-3">
+              <h3 className="text-center font-display text-lg font-bold">Sign In</h3>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
+                required
+              />
+              {authError && <p className="text-xs text-destructive">{authError}</p>}
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
+              >
+                {authLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogIn className="h-4 w-4" />
+                )}
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("signup")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                No account? Create one
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("magic-link")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Send magic link instead
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("idle")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                ← back
+              </button>
+            </form>
+          )}
+
+          {mode === "magic-link" && (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setAuthError("");
+                try {
+                  await api.requestMagicLink(email);
+                  setAuthError("Magic link sent! Check your email.");
+                } catch (err: any) {
+                  setAuthError(err.message);
+                }
+              }}
+              className="flex flex-col gap-3"
+            >
+              <h3 className="text-center font-display text-lg font-bold">Magic Link</h3>
+              <p className="text-center text-xs text-muted-foreground">
+                Enter your email and we'll send you a sign-in link.
+              </p>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
+                required
+              />
+              {authError && <p className="text-xs text-destructive">{authError}</p>}
+              <button
+                type="submit"
+                disabled={!email}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
+              >
+                <Send className="h-4 w-4" /> Send Magic Link
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                ← back to sign in
+              </button>
+            </form>
+          )}
+
+          {mode === "signup" && (
+            <form onSubmit={handleSignup} className="flex flex-col gap-3">
+              <h3 className="text-center font-display text-lg font-bold">Create Account</h3>
+              <input
+                type="text"
+                placeholder="Display name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
+                required
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password (min 8 chars)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
+                required
+                minLength={8}
+              />
+              {authError && <p className="text-xs text-destructive">{authError}</p>}
+              <button
+                type="submit"
+                disabled={authLoading}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
+              >
+                {authLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <UserPlus className="h-4 w-4" />
+                )}
+                Create Account
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Already have an account? Sign in
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("idle")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                ← back
+              </button>
+            </form>
+          )}
+
+          {mode === "profile" && user && (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setProfileError("");
+                setProfileSuccess("");
+                setProfileLoading(true);
+                try {
+                  await api.updateMe({
+                    display_name: profileName,
+                    avatar_url: profileAvatar || undefined,
+                  });
+                  setProfileSuccess("Profile updated!");
+                } catch (err: any) {
+                  setProfileError(err.message || "Failed to update profile");
+                }
+                setProfileLoading(false);
+              }}
+              className="flex flex-col gap-3"
+            >
+              <h3 className="text-center font-display text-lg font-bold">Edit Profile</h3>
+              <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                Display name
+              </label>
+              <input
+                type="text"
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
+                required
+                minLength={1}
+                maxLength={50}
+              />
+              <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                Avatar URL (optional)
+              </label>
+              <input
+                type="url"
+                value={profileAvatar}
+                placeholder="https://example.com/avatar.jpg"
+                onChange={(e) => setProfileAvatar(e.target.value)}
+                className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
+              />
+              {profileError && <p className="text-xs text-destructive">{profileError}</p>}
+              {profileSuccess && <p className="text-xs text-primary">{profileSuccess}</p>}
+              <button
+                type="submit"
+                disabled={profileLoading}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
+              >
+                {profileLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Settings className="h-4 w-4" />
+                )}
+                Save Changes
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("idle")}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                ← back
+              </button>
+            </form>
+          )}
+        </motion.div>
+      </div>
+
+      <div className="mt-6 flex items-center gap-6 text-xs text-muted-foreground">
         {user?.role === "admin" ? (
           <a href="/admin" className="hover:text-foreground">
             Admin

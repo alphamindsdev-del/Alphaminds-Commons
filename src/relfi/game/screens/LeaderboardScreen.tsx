@@ -19,14 +19,15 @@ export function LeaderboardScreen() {
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
 
-  const youGotItRight = !!revealData?.perPlayerAnswers?.find((a: any) => a.userId === youId)?.isCorrect;
+  const youGotItRight = !!revealData?.perPlayerAnswers?.find((a: any) => a.userId === youId)
+    ?.isCorrect;
 
   const handleNextRound = () => {
-    hostAdvanceRound()
-  }
+    hostAdvanceRound();
+  };
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col items-center px-6 pt-16 pb-12">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-3xl flex-col items-center px-6 pt-14 pb-8">
       <div className="flex w-full items-center justify-between">
         <button
           onClick={() => setConfirmLeave(true)}
@@ -45,38 +46,46 @@ export function LeaderboardScreen() {
           </button>
         )}
       </div>
-      <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">After round {roundIndex}</div>
+      <div className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
+        After round {roundIndex}
+      </div>
       <h1 className="mt-2 font-display text-4xl font-bold md:text-5xl">Standings</h1>
 
-      <div className="mt-10 w-full max-w-lg">
-        {mode === 'solo' ? (
-          !youGotItRight && (
-            <p className="mb-4 text-center text-sm text-muted-foreground">You didn't get it right this round.</p>
-          )
-        ) : (
-          players.length > 0 && players.every((p) => p.tokens === 0) && (
-            <p className="mb-4 text-center text-sm text-muted-foreground">No one got it right. No winners this round.</p>
-          )
-        )}
+      <div className="mt-6 w-full max-w-lg">
+        {mode === "solo"
+          ? !youGotItRight && (
+              <p className="mb-4 text-center text-sm text-muted-foreground">
+                You didn't get it right this round.
+              </p>
+            )
+          : players.length > 0 &&
+            players.every((p) => p.tokens === 0) && (
+              <p className="mb-4 text-center text-sm text-muted-foreground">
+                No one got it right. No winners this round.
+              </p>
+            )}
         <Leaderboard players={players} youId={youId} />
       </div>
 
       {user && hostUserId && user.id === hostUserId ? (
         <button
           onClick={handleNextRound}
-          className="mt-12 inline-flex items-center gap-2 rounded-full bg-primary-gradient px-8 py-4 font-display font-bold uppercase tracking-widest text-primary-foreground shadow-lock"
+          className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary-gradient px-8 py-4 font-display font-bold uppercase tracking-widest text-primary-foreground shadow-lock"
         >
           Next round <ArrowRight className="h-4 w-4" />
         </button>
       ) : (
-        <p className="mt-12 text-sm text-muted-foreground">Next round starting…</p>
+        <p className="mt-8 text-sm text-muted-foreground">Next round starting…</p>
       )}
 
       <ConfirmModal
         open={confirmLeave}
         title="Leave game?"
         message="You will be disconnected and return to the home screen."
-        onConfirm={() => { setConfirmLeave(false); resetGame() }}
+        onConfirm={() => {
+          setConfirmLeave(false);
+          resetGame();
+        }}
         onCancel={() => setConfirmLeave(false)}
       />
       <ConfirmModal
@@ -84,7 +93,10 @@ export function LeaderboardScreen() {
         title="End game now?"
         message="The game will end immediately and final standings will be shown."
         confirmLabel="End Game"
-        onConfirm={() => { setConfirmEnd(false); hostEndGame() }}
+        onConfirm={() => {
+          setConfirmEnd(false);
+          hostEndGame();
+        }}
         onCancel={() => setConfirmEnd(false)}
       />
     </div>

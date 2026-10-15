@@ -13,10 +13,10 @@ export function RoleReveal() {
     if (soundOn) sfx.roleReveal();
   }, [soundOn]);
 
-  if (phase !== 'role-reveal') return null;
+  if (phase !== "role-reveal") return null;
   if (!youRole) return null;
   return (
-    <div className="grid min-h-screen place-items-center px-6">
+    <div className="grid min-h-[100dvh] place-items-center px-6">
       <RoleRevealCard role={youRole} />
       <motion.div
         initial={{ opacity: 0 }}
