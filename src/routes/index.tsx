@@ -33,6 +33,8 @@ import {
   Target,
   GraduationCap,
   ArrowUpRight,
+  BookOpen,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -62,14 +64,29 @@ function greeting() {
 }
 
 /* ───────── Progress ring (Your Journey) ───────── */
-function ProgressRing({ value, total, size = 88 }: { value: number; total: number; size?: number }) {
+function ProgressRing({
+  value,
+  total,
+  size = 88,
+}: {
+  value: number;
+  total: number;
+  size?: number;
+}) {
   const stroke = 8;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = total > 0 ? Math.min(1, value / total) : 0;
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--divider)" strokeWidth={stroke} />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke="var(--divider)"
+        strokeWidth={stroke}
+      />
       <circle
         cx={size / 2}
         cy={size / 2}
@@ -121,7 +138,10 @@ function TodaysCodeCard({ code }: { code: any }) {
 
   const handleSave = async () => {
     if (!code?.id) return;
-    if (!member) { window.location.href = "/login"; return; }
+    if (!member) {
+      window.location.href = "/login";
+      return;
+    }
     try {
       await apiFetch(`/v1/code/${code.id}/save`, { method: "POST" });
       setSaved(true);
@@ -198,7 +218,10 @@ function TodaysCodeCard({ code }: { code: any }) {
         >
           Read more <ArrowRight className="h-4 w-4" />
         </Link>
-        <button onClick={handleSave} className="inline-flex items-center gap-1.5 rounded-full bg-bg-card-white border border-divider px-4 py-2 text-sm font-semibold text-text-primary">
+        <button
+          onClick={handleSave}
+          className="inline-flex items-center gap-1.5 rounded-full bg-bg-card-white border border-divider px-4 py-2 text-sm font-semibold text-text-primary"
+        >
           <BookMarked className="h-4 w-4" /> {saved ? "Saved" : "Save"}
         </button>
         <button
@@ -213,7 +236,17 @@ function TodaysCodeCard({ code }: { code: any }) {
 }
 
 /* ───────── Your Journey card (§5) ───────── */
-function JourneyStepNode({ state, icon: Icon, label, sub }: { state: "done" | "active" | "locked" | "reward"; icon: any; label: string; sub: string }) {
+function JourneyStepNode({
+  state,
+  icon: Icon,
+  label,
+  sub,
+}: {
+  state: "done" | "active" | "locked" | "reward";
+  icon: any;
+  label: string;
+  sub: string;
+}) {
   const ring =
     state === "done"
       ? "bg-accent-purple text-white"
@@ -223,10 +256,24 @@ function JourneyStepNode({ state, icon: Icon, label, sub }: { state: "done" | "a
   return (
     <div className="flex flex-col items-center gap-1.5 min-w-[64px]">
       <div className={`h-11 w-11 rounded-full flex items-center justify-center shrink-0 ${ring}`}>
-        {state === "done" ? <Check className="h-5 w-5" /> : state === "locked" ? <Lock className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+        {state === "done" ? (
+          <Check className="h-5 w-5" />
+        ) : state === "locked" ? (
+          <Lock className="h-4 w-4" />
+        ) : (
+          <Icon className="h-4 w-4" />
+        )}
       </div>
-      <span className={`text-[11px] font-bold text-center leading-tight ${state === "locked" ? "text-lock-gray" : "text-text-primary"}`}>{label}</span>
-      <span className={`text-[10px] text-center leading-tight ${state === "locked" ? "text-lock-gray" : "text-text-secondary"}`}>{sub}</span>
+      <span
+        className={`text-[11px] font-bold text-center leading-tight ${state === "locked" ? "text-lock-gray" : "text-text-primary"}`}
+      >
+        {label}
+      </span>
+      <span
+        className={`text-[10px] text-center leading-tight ${state === "locked" ? "text-lock-gray" : "text-text-secondary"}`}
+      >
+        {sub}
+      </span>
     </div>
   );
 }
@@ -239,7 +286,12 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
   quiz: GraduationCap,
   lesson: GraduationCap,
   course: GraduationCap,
-  reading: GraduationCap,
+  reading: BookOpen,
+  video: Play,
+  audio: Play,
+  article: BookOpen,
+  resource: Sparkles,
+  custom: Sparkles,
 };
 
 function YourJourneyCard({ name, membershipLevel }: { name: string; membershipLevel: string }) {
@@ -265,15 +317,23 @@ function YourJourneyCard({ name, membershipLevel }: { name: string; membershipLe
           : a.type === "rel_fi"
             ? "Play Now"
             : "Start",
-    state: (a.status === "completed" ? "done" : a.status === "active" ? "active" : "locked") as "done" | "active" | "locked",
+    state: (a.status === "completed" ? "done" : a.status === "active" ? "active" : "locked") as
+      | "done"
+      | "active"
+      | "locked",
     icon: TYPE_ICONS[a.type] ?? Check,
   }));
 
   return (
     <section>
       <div className="flex items-end justify-between mb-4">
-        <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-text-primary">YOUR JOURNEY</h2>
-        <Link to="/journey" className="text-sm font-bold text-accent-purple inline-flex items-center gap-1">
+        <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-text-primary">
+          YOUR JOURNEY
+        </h2>
+        <Link
+          to="/journey"
+          className="text-sm font-bold text-accent-purple inline-flex items-center gap-1"
+        >
           View all <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
@@ -283,13 +343,17 @@ function YourJourneyCard({ name, membershipLevel }: { name: string; membershipLe
           <div className="relative">
             <ProgressRing value={completed} total={total} />
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-xl font-extrabold text-text-primary leading-none">{completed}</span>
+              <span className="text-xl font-extrabold text-text-primary leading-none">
+                {completed}
+              </span>
               <span className="text-[10px] text-text-secondary">of {total}</span>
             </div>
           </div>
           <div>
             <p className="eyebrow-purple">{level.replace(/_/g, " ")} JOURNEY</p>
-            <h3 className="mt-1 text-lg font-bold text-text-primary">You&apos;re on your way, {name.split(" ")[0]}!</h3>
+            <h3 className="mt-1 text-lg font-bold text-text-primary">
+              You&apos;re on your way, {name.split(" ")[0]}!
+            </h3>
             <p className="mt-1 text-sm text-text-secondary">
               {nextCopy
                 ? `Complete the steps below to become ${nextCopy.article} ${nextCopy.label} and join Alpha Circle.`
@@ -299,13 +363,17 @@ function YourJourneyCard({ name, membershipLevel }: { name: string; membershipLe
         </div>
 
         {steps.length === 0 ? (
-          <p className="mt-6 text-sm text-text-secondary">Your journey steps will appear here once they are published.</p>
+          <p className="mt-6 text-sm text-text-secondary">
+            Your journey steps will appear here once they are published.
+          </p>
         ) : (
           <div className="mt-6 flex items-start justify-between gap-1 overflow-x-auto scrollbar-none">
             {steps.map((s, i) => (
               <div key={s.label} className="flex items-start gap-1">
                 <JourneyStepNode state={s.state} icon={s.icon} label={s.label} sub={s.sub} />
-                {i < steps.length - 1 && <div className="h-px w-4 sm:w-8 bg-divider mt-5 shrink-0" />}
+                {i < steps.length - 1 && (
+                  <div className="h-px w-4 sm:w-8 bg-divider mt-5 shrink-0" />
+                )}
               </div>
             ))}
           </div>
@@ -339,13 +407,21 @@ function MyChapterCard({ chapterName, members }: { chapterName: string; members:
       </div>
       <div className="flex items-start gap-2">
         <Lock className="h-4 w-4 mt-0.5 text-lock-gray shrink-0" />
-        <p className="text-xs text-text-secondary">Complete your Seeker Journey to participate in Alpha Circle.</p>
+        <p className="text-xs text-text-secondary">
+          Complete your Seeker Journey to participate in Alpha Circle.
+        </p>
       </div>
     </div>
   );
 }
 
-function DailyInsightCard({ title, mediaKey }: { title?: string | null; mediaKey?: string | null }) {
+function DailyInsightCard({
+  title,
+  mediaKey,
+}: {
+  title?: string | null;
+  mediaKey?: string | null;
+}) {
   const mediaUrl = mediaKey ? getMediaUrl(mediaKey) : null;
   return (
     <div className="rounded-2xl bg-bg-card-white border border-divider p-5 sm:p-6 space-y-4 relative">
@@ -356,11 +432,18 @@ function DailyInsightCard({ title, mediaKey }: { title?: string | null; mediaKey
         </span>
         <div>
           <p className="font-bold text-text-primary">Daily Insight</p>
-          <p className="text-xs text-text-secondary truncate max-w-[200px]">{title || "Today's reflection"}</p>
+          <p className="text-xs text-text-secondary truncate max-w-[200px]">
+            {title || "Today's reflection"}
+          </p>
         </div>
       </div>
       {mediaUrl ? (
-        <a href={mediaUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-full btn-accent px-4 py-2 text-sm font-bold">
+        <a
+          href={mediaUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-full btn-accent px-4 py-2 text-sm font-bold"
+        >
           Listen now <ArrowRight className="h-4 w-4" />
         </a>
       ) : (
@@ -376,11 +459,19 @@ function DailyInsightCard({ title, mediaKey }: { title?: string | null; mediaKey
 function Home() {
   const { member: authMember } = useAuthStore();
   const { data: profile } = useMyProfile();
-  const { data: code } = useQuery({ queryKey: ["code/today"], queryFn: () => apiFetch<any>("/v1/code/today"), staleTime: 60000 });
+  const { data: code } = useQuery({
+    queryKey: ["code/today"],
+    queryFn: () => apiFetch<any>("/v1/code/today"),
+    staleTime: 60000,
+  });
   const { data: dailyData } = useDailyContent();
   const { data: eventsData, isLoading: eventsLoading } = useEvents("global");
   const { data: myChallengesData, isLoading: challengesLoading } = useMyChallenges();
-  const { data: homePlans, isLoading: plansLoading } = useQuery({ queryKey: ["plans"], queryFn: () => apiFetch<any[]>("/v1/plans"), staleTime: 60000 });
+  const { data: homePlans, isLoading: plansLoading } = useQuery({
+    queryKey: ["plans"],
+    queryFn: () => apiFetch<any[]>("/v1/plans"),
+    staleTime: 60000,
+  });
 
   const member = profile
     ? {
@@ -388,7 +479,9 @@ function Home() {
         username: profile.username ?? "",
         chapter: profile.chapter ?? authMember?.chapter_id ?? "",
         streak: profile.streak ?? 0,
-        membershipLevel: (profile.membership_level ?? authMember?.membership_level ?? "SEEKER") as string,
+        membershipLevel: (profile.membership_level ??
+          authMember?.membership_level ??
+          "SEEKER") as string,
         id: profile.id,
       }
     : authMember
@@ -410,11 +503,17 @@ function Home() {
 
       <TodaysCodeCard code={code} />
 
-      <YourJourneyCard name={member?.name ?? "Member"} membershipLevel={member?.membershipLevel ?? "SEEKER"} />
+      <YourJourneyCard
+        name={member?.name ?? "Member"}
+        membershipLevel={member?.membershipLevel ?? "SEEKER"}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <MyChapterCard chapterName={chapterName} members={12} />
-        <DailyInsightCard title={dailyData?.content?.title} mediaKey={dailyData?.content?.media_r2_key} />
+        <DailyInsightCard
+          title={dailyData?.content?.title}
+          mediaKey={dailyData?.content?.media_r2_key}
+        />
       </div>
 
       {/* Upcoming Events */}
@@ -422,20 +521,54 @@ function Home() {
         <SectionHeading
           kicker="Show Up"
           title="Upcoming Events"
-          action={<Link to="/events" className="inline-flex items-center gap-1 text-sm font-bold text-accent-purple">View all <ArrowUpRight className="h-4 w-4" /></Link>}
+          action={
+            <Link
+              to="/events"
+              className="inline-flex items-center gap-1 text-sm font-bold text-accent-purple"
+            >
+              View all <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          }
         />
         {eventsLoading ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
+            {Array.from({ length: 3 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : (eventsData?.data ?? []).length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {(eventsData?.data ?? []).slice(0, 3).map((e: any) => (
-              <EventCard key={e.id} event={{ ...e, date: e.starts_at ? new Date(e.starts_at).toLocaleDateString() : "", time: e.starts_at ? new Date(e.starts_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "", format: e.format ?? "", coverImage: e.cover_r2_key ? getMediaUrl(e.cover_r2_key) : undefined, host: { name: e.host?.display_name ?? "", avatar: "" }, rsvped: e.is_rsvped === "going", full: (e.rsvp_count ?? 0) >= (e.rsvp_limit ?? 999999), tags: e.tags ?? [], rsvpCount: e.rsvp_count ?? 0, capacity: e.rsvp_limit ?? 100, location: e.location_name ?? "" }} />
+              <EventCard
+                key={e.id}
+                event={{
+                  ...e,
+                  date: e.starts_at ? new Date(e.starts_at).toLocaleDateString() : "",
+                  time: e.starts_at
+                    ? new Date(e.starts_at).toLocaleTimeString([], {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })
+                    : "",
+                  format: e.format ?? "",
+                  coverImage: e.cover_r2_key ? getMediaUrl(e.cover_r2_key) : undefined,
+                  host: { name: e.host?.display_name ?? "", avatar: "" },
+                  rsvped: e.is_rsvped === "going",
+                  full: (e.rsvp_count ?? 0) >= (e.rsvp_limit ?? 999999),
+                  tags: e.tags ?? [],
+                  rsvpCount: e.rsvp_count ?? 0,
+                  capacity: e.rsvp_limit ?? 100,
+                  location: e.location_name ?? "",
+                }}
+              />
             ))}
           </div>
         ) : (
-          <EmptyState icon={<Calendar className="h-5 w-5" />} title="No upcoming events" body="There are no events scheduled right now." />
+          <EmptyState
+            icon={<Calendar className="h-5 w-5" />}
+            title="No upcoming events"
+            body="There are no events scheduled right now."
+          />
         )}
       </section>
 
@@ -444,20 +577,49 @@ function Home() {
         <SectionHeading
           kicker="Keep Moving"
           title="Active Challenges"
-          action={<Link to="/challenges" className="inline-flex items-center gap-1 text-sm font-bold text-accent-purple">View all <ArrowUpRight className="h-4 w-4" /></Link>}
+          action={
+            <Link
+              to="/challenges"
+              className="inline-flex items-center gap-1 text-sm font-bold text-accent-purple"
+            >
+              View all <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          }
         />
         {challengesLoading ? (
           <div className="grid sm:grid-cols-2 gap-4">
-            {Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} />)}
+            {Array.from({ length: 2 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : (myChallengesData?.active ?? []).length > 0 ? (
           <div className="grid sm:grid-cols-2 gap-4">
             {(myChallengesData?.active ?? []).map((c: ChallengeItem) => (
-              <ChallengeCard key={c.id} challenge={{ id: c.id, house: c.house, name: c.name, metric: c.metric, type: c.type ?? "", joined: true, current: c.current ?? 0, target: c.target ?? 0, description: c.description ?? "", participants: c.participants ?? 0, daysLeft: c.daysLeft ?? 0, points: c.points ?? 0 }} />
+              <ChallengeCard
+                key={c.id}
+                challenge={{
+                  id: c.id,
+                  house: c.house,
+                  name: c.name,
+                  metric: c.metric,
+                  type: c.type ?? "",
+                  joined: true,
+                  current: c.current ?? 0,
+                  target: c.target ?? 0,
+                  description: c.description ?? "",
+                  participants: c.participants ?? 0,
+                  daysLeft: c.daysLeft ?? 0,
+                  points: c.points ?? 0,
+                }}
+              />
             ))}
           </div>
         ) : (
-          <EmptyState icon={<Target className="h-5 w-5" />} title="No active challenges" body="Join a challenge to start building daily habits." />
+          <EmptyState
+            icon={<Target className="h-5 w-5" />}
+            title="No active challenges"
+            body="Join a challenge to start building daily habits."
+          />
         )}
       </section>
 
@@ -466,38 +628,78 @@ function Home() {
         <SectionHeading
           kicker="Your Learning Path"
           title="Plans"
-          action={<Link to="/plans" className="inline-flex items-center gap-1 text-sm font-bold text-accent-purple">See more <ArrowUpRight className="h-4 w-4" /></Link>}
+          action={
+            <Link
+              to="/plans"
+              className="inline-flex items-center gap-1 text-sm font-bold text-accent-purple"
+            >
+              See more <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          }
         />
         {plansLoading ? (
           <div className="grid sm:grid-cols-2 gap-4">
-            {Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} />)}
+            {Array.from({ length: 2 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
           </div>
         ) : (homePlans ?? []).length > 0 ? (
           <div className="grid sm:grid-cols-2 gap-4">
             {(homePlans ?? []).slice(0, 2).map((plan: any) => {
-              const pct = plan.total_items > 0 ? Math.round((plan.completed_items / plan.total_items) * 100) : 0;
+              const pct =
+                plan.total_items > 0
+                  ? Math.round((plan.completed_items / plan.total_items) * 100)
+                  : 0;
               return (
-                <Link key={plan.id} to="/plans/$planId" params={{ planId: plan.id }} className="group relative overflow-hidden rounded-2xl border border-divider bg-card p-5 card-shadow">
+                <Link
+                  key={plan.id}
+                  to="/plans/$planId"
+                  params={{ planId: plan.id }}
+                  className="group relative overflow-hidden rounded-2xl border border-divider bg-card p-5 card-shadow"
+                >
                   <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-primary-light to-accent opacity-80" />
                   <div className="flex items-center gap-1.5 mb-1">
                     <GraduationCap className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">{plan.difficulty}</span>
-                    {plan.estimated_duration && <><span className="text-text-secondary text-[10px]">·</span><span className="text-text-secondary text-[10px] flex items-center gap-1"><Calendar className="h-3 w-3" />{plan.estimated_duration}</span></>}
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary">
+                      {plan.difficulty}
+                    </span>
+                    {plan.estimated_duration && (
+                      <>
+                        <span className="text-text-secondary text-[10px]">·</span>
+                        <span className="text-text-secondary text-[10px] flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {plan.estimated_duration}
+                        </span>
+                      </>
+                    )}
                   </div>
-                  <h3 className="font-bold text-text-primary group-hover:text-primary transition-colors">{plan.title}</h3>
-                  <p className="mt-0.5 text-xs text-text-secondary line-clamp-2">{plan.description}</p>
+                  <h3 className="font-bold text-text-primary group-hover:text-primary transition-colors">
+                    {plan.title}
+                  </h3>
+                  <p className="mt-0.5 text-xs text-text-secondary line-clamp-2">
+                    {plan.description}
+                  </p>
                   <div className="mt-4 flex items-center gap-3">
                     <div className="flex-1 h-1.5 rounded-full bg-subtle overflow-hidden">
-                      <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                      <div
+                        className="h-full rounded-full bg-primary transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
-                    <span className="text-xs text-text-secondary tabular-nums shrink-0">{plan.completed_items}/{plan.total_items}</span>
+                    <span className="text-xs text-text-secondary tabular-nums shrink-0">
+                      {plan.completed_items}/{plan.total_items}
+                    </span>
                   </div>
                 </Link>
               );
             })}
           </div>
         ) : (
-          <EmptyState icon={<GraduationCap className="h-5 w-5" />} title="No plans yet" body="Start a learning plan to track your progress." />
+          <EmptyState
+            icon={<GraduationCap className="h-5 w-5" />}
+            title="No plans yet"
+            body="Start a learning plan to track your progress."
+          />
         )}
       </section>
     </div>

@@ -345,6 +345,7 @@ export interface JourneyActivity {
   type: string;
   instructions: string | null;
   content: string | null;
+  link_url: string | null;
   position: number;
   is_required: boolean;
   status: "completed" | "active" | "locked";
@@ -358,4 +359,3 @@ export interface JourneyData {
   total_count: number;
   activities: JourneyActivity[];
 }
-

@@ -1,13 +1,27 @@
 import { useAuthStore } from "@/store/authStore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { useMyProfile } from "@/hooks/useMyProfile";
 import { PageHeader } from "@/components/common/PageHeader";
+import { YouTubeEmbed } from "@/components/journey/YouTubeEmbed";
+import { classifyJourneyLink, journeyLinkHref } from "@/lib/journeyLinks";
 import { toast } from "sonner";
 import { EXAMINER_INDEX, levelCopy, levelIndex } from "@/lib/levels";
-import type { JourneyData } from "@/lib/types";
+import type { JourneyActivity, JourneyData } from "@/lib/types";
 import {
-  Flame, Lock, Check, ArrowRight, BookMarked, Share2, Play, GraduationCap, Target, BookOpen, Sparkles,
+  Flame,
+  Lock,
+  Check,
+  ArrowRight,
+  BookMarked,
+  Share2,
+  Play,
+  GraduationCap,
+  Target,
+  BookOpen,
+  Sparkles,
+  ExternalLink,
 } from "lucide-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
@@ -32,6 +46,33 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
   custom: Sparkles,
 };
 
+function loadFlag(key: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return sessionStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function saveFlag(key: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(key, "1");
+  } catch {
+    // storage unavailable — gate just won't survive a refresh
+  }
+}
+
+function resourceLabel(step: JourneyActivity, href: string): string {
+  if (href.startsWith("/library")) return "Read the article";
+  if (href.startsWith("/challenges")) return "Open the challenge";
+  if (href.startsWith("/rel-fi")) return "Play Rel-Fi";
+  if (step.type === "article" || step.type === "reading") return "Read the article";
+  if (step.type === "video" || step.type === "audio") return "Open the media";
+  return "Open the resource";
+}
+
 function JourneyPage() {
   const { member } = useAuthStore();
 
@@ -39,7 +80,10 @@ function JourneyPage() {
     return (
       <div className="py-24 text-center">
         <p className="text-text-secondary">Please sign in to view your journey</p>
-        <Link to="/login" className="mt-4 inline-flex items-center gap-1.5 rounded-full btn-accent px-5 py-2.5 text-sm font-bold">
+        <Link
+          to="/login"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-full btn-accent px-5 py-2.5 text-sm font-bold"
+        >
           Sign in <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
@@ -54,7 +98,12 @@ function JourneyContent() {
   const { data: profile } = useMyProfile();
   const queryClient = useQueryClient();
 
-  const { data: journey, isLoading: journeyLoading, isError: journeyError, refetch } = useQuery<JourneyData>({
+  const {
+    data: journey,
+    isLoading: journeyLoading,
+    isError: journeyError,
+    refetch,
+  } = useQuery<JourneyData>({
     queryKey: ["journey"],
     queryFn: () => apiFetch<JourneyData>("/v1/journey"),
     staleTime: 30000,
@@ -68,21 +117,50 @@ function JourneyContent() {
 
   const { mutate: completeStep, isPending: completing } = useMutation({
     mutationFn: (activityId: string) =>
-      apiFetch<{ success: boolean; promoted: boolean; new_level: string | null; journey: JourneyData }>(
-        `/v1/journey/activities/${activityId}/complete`,
-        { method: "POST" },
-      ),
+      apiFetch<{
+        success: boolean;
+        promoted: boolean;
+        new_level: string | null;
+        journey: JourneyData;
+      }>(`/v1/journey/activities/${activityId}/complete`, { method: "POST" }),
     onSuccess: (res) => {
       queryClient.setQueryData(["journey"], res.journey);
       if (res.promoted && res.new_level && member) {
         setMember({ ...member, membership_level: res.new_level });
-        toast.success(`Congratulations — you've been promoted to ${res.new_level.replace(/_/g, " ").toLowerCase()}`);
+        toast.success(
+          `Congratulations — you've been promoted to ${res.new_level.replace(/_/g, " ").toLowerCase()}`,
+        );
       } else {
         toast.success("Step completed");
       }
     },
     onError: (e: any) => toast.error(e.message ?? "Failed to complete step"),
   });
+
+  // Completion is strictly member-driven: these flags only flip when the member
+  // actually opens the linked resource or finishes watching an embedded video.
+  const [opened, setOpened] = useState<Record<string, boolean>>(() => ({}));
+  const [watched, setWatched] = useState<Record<string, boolean>>(() => ({}));
+  const [manualOk, setManualOk] = useState<Record<string, boolean>>(() => ({}));
+
+  const markOpened = (id: string) => {
+    if (opened[id]) return;
+    saveFlag(`journey-opened:${id}`);
+    setOpened((prev) => ({ ...prev, [id]: true }));
+  };
+  const markWatched = (id: string) => {
+    if (watched[id]) return;
+    saveFlag(`journey-watched:${id}`);
+    setWatched((prev) => ({ ...prev, [id]: true }));
+  };
+  const markManualOk = (id: string) => {
+    if (manualOk[id]) return;
+    saveFlag(`journey-manual:${id}`);
+    setManualOk((prev) => ({ ...prev, [id]: true }));
+  };
+  const wasOpened = (id: string) => opened[id] === true || loadFlag(`journey-opened:${id}`);
+  const wasWatched = (id: string) => watched[id] === true || loadFlag(`journey-watched:${id}`);
+  const wasManualOk = (id: string) => manualOk[id] === true || loadFlag(`journey-manual:${id}`);
 
   const memberName = profile?.display_name ?? member?.display_name ?? "Member";
   const completedCount = journey?.completed_count ?? 0;
@@ -135,7 +213,9 @@ function JourneyContent() {
       <section className="rounded-2xl bg-card border border-divider p-5 sm:p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-extrabold tracking-tight text-text-primary">Progress</h2>
-          <span className="text-sm text-text-secondary tabular-nums">{completedCount}/{steps.length} done</span>
+          <span className="text-sm text-text-secondary tabular-nums">
+            {completedCount}/{steps.length} done
+          </span>
         </div>
 
         {journeyLoading ? (
@@ -143,16 +223,20 @@ function JourneyContent() {
         ) : journeyError ? (
           <div className="mt-5">
             <p className="text-sm text-text-secondary">Could not load your journey.</p>
-            <button onClick={() => refetch()} className="mt-3 inline-flex items-center gap-1.5 rounded-full btn-accent px-4 py-2 text-sm font-bold">
+            <button
+              onClick={() => refetch()}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full btn-accent px-4 py-2 text-sm font-bold"
+            >
               Try again
             </button>
           </div>
         ) : steps.length === 0 ? (
           <p className="mt-5 text-sm text-text-secondary">
-            No activities have been published for your level yet. Your chapter leader will add them soon.
+            No activities have been published for your level yet. Your chapter leader will add them
+            soon.
           </p>
         ) : (
-          <div className="mt-5 space-y-1">
+          <div className="mt-5 space-y-3">
             {steps.map((step) => {
               const Icon = TYPE_ICONS[step.type] ?? Sparkles;
               const tone =
@@ -161,48 +245,159 @@ function JourneyContent() {
                   : step.status === "active"
                     ? "bg-bg-card-white text-accent-purple border-2 border-accent-purple"
                     : "bg-lock-gray/20 text-lock-gray";
+              const active = step.status === "active";
+              const kind = classifyJourneyLink(step.link_url);
+              const gate: "youtube" | "link" | "none" =
+                kind === "youtube" ? "youtube" : kind ? "link" : "none";
+              const canComplete =
+                gate === "none"
+                  ? true
+                  : gate === "youtube"
+                    ? wasWatched(step.id) || wasManualOk(step.id)
+                    : wasOpened(step.id);
+              const href = step.link_url ? journeyLinkHref(step.link_url) : null;
+              const gateHint =
+                gate === "youtube"
+                  ? "Watch the video to the end to unlock Complete."
+                  : "Open the linked resource above to unlock Complete.";
               return (
-                <div key={step.id} className="flex items-center gap-3 py-2">
-                  <span className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${tone}`}>
-                    {step.status === "locked" ? <Lock className="h-4 w-4" /> : step.status === "completed" ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className={`font-semibold ${step.status === "locked" ? "text-lock-gray" : "text-text-primary"}`}>
-                      {step.title}
-                      {!step.is_required && (
-                        <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-text-secondary">Optional</span>
-                      )}
-                    </p>
-                    <p className={`text-xs ${step.status === "locked" ? "text-lock-gray" : "text-text-secondary"}`}>
-                      {step.status === "completed"
-                        ? "Complete"
-                        : step.status === "locked"
-                          ? "Locked"
-                          : step.type === "rel_fi"
-                            ? "Play now"
-                            : "Ready to complete"}
-                    </p>
-                    {step.status === "active" && step.description && (
-                      <p className="mt-1 text-xs text-text-secondary line-clamp-2">{step.description}</p>
-                    )}
-                  </div>
-                  {step.status === "active" && step.type === "rel_fi" && (
-                    <Link to="/rel-fi" className="inline-flex items-center gap-1 rounded-full btn-accent px-3.5 py-1.5 text-xs font-bold shrink-0">
-                      Play <ArrowRight className="h-3 w-3" />
-                    </Link>
-                  )}
-                  {step.status === "active" && (
-                    <button
-                      onClick={() => completeStep(step.id)}
-                      disabled={completing}
-                      className={
-                        step.type === "rel_fi"
-                          ? "inline-flex items-center gap-1.5 rounded-full bg-bg-card-white border border-divider px-3.5 py-1.5 text-xs font-semibold text-text-primary shrink-0 disabled:opacity-50"
-                          : "inline-flex items-center gap-1.5 rounded-full btn-accent px-3.5 py-1.5 text-xs font-bold shrink-0 disabled:opacity-50"
-                      }
+                <div key={step.id} className={active ? "space-y-3" : undefined}>
+                  <div className="flex items-center gap-3 py-2">
+                    <span
+                      className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${tone}`}
                     >
-                      <Check className="h-3 w-3" /> {step.type === "rel_fi" ? "Mark done" : "Complete"}
-                    </button>
+                      {step.status === "locked" ? (
+                        <Lock className="h-4 w-4" />
+                      ) : step.status === "completed" ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Icon className="h-4 w-4" />
+                      )}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`font-semibold ${step.status === "locked" ? "text-lock-gray" : "text-text-primary"}`}
+                      >
+                        {step.title}
+                        {!step.is_required && (
+                          <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-text-secondary">
+                            Optional
+                          </span>
+                        )}
+                      </p>
+                      <p
+                        className={`text-xs ${step.status === "locked" ? "text-lock-gray" : "text-text-secondary"}`}
+                      >
+                        {step.status === "completed"
+                          ? "Complete"
+                          : step.status === "locked"
+                            ? "Locked"
+                            : step.type === "rel_fi"
+                              ? "Play now"
+                              : canComplete
+                                ? "Ready to complete"
+                                : "In progress"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {active && (
+                    <div className="mb-3 space-y-3 rounded-xl border border-divider bg-bg-card-white/60 p-4">
+                      {step.description && (
+                        <p className="text-sm text-text-secondary">{step.description}</p>
+                      )}
+                      {step.instructions && (
+                        <div>
+                          <p className="text-[11px] font-bold uppercase tracking-wide text-text-secondary">
+                            Instructions
+                          </p>
+                          <p className="mt-1 whitespace-pre-wrap text-sm text-text-primary">
+                            {step.instructions}
+                          </p>
+                        </div>
+                      )}
+                      {step.content && (
+                        <div>
+                          <p className="text-[11px] font-bold uppercase tracking-wide text-text-secondary">
+                            Details
+                          </p>
+                          <p className="mt-1 whitespace-pre-wrap text-sm text-text-primary">
+                            {step.content}
+                          </p>
+                        </div>
+                      )}
+
+                      {gate === "youtube" && href && (
+                        <YouTubeEmbed
+                          url={href}
+                          activityId={step.id}
+                          onWatched={() => markWatched(step.id)}
+                          onUnavailable={() => markManualOk(step.id)}
+                        />
+                      )}
+
+                      {gate === "link" && href && kind === "internal" && (
+                        <div>
+                          <Link
+                            to={href as any}
+                            onClick={() => markOpened(step.id)}
+                            className="inline-flex items-center gap-1.5 rounded-full btn-accent px-4 py-2 text-xs font-bold"
+                          >
+                            {resourceLabel(step, href)} <ArrowRight className="h-3 w-3" />
+                          </Link>
+                          {!canComplete && (
+                            <p className="mt-2 text-xs text-text-secondary">{gateHint}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {gate === "link" && href && kind === "external" && (
+                        <div>
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => markOpened(step.id)}
+                            className="inline-flex items-center gap-1.5 rounded-full btn-accent px-4 py-2 text-xs font-bold"
+                          >
+                            {resourceLabel(step, href)} <ExternalLink className="h-3 w-3" />
+                          </a>
+                          {!canComplete && (
+                            <p className="mt-2 text-xs text-text-secondary">{gateHint}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {gate === "none" && step.type === "rel_fi" && (
+                        <div>
+                          <Link
+                            to="/rel-fi"
+                            className="inline-flex items-center gap-1.5 rounded-full btn-accent px-4 py-2 text-xs font-bold"
+                          >
+                            Play Rel-Fi <ArrowRight className="h-3 w-3" />
+                          </Link>
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-divider pt-3">
+                        <p className="text-xs text-text-secondary">
+                          {canComplete ? "This step is ready to complete." : gateHint}
+                        </p>
+                        <button
+                          onClick={() => completeStep(step.id)}
+                          disabled={completing || !canComplete}
+                          title={canComplete ? "Mark this step complete" : gateHint}
+                          className={
+                            step.type === "rel_fi"
+                              ? "inline-flex items-center gap-1.5 rounded-full bg-bg-card-white border border-divider px-4 py-2 text-xs font-semibold text-text-primary disabled:opacity-50"
+                              : "inline-flex items-center gap-1.5 rounded-full btn-accent px-4 py-2 text-xs font-bold disabled:opacity-50"
+                          }
+                        >
+                          <Check className="h-3 w-3" />{" "}
+                          {step.type === "rel_fi" ? "Mark done" : "Complete"}
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               );
@@ -213,9 +408,12 @@ function JourneyContent() {
 
       {nextLevel && (
         <section className="rounded-2xl bg-card border border-divider p-5 sm:p-6">
-          <h3 className="text-lg font-extrabold tracking-tight text-text-primary">Next level: {nextLevel.replace(/_/g, " ")}</h3>
+          <h3 className="text-lg font-extrabold tracking-tight text-text-primary">
+            Next level: {nextLevel.replace(/_/g, " ")}
+          </h3>
           <p className="mt-2 text-sm text-text-secondary">
-            Complete all required activities in your current journey to be promoted to {nextLevel.replace(/_/g, " ").toLowerCase()}.
+            Complete all required activities in your current journey to be promoted to{" "}
+            {nextLevel.replace(/_/g, " ").toLowerCase()}.
           </p>
         </section>
       )}
@@ -226,17 +424,28 @@ function JourneyContent() {
             <span className="h-7 w-7 rounded-lg bg-accent-dark-green flex items-center justify-center shrink-0">
               <Flame className="h-3.5 w-3.5 text-white" />
             </span>
-            <span className="text-xs font-extrabold uppercase tracking-[0.08em] text-accent-dark-green">Today&apos;s Code</span>
+            <span className="text-xs font-extrabold uppercase tracking-[0.08em] text-accent-dark-green">
+              Today&apos;s Code
+            </span>
           </div>
           <p className="mt-4 text-lg font-bold text-text-primary leading-snug">{code.passage}</p>
           <div className="mt-5 flex flex-wrap gap-2">
-            <button onClick={handleSave} className="inline-flex items-center gap-1.5 rounded-full btn-accent px-4 py-2 text-sm font-bold">
+            <button
+              onClick={handleSave}
+              className="inline-flex items-center gap-1.5 rounded-full btn-accent px-4 py-2 text-sm font-bold"
+            >
               <BookMarked className="h-4 w-4" /> Save
             </button>
-            <button onClick={handleShare} className="inline-flex items-center gap-1.5 rounded-full bg-bg-card-white border border-divider px-4 py-2 text-sm font-semibold text-text-primary">
+            <button
+              onClick={handleShare}
+              className="inline-flex items-center gap-1.5 rounded-full bg-bg-card-white border border-divider px-4 py-2 text-sm font-semibold text-text-primary"
+            >
               <Share2 className="h-4 w-4" /> Share
             </button>
-            <Link to="/code" className="inline-flex items-center gap-1.5 rounded-full bg-bg-card-white border border-divider px-4 py-2 text-sm font-semibold text-text-primary">
+            <Link
+              to="/code"
+              className="inline-flex items-center gap-1.5 rounded-full bg-bg-card-white border border-divider px-4 py-2 text-sm font-semibold text-text-primary"
+            >
               Read more <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -247,7 +456,8 @@ function JourneyContent() {
         <section className="rounded-2xl bg-card border border-divider p-5 sm:p-6">
           <h3 className="text-lg font-extrabold tracking-tight text-text-primary">Rel-Fi Games</h3>
           <p className="mt-2 text-sm text-text-secondary">
-            Rel-Fi unlocks for the designated journey step. Once it is available, you can play it any time from here.
+            Rel-Fi unlocks for the designated journey step. Once it is available, you can play it
+            any time from here.
           </p>
           <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-lock-gray">
             <Lock className="h-3.5 w-3.5" /> Available at the Rel-Fi step
