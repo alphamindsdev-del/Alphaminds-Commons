@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 
 export const Route = createFileRoute("/library/$articleId")({
   loader: async ({ params }) => params,
-  head: () => ({ meta: [{ title: `Library · AlphaMinds` }] }),
+  head: () => ({ meta: [{ title: `Library · The Commons` }] }),
   component: ArticleDetailPage,
 });
 

@@ -1,5 +1,22 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Calendar, User, Bell, Settings, Sparkles, Shield, GraduationCap, Newspaper, Leaf, Flame, Map, Library, ScrollText, Target, Lock } from "lucide-react";
+import {
+  Home,
+  Calendar,
+  User,
+  Bell,
+  Settings,
+  Sparkles,
+  Shield,
+  GraduationCap,
+  Newspaper,
+  Leaf,
+  Flame,
+  Map,
+  Library,
+  ScrollText,
+  Target,
+  Lock,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
@@ -15,7 +32,7 @@ const mainNav = [
   { to: "/alpha-minds-daily", label: "Alpha Minds Daily", icon: Newspaper, minLevel: 0 },
   { to: "/plans", label: "Plans", icon: Target, minLevel: 1 },
   { to: "/wellness-clinic", label: "Wellness Clinic", icon: Leaf, minLevel: 1 },
-  { to: "/rel-fi", label: "Rel-Fi Game", icon: Flame, minLevel: 1 },
+  { to: "/rel-fi", label: "REL-Fi", icon: Flame, minLevel: 1 },
   { to: "/my-chapter", label: "My Chapter", icon: Map, minLevel: 0 },
   { to: "/events", label: "Events", icon: Calendar, minLevel: 1 },
   { to: "/library", label: "Library", icon: Library, minLevel: 0 },
@@ -66,7 +83,9 @@ export function Sidebar() {
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-accent" />
               )}
               <Icon className={cn("h-5 w-5 shrink-0", isLocked ? "text-lock-gray" : "")} />
-              <span className={cn("hidden lg:inline truncate", isLocked && "text-lock-gray")}>{t.label}</span>
+              <span className={cn("hidden lg:inline truncate", isLocked && "text-lock-gray")}>
+                {t.label}
+              </span>
               {isLocked && (
                 <span className="hidden lg:inline-flex ml-auto h-5 w-5 rounded-full bg-lock-gray/15 text-lock-gray items-center justify-center">
                   <Lock className="h-3 w-3" />
@@ -81,11 +100,7 @@ export function Sidebar() {
           );
         })}
         {member.role === "admin" && (
-          <Link
-            to="/admin"
-            className={linkClass(pathname.startsWith("/admin"))}
-            title="Admin"
-          >
+          <Link to="/admin" className={linkClass(pathname.startsWith("/admin"))} title="Admin">
             {pathname.startsWith("/admin") && (
               <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-accent" />
             )}
@@ -97,13 +112,20 @@ export function Sidebar() {
 
       <div className="p-2 lg:p-3 border-t border-divider space-y-2">
         {member.subscription_tier === "free" && (
-          <Link to="/subscription" className="hidden lg:flex items-center justify-center gap-2 rounded-xl btn-accent px-3 py-3 text-sm font-bold">
+          <Link
+            to="/subscription"
+            className="hidden lg:flex items-center justify-center gap-2 rounded-xl btn-accent px-3 py-3 text-sm font-bold"
+          >
             <Sparkles className="h-4 w-4" />
             <span>Upgrade</span>
           </Link>
         )}
         <div className="flex items-center gap-2">
-          <Link to="/settings" className="flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-subtle text-text-secondary" title="Settings">
+          <Link
+            to="/settings"
+            className="flex items-center gap-2 px-2 py-2 rounded-xl hover:bg-subtle text-text-secondary"
+            title="Settings"
+          >
             <Settings className="h-5 w-5" />
             <span className="hidden lg:inline text-sm font-semibold">Settings</span>
           </Link>

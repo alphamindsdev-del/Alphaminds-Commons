@@ -13,11 +13,11 @@ function Confetti() {
         id: i,
         x: Math.random() * 100,
         delay: Math.random() * 2,
-        color: ["#8B5CF6", "#F59E0B", "#22D3EE", "#EC4899", "#84CC16"][i % 5],
+        color: ["#B5D432", "#F59E0B", "#22D3EE", "#EC4899", "#84CC16"][i % 5],
         r: 4 + Math.random() * 6,
         dur: 3 + Math.random() * 3,
       })),
-    []
+    [],
   );
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -54,7 +54,7 @@ export function Final() {
       <Confetti />
       <div className="relative">
         <div className="text-center text-xs uppercase tracking-[0.4em] text-primary">Game over</div>
-        <h1 className="mt-2 text-center font-display text-5xl font-black md:text-6xl">
+        <h1 className="mt-2 text-center font-display text-3xl font-black sm:text-5xl md:text-6xl">
           <span className="text-shimmer">The final call</span>
         </h1>
       </div>

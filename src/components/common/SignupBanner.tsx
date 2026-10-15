@@ -47,8 +47,10 @@ export function SignupBanner() {
       >
         <X className="h-4 w-4" />
       </button>
-      <p className="font-bold text-text-primary pr-4">Join AlphaMinds</p>
-      <p className="text-sm text-text-secondary mt-1">Sign up free and become part of the Commons.</p>
+      <p className="font-bold text-text-primary pr-4">Join The Commons</p>
+      <p className="text-sm text-text-secondary mt-1">
+        Sign up free and become part of the Commons.
+      </p>
       <div className="mt-3 flex gap-2">
         <Link
           to="/register"

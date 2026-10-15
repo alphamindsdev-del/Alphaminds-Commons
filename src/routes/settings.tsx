@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { X } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
-  head: () => ({ meta: [{ title: "Settings · AlphaMinds" }] }),
+  head: () => ({ meta: [{ title: "Settings · The Commons" }] }),
   component: SettingsPage,
 });
 
@@ -20,7 +20,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section>
       <p className="eyebrow px-1 mb-2">{title}</p>
-      <div className="rounded-2xl border border-border bg-card divide-y divide-border card-shadow overflow-hidden">{children}</div>
+      <div className="rounded-2xl border border-border bg-card divide-y divide-border card-shadow overflow-hidden">
+        {children}
+      </div>
     </section>
   );
 }
@@ -36,8 +38,16 @@ function Row({ label, children }: { label: React.ReactNode; children: React.Reac
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
-    <button onClick={onChange} className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors" style={{ background: checked ? "var(--primary)" : "var(--subtle)" }} aria-pressed={checked}>
-      <span className="inline-block h-5 w-5 transform rounded-full bg-white transition-transform" style={{ transform: checked ? "translateX(22px)" : "translateX(2px)" }} />
+    <button
+      onClick={onChange}
+      className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+      style={{ background: checked ? "var(--primary)" : "var(--subtle)" }}
+      aria-pressed={checked}
+    >
+      <span
+        className="inline-block h-5 w-5 transform rounded-full bg-white transition-transform"
+        style={{ transform: checked ? "translateX(22px)" : "translateX(2px)" }}
+      />
     </button>
   );
 }
@@ -50,7 +60,10 @@ function DeleteDialog({ open, onClose }: { open: boolean; onClose: () => void })
   if (!open) return null;
 
   const handleDelete = async () => {
-    if (!password) { toast.error("Enter your password to confirm"); return; }
+    if (!password) {
+      toast.error("Enter your password to confirm");
+      return;
+    }
     setLoading(true);
     try {
       await apiFetch("/v1/me/account", { method: "DELETE", body: JSON.stringify({ password }) });
@@ -64,24 +77,63 @@ function DeleteDialog({ open, onClose }: { open: boolean; onClose: () => void })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 card-shadow" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 card-shadow"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-black text-xl text-destructive">Delete Account</h2>
-          <button onClick={onClose} className="text-text-secondary hover:text-text-primary"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} className="text-text-secondary hover:text-text-primary">
+            <X className="h-5 w-5" />
+          </button>
         </div>
-        <p className="text-sm text-text-secondary mb-4">This is permanent. Enter your password to confirm.</p>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Your password" className="w-full rounded-[10px] border border-border bg-surface px-4 py-3 text-text-primary mb-4" />
+        <p className="text-sm text-text-secondary mb-4">
+          This is permanent. Enter your password to confirm.
+        </p>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Your password"
+          className="w-full rounded-[10px] border border-border bg-surface px-4 py-3 text-text-primary mb-4"
+        />
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 rounded-xl border border-border font-bold py-3 text-sm">Cancel</button>
-          <button onClick={handleDelete} disabled={loading} className="flex-1 rounded-xl bg-destructive text-white font-bold py-3 text-sm disabled:opacity-50">{loading ? "Deleting..." : "Delete"}</button>
+          <button
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-border font-bold py-3 text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={loading}
+            className="flex-1 rounded-xl bg-destructive text-white font-bold py-3 text-sm disabled:opacity-50"
+          >
+            {loading ? "Deleting..." : "Delete"}
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-function EmailPrefsDialog({ open, onClose, settings, onSave }: { open: boolean; onClose: () => void; settings: MemberSettings; onSave: (patch: Partial<MemberSettings>) => void }) {
+function EmailPrefsDialog({
+  open,
+  onClose,
+  settings,
+  onSave,
+}: {
+  open: boolean;
+  onClose: () => void;
+  settings: MemberSettings;
+  onSave: (patch: Partial<MemberSettings>) => void;
+}) {
   const [weeklyDigest, setWeeklyDigest] = useState(settings.emailWeeklyDigest);
   const [marketing, setMarketing] = useState(settings.emailMarketing);
 
@@ -95,11 +147,21 @@ function EmailPrefsDialog({ open, onClose, settings, onSave }: { open: boolean; 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 card-shadow" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 card-shadow"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-black text-xl">Email Preferences</h2>
-          <button onClick={onClose} className="text-text-secondary hover:text-text-primary"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} className="text-text-secondary hover:text-text-primary">
+            <X className="h-5 w-5" />
+          </button>
         </div>
         <div className="space-y-4">
           <label className="flex items-center justify-between">
@@ -112,7 +174,10 @@ function EmailPrefsDialog({ open, onClose, settings, onSave }: { open: boolean; 
           </label>
         </div>
         <button
-          onClick={() => { onSave({ emailWeeklyDigest: weeklyDigest, emailMarketing: marketing }); onClose(); }}
+          onClick={() => {
+            onSave({ emailWeeklyDigest: weeklyDigest, emailMarketing: marketing });
+            onClose();
+          }}
           className="w-full rounded-xl bg-primary text-primary-foreground font-bold py-3 mt-4"
         >
           Save
@@ -186,25 +251,67 @@ function SettingsPage() {
       />
 
       <Section title="Account">
-        <Row label="Profile"><Link to="/profile" className="text-sm font-bold text-primary">Edit →</Link></Row>
-        <Row label="Change password"><button onClick={() => navigate({ to: "/forgot-password" })} className="text-sm font-bold text-primary">Update</button></Row>
-        <Row label="Email preferences"><button onClick={() => setEmailPrefsOpen(true)} className="text-sm font-bold text-primary">Manage</button></Row>
+        <Row label="Profile">
+          <Link to="/profile" className="text-sm font-bold text-primary">
+            Edit →
+          </Link>
+        </Row>
+        <Row label="Change password">
+          <button
+            onClick={() => navigate({ to: "/forgot-password" })}
+            className="text-sm font-bold text-primary"
+          >
+            Update
+          </button>
+        </Row>
+        <Row label="Email preferences">
+          <button
+            onClick={() => setEmailPrefsOpen(true)}
+            className="text-sm font-bold text-primary"
+          >
+            Manage
+          </button>
+        </Row>
       </Section>
 
       <Section title="Notifications">
-        <Row label="Push notifications"><Toggle checked={settings.pushNotifications} onChange={() => update({ pushNotifications: !settings.pushNotifications })} /></Row>
-        <Row label="Email notifications"><Toggle checked={settings.emailNotifications} onChange={() => update({ emailNotifications: !settings.emailNotifications })} /></Row>
-        <Row label="Daily content reminder"><Toggle checked={settings.dailyContentReminder} onChange={() => update({ dailyContentReminder: !settings.dailyContentReminder })} /></Row>
+        <Row label="Push notifications">
+          <Toggle
+            checked={settings.pushNotifications}
+            onChange={() => update({ pushNotifications: !settings.pushNotifications })}
+          />
+        </Row>
+        <Row label="Email notifications">
+          <Toggle
+            checked={settings.emailNotifications}
+            onChange={() => update({ emailNotifications: !settings.emailNotifications })}
+          />
+        </Row>
+        <Row label="Daily content reminder">
+          <Toggle
+            checked={settings.dailyContentReminder}
+            onChange={() => update({ dailyContentReminder: !settings.dailyContentReminder })}
+          />
+        </Row>
       </Section>
 
       <Section title="Appearance">
         <Row label="Theme">
-          <button onClick={toggle} className="rounded-full border border-border px-3 py-1.5 text-sm font-bold capitalize">{theme}</button>
+          <button
+            onClick={toggle}
+            className="rounded-full border border-border px-3 py-1.5 text-sm font-bold capitalize"
+          >
+            {theme}
+          </button>
         </Row>
         <Row label="Font size">
           <div className="flex gap-1 rounded-full bg-subtle p-1">
             {(["sm", "md", "lg"] as const).map((s) => (
-              <button key={s} onClick={() => setFontSize(s)} className={`px-3 py-1 rounded-full text-xs font-bold ${fontSize === s ? "bg-primary text-primary-foreground" : "text-text-secondary"}`}>
+              <button
+                key={s}
+                onClick={() => setFontSize(s)}
+                className={`px-3 py-1 rounded-full text-xs font-bold ${fontSize === s ? "bg-primary text-primary-foreground" : "text-text-secondary"}`}
+              >
                 {s === "sm" ? "Small" : s === "md" ? "Medium" : "Large"}
               </button>
             ))}
@@ -216,30 +323,63 @@ function SettingsPage() {
         <Row label="Profile visibility">
           <div className="flex gap-1 rounded-full bg-subtle p-1">
             {(["public", "members"] as const).map((v) => (
-              <button key={v} onClick={() => update({ profileVisibility: v })} className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${settings.profileVisibility === v ? "bg-primary text-primary-foreground" : "text-text-secondary"}`}>{v === "members" ? "Members only" : v}</button>
+              <button
+                key={v}
+                onClick={() => update({ profileVisibility: v })}
+                className={`px-3 py-1 rounded-full text-xs font-bold capitalize ${settings.profileVisibility === v ? "bg-primary text-primary-foreground" : "text-text-secondary"}`}
+              >
+                {v === "members" ? "Members only" : v}
+              </button>
             ))}
           </div>
         </Row>
       </Section>
 
       <Section title="Subscription">
-        <Row label={<div className="flex items-center gap-2">Current plan <TierBadge tier={member.subscription_tier} /></div>}>
-          <Link to="/subscription" className="rounded-xl bg-primary text-primary-foreground font-bold px-3 py-1.5 text-sm">Upgrade</Link>
+        <Row
+          label={
+            <div className="flex items-center gap-2">
+              Current plan <TierBadge tier={member.subscription_tier} />
+            </div>
+          }
+        >
+          <Link
+            to="/subscription"
+            className="rounded-xl bg-primary text-primary-foreground font-bold px-3 py-1.5 text-sm"
+          >
+            Upgrade
+          </Link>
         </Row>
       </Section>
 
       <Section title="Data">
         <Row label="Download my data">
-          <button onClick={handleDataExport} disabled={dataLoading} className="text-sm font-bold text-primary disabled:opacity-50">{dataLoading ? "Requesting..." : "Request"}</button>
+          <button
+            onClick={handleDataExport}
+            disabled={dataLoading}
+            className="text-sm font-bold text-primary disabled:opacity-50"
+          >
+            {dataLoading ? "Requesting..." : "Request"}
+          </button>
         </Row>
         <div className="p-4">
-          <button onClick={() => setDeleteOpen(true)} className="text-sm font-bold text-destructive">Delete account</button>
+          <button
+            onClick={() => setDeleteOpen(true)}
+            className="text-sm font-bold text-destructive"
+          >
+            Delete account
+          </button>
           <p className="text-xs text-text-secondary mt-1">This is permanent. We'll keep nothing.</p>
         </div>
       </Section>
 
       <DeleteDialog open={deleteOpen} onClose={() => setDeleteOpen(false)} />
-      <EmailPrefsDialog open={emailPrefsOpen} onClose={() => setEmailPrefsOpen(false)} settings={settings} onSave={update} />
+      <EmailPrefsDialog
+        open={emailPrefsOpen}
+        onClose={() => setEmailPrefsOpen(false)}
+        settings={settings}
+        onSave={update}
+      />
     </div>
   );
 }

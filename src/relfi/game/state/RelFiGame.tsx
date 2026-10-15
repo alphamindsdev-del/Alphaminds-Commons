@@ -10,11 +10,12 @@ import { LeaderboardScreen } from "../screens/LeaderboardScreen";
 import { Final } from "../screens/Final";
 import { useGame } from "./store";
 import { useAuth } from "./auth-store";
+import { useEmbeddedAutoLogin } from "./useEmbeddedAuth";
 import { relfiSocket } from "../lib/ws";
-import { embeddedLogin, getHandoff, hasAlphaMindsToken } from "../lib/api";
+import { startBackground, stopBackground } from "../audio/sound";
 import { cn } from "@relfi/game/lib/utils";
 import { Avatar } from "../components/Avatar";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft, LogOut, RotateCcw } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 
 export type RelFiGameProps = {
@@ -23,72 +24,73 @@ export type RelFiGameProps = {
   authToken?: string;
 };
 
-export function RelFiGame({ mode = "standalone", containerMode = "fullscreen", authToken }: RelFiGameProps) {
+export function RelFiGame({
+  mode = "standalone",
+  containerMode = "fullscreen",
+  authToken,
+}: RelFiGameProps) {
   const phase = useGame((s) => s.phase);
   const applyWsEvent = useGame((s) => s.applyWsEvent);
-  const resetGame = useGame((s) => s.resetGame);
   const tryReconnect = useGame((s) => s.tryReconnect);
+  const soundOn = useGame((s) => s.soundOn);
   const user = useAuth((s) => s.user);
   const loadSession = useAuth((s) => s.loadSession);
   const initialized = useAuth((s) => s.initialized);
   const logout = useAuth((s) => s.logout);
   const navigate = useNavigate();
-  const [authError, setAuthError] = useState<string | null>(null);
+  const { authError, retry } = useEmbeddedAutoLogin(mode === "embedded");
 
   useEffect(() => {
-    if (mode !== "embedded" || initialized || user) return
-    if (!hasAlphaMindsToken()) {
-      loadSession()
-      return
+    if (initialized && phase === "landing") {
+      tryReconnect();
     }
-    getHandoff()
-      .then((handoff) => embeddedLogin(handoff))
-      .then(() => loadSession())
-      .catch((err) => {
-        console.error('[RelFi] Auto-login failed:', err)
-        setAuthError('Failed to auto-sign in. Please sign in manually.')
-        loadSession()
-      })
-  }, [mode, initialized, user, loadSession])
-
-  useEffect(() => {
-    if (initialized && phase === 'landing') {
-      tryReconnect()
-    }
-  }, [initialized])
+  }, [initialized]);
 
   useEffect(() => {
     const unsub = relfiSocket.onServerEvent((event) => {
-      applyWsEvent(event)
-    })
-    return unsub
-  }, [applyWsEvent])
+      applyWsEvent(event);
+    });
+    return unsub;
+  }, [applyWsEvent]);
 
-  const handleBackToAlphaMinds = () => {
-    navigate({ to: '/' })
-  }
+  // Background music: starts once a game begins (autoplay-safe — it is kicked
+  // off from user-gesture screens and retried on sound toggle). Stops when the
+  // player returns to landing or leaves the game.
+  useEffect(() => {
+    if (soundOn && phase !== "landing") {
+      startBackground();
+    } else {
+      stopBackground();
+    }
+  }, [soundOn, phase]);
+
+  useEffect(() => () => stopBackground(), []);
+
+  const handleBackToCommons = () => {
+    navigate({ to: "/" });
+  };
 
   const handleLogout = () => {
-    logout()
-    navigate({ to: '/' })
-  }
+    logout();
+    navigate({ to: "/" });
+  };
 
   return (
     <div
       className={cn(
-        "relfi-root relative isolate overflow-hidden",
-        containerMode === "fullscreen" ? "h-screen w-screen" : "min-h-[720px] rounded-3xl"
+        "relfi-root relative isolate bg-hero",
+        containerMode === "fullscreen"
+          ? "h-[100dvh] w-full overflow-x-hidden overflow-y-auto"
+          : "min-h-[720px] overflow-hidden rounded-3xl",
       )}
     >
-      <div className="absolute inset-0 -z-10 bg-hero" />
-
       <div className="fixed left-4 top-4 z-40 flex items-center gap-2">
         {mode === "embedded" && containerMode === "fullscreen" && (
           <button
-            onClick={handleBackToAlphaMinds}
+            onClick={handleBackToCommons}
             className="p-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border hover:bg-card transition-colors"
-            title="Back to AlphaMinds"
-            aria-label="Back to AlphaMinds"
+            title="Back to The Commons"
+            aria-label="Back to The Commons"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
@@ -96,7 +98,7 @@ export function RelFiGame({ mode = "standalone", containerMode = "fullscreen", a
         {user && (
           <Avatar
             name={user.display_name}
-            hue={user.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360}
+            hue={user.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0) % 360}
             size={32}
             avatarUrl={user.avatar_url}
           />
@@ -115,8 +117,15 @@ export function RelFiGame({ mode = "standalone", containerMode = "fullscreen", a
       </div>
 
       {authError && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-destructive/90 text-destructive-foreground text-sm backdrop-blur-sm">
-          {authError}
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2 rounded-xl bg-destructive/90 text-destructive-foreground text-sm backdrop-blur-sm">
+          <span>{authError}</span>
+          <button
+            onClick={retry}
+            className="inline-flex items-center gap-1 rounded-lg bg-destructive-foreground/20 px-2 py-1 text-xs font-bold hover:bg-destructive-foreground/30 transition-colors"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Retry
+          </button>
         </div>
       )}
 

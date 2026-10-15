@@ -9,7 +9,7 @@ import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/profile/$username")({
-  head: ({ params }) => ({ meta: [{ title: `@${params.username} · AlphaMinds` }] }),
+  head: ({ params }) => ({ meta: [{ title: `@${params.username} · The Commons` }] }),
   component: MemberProfilePage,
 });
 
@@ -19,7 +19,10 @@ function MemberProfilePage() {
   const { isAuthenticated } = useAuthStore();
   const queryClient = useQueryClient();
   const followMutation = useMutation({
-    mutationFn: () => apiFetch(`/v1/members/${username}/follow`, { method: memberData?.is_following ? "DELETE" : "POST" }),
+    mutationFn: () =>
+      apiFetch(`/v1/members/${username}/follow`, {
+        method: memberData?.is_following ? "DELETE" : "POST",
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["member", username] });
     },
@@ -27,14 +30,16 @@ function MemberProfilePage() {
       toast.error(err?.message ?? "Couldn't update follow");
     },
   });
-  const m = memberData ? {
-    name: memberData.display_name ?? memberData.name ?? username,
-    username: memberData.username ?? username,
-    bio: memberData.bio ?? "",
-    chapter: memberData.chapter ?? "",
-    avatarUrl: memberData.avatar_url ?? null,
-    coverPhotoUrl: memberData.cover_photo_url ?? null,
-  } : null;
+  const m = memberData
+    ? {
+        name: memberData.display_name ?? memberData.name ?? username,
+        username: memberData.username ?? username,
+        bio: memberData.bio ?? "",
+        chapter: memberData.chapter ?? "",
+        avatarUrl: memberData.avatar_url ?? null,
+        coverPhotoUrl: memberData.cover_photo_url ?? null,
+      }
+    : null;
   if (!m) {
     if (isLoading) return <div className="p-8 text-center text-text-secondary">Loading...</div>;
     throw notFound();
@@ -45,7 +50,11 @@ function MemberProfilePage() {
       <div className="-mx-4 sm:-mx-6 lg:-mx-8">
         <div className="relative z-0 h-40 sm:h-56 overflow-hidden">
           {m.coverPhotoUrl ? (
-            <img src={getMediaUrl(m.coverPhotoUrl)} alt="Cover" className="h-full w-full object-cover" />
+            <img
+              src={getMediaUrl(m.coverPhotoUrl)}
+              alt="Cover"
+              className="h-full w-full object-cover"
+            />
           ) : (
             <>
               <span className="absolute -top-8 -right-4 font-display font-bold text-[12rem] sm:text-[16rem] leading-none text-white/[0.09] tracking-tighter select-none pointer-events-none">
@@ -59,17 +68,28 @@ function MemberProfilePage() {
         <div className="px-4 sm:px-6 lg:px-8 -mt-10 relative z-10 flex flex-col sm:flex-row sm:items-end gap-4">
           <div className="ring-4 ring-background rounded-full relative z-10">
             {m.avatarUrl ? (
-              <img src={getMediaUrl(m.avatarUrl)} alt={m.name} className="h-24 w-24 rounded-full object-cover" />
+              <img
+                src={getMediaUrl(m.avatarUrl)}
+                alt={m.name}
+                className="h-24 w-24 rounded-full object-cover"
+              />
             ) : (
               <Avatar name={m.name} size="xl" />
             )}
           </div>
           <div className="flex-1">
-            <h1 className="text-display font-semibold text-4xl tracking-tighter leading-none">{m.name}</h1>
-            <p className="text-text-secondary mt-1">@{m.username}{m.chapter ? ` · ${m.chapter}` : ""}</p>
+            <h1 className="text-display font-semibold text-4xl tracking-tighter leading-none">
+              {m.name}
+            </h1>
+            <p className="text-text-secondary mt-1">
+              @{m.username}
+              {m.chapter ? ` · ${m.chapter}` : ""}
+            </p>
             {typeof memberData?.follower_count === "number" && (
               <p className="text-xs font-bold uppercase tracking-wider text-text-secondary mt-1">
-                {memberData.follower_count} {memberData.follower_count === 1 ? "follower" : "followers"} · {memberData.following_count ?? 0} following
+                {memberData.follower_count}{" "}
+                {memberData.follower_count === 1 ? "follower" : "followers"} ·{" "}
+                {memberData.following_count ?? 0} following
               </p>
             )}
             {m.bio && <p className="mt-2 text-text-primary">{m.bio}</p>}
@@ -78,9 +98,11 @@ function MemberProfilePage() {
             <button
               onClick={() => followMutation.mutate()}
               disabled={followMutation.isPending}
-              className={memberData?.is_following
-                ? "rounded-xl border border-border font-bold px-6 py-2.5 text-sm self-start sm:self-auto disabled:opacity-50"
-                : "rounded-xl btn-primary font-bold px-6 py-2.5 text-sm self-start sm:self-auto disabled:opacity-50"}
+              className={
+                memberData?.is_following
+                  ? "rounded-xl border border-border font-bold px-6 py-2.5 text-sm self-start sm:self-auto disabled:opacity-50"
+                  : "rounded-xl btn-primary font-bold px-6 py-2.5 text-sm self-start sm:self-auto disabled:opacity-50"
+              }
             >
               {memberData?.is_following ? "Following" : "Follow"}
             </button>

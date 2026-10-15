@@ -1,10 +1,21 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Play, LogIn, UserPlus, User, Mail, ArrowLeft, Loader2, Send, Settings, Users } from "lucide-react";
+import {
+  Play,
+  LogIn,
+  UserPlus,
+  User,
+  Mail,
+  ArrowLeft,
+  Loader2,
+  Send,
+  Settings,
+  Users,
+} from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useGame } from "../state/store";
 import { useAuth } from "../state/auth-store";
-import { unlockAudio } from "../audio/sound";
+import { unlockAudio, sfx, startBackground } from "../audio/sound";
 import * as api from "../lib/api";
 import type { ApiDeck } from "../lib/types";
 
@@ -16,8 +27,11 @@ export function Landing() {
   const signup = useAuth((s) => s.signup);
   const logout = useAuth((s) => s.logout);
   const authLoading = useAuth((s) => s.loading);
+  const soundOn = useGame((s) => s.soundOn);
 
-  const [mode, setMode] = useState<"idle" | "host" | "join" | "login" | "signup" | "magic-link" | "profile">("idle");
+  const [mode, setMode] = useState<
+    "idle" | "host" | "join" | "login" | "signup" | "magic-link" | "profile"
+  >("idle");
   const [code, setCode] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +45,9 @@ export function Landing() {
   const [decks, setDecks] = useState<ApiDeck[]>([]);
   const [deckError, setDeckError] = useState("");
   const [selectedDeckId, setSelectedDeckId] = useState("");
-  const [selectedMode, setSelectedMode] = useState<"seer_skeptic" | "multiplayer_seer" | "solo">("seer_skeptic");
+  const [selectedMode, setSelectedMode] = useState<"seer_skeptic" | "multiplayer_seer" | "solo">(
+    "seer_skeptic",
+  );
   const [timerSeconds, setTimerSeconds] = useState(45);
   const [gameRounds, setGameRounds] = useState(5);
   const [loading, setLoading] = useState(false);
@@ -41,116 +57,127 @@ export function Landing() {
 
   useEffect(() => {
     if (mode === "host" && user) {
-      api.getDecks(true).then(setDecks).catch(() => setDeckError('Failed to load decks. Check your connection.'))
+      api
+        .getDecks(true)
+        .then(setDecks)
+        .catch(() => setDeckError("Failed to load decks. Check your connection."));
     }
-  }, [mode, user])
+  }, [mode, user]);
 
   useEffect(() => {
-    if (!initialized) return
-    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
-    const joinCode = params.get('join')
+    if (!initialized) return;
+    const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+    const joinCode = params.get("join");
     if (joinCode && joinCode.length === 5) {
       if (user) {
-        joinByCode(joinCode).catch(() => setMode('join'))
+        joinByCode(joinCode).catch(() => setMode("join"));
       } else {
-        setPendingJoinCode(joinCode)
-        setMode('login')
+        setPendingJoinCode(joinCode);
+        setMode("login");
       }
     }
-  }, [initialized])
+  }, [initialized]);
 
   function handleHost() {
-    unlockAudio()
-    if (!user) {
-      setMode("login")
-      return
+    unlockAudio();
+    if (soundOn) {
+      sfx.click();
+      startBackground();
     }
-    setMode("host")
+    if (!user) {
+      setMode("login");
+      return;
+    }
+    setMode("host");
   }
 
   function handleSolo() {
-    unlockAudio()
-    setSelectedMode("solo")
-    if (!user) {
-      setMode("login")
-      return
+    unlockAudio();
+    if (soundOn) {
+      sfx.click();
+      startBackground();
     }
-    setMode("host")
+    setSelectedMode("solo");
+    if (!user) {
+      setMode("login");
+      return;
+    }
+    setMode("host");
   }
 
   async function handleCreateGame() {
-    if (!selectedDeckId) return
-    setLoading(true)
+    if (!selectedDeckId) return;
+    setLoading(true);
     try {
-      await createAndHost(selectedDeckId, selectedMode)
+      await createAndHost(selectedDeckId, selectedMode);
     } catch (e: any) {
-      setAuthError(e.message || "Failed to create room")
+      setAuthError(e.message || "Failed to create room");
     }
-    setLoading(false)
+    setLoading(false);
   }
 
   useEffect(() => {
-    useGame.setState({ timerSeconds })
-  }, [timerSeconds])
+    useGame.setState({ timerSeconds });
+  }, [timerSeconds]);
 
   useEffect(() => {
-    useGame.setState({ maxRounds: gameRounds })
-  }, [gameRounds])
+    useGame.setState({ maxRounds: gameRounds });
+  }, [gameRounds]);
 
   async function handleJoin(e: React.FormEvent) {
-    e.preventDefault()
-    if (code.length !== 5) return
-    setLoading(true)
-    setJoinError("")
+    e.preventDefault();
+    if (code.length !== 5) return;
+    setLoading(true);
+    setJoinError("");
     if (!user) {
-      setMode("login")
-      setLoading(false)
-      return
+      setMode("login");
+      setLoading(false);
+      return;
     }
     try {
-      await joinByCode(code)
+      await joinByCode(code);
     } catch (e: any) {
-      setJoinError(e.message || "Room not found")
+      setJoinError(e.message || "Room not found");
     }
-    setLoading(false)
+    setLoading(false);
   }
 
   async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setAuthError("")
+    e.preventDefault();
+    setAuthError("");
     try {
-      await login(email, password)
+      await login(email, password);
       if (pendingJoinCode) {
-        const code = pendingJoinCode
-        setPendingJoinCode("")
-        await joinByCode(code)
+        const code = pendingJoinCode;
+        setPendingJoinCode("");
+        await joinByCode(code);
       } else {
-        setMode("idle")
+        setMode("idle");
       }
     } catch (e: any) {
-      setAuthError(e.message || "Login failed")
+      setAuthError(e.message || "Login failed");
     }
   }
 
   async function handleSignup(e: React.FormEvent) {
-    e.preventDefault()
-    setAuthError("")
+    e.preventDefault();
+    setAuthError("");
     try {
-      await signup(email, password, displayName)
+      await signup(email, password, displayName);
       if (pendingJoinCode) {
-        const code = pendingJoinCode
-        setPendingJoinCode("")
-        await joinByCode(code)
+        const code = pendingJoinCode;
+        setPendingJoinCode("");
+        await joinByCode(code);
       } else {
-        setMode("idle")
+        setMode("idle");
       }
     } catch (e: any) {
-      setAuthError(e.message || "Signup failed")
+      setAuthError(e.message || "Signup failed");
     }
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center px-6 py-16">
+    <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-12 sm:px-6 sm:py-16">
       <div className="absolute inset-0 -z-10 bg-hero" />
 
       <motion.div
@@ -159,9 +186,10 @@ export function Landing() {
         transition={{ duration: 0.8 }}
         className="text-center"
       >
-        <div className="text-xs uppercase tracking-[0.4em] text-primary">Rel-Fi</div>
-        <h1 className="mt-3 font-display text-6xl font-black leading-none md:text-8xl">
-          Read the card.<br />
+        <div className="text-xs uppercase tracking-[0.4em] text-primary">REL-Fi</div>
+        <h1 className="mt-3 font-display text-4xl font-black leading-none sm:text-5xl md:text-7xl">
+          Read the card.
+          <br />
           <span className="text-shimmer">Map the fiction.</span>
         </h1>
         <p className="mx-auto mt-5 max-w-md text-sm text-muted-foreground md:text-base">
@@ -180,8 +208,21 @@ export function Landing() {
             {user && (
               <div className="mb-2 text-center text-xs text-muted-foreground">
                 Logged in as <span className="text-foreground">{user.display_name}</span>
-                <button onClick={logout} className="ml-2 underline hover:text-primary">sign out</button>
-                <button onClick={() => { setProfileName(user.display_name); setProfileAvatar(user.avatar_url || ''); setProfileError(""); setProfileSuccess(""); setMode("profile") }} className="ml-2 underline hover:text-primary">edit profile</button>
+                <button onClick={logout} className="ml-2 underline hover:text-primary">
+                  sign out
+                </button>
+                <button
+                  onClick={() => {
+                    setProfileName(user.display_name);
+                    setProfileAvatar(user.avatar_url || "");
+                    setProfileError("");
+                    setProfileSuccess("");
+                    setMode("profile");
+                  }}
+                  className="ml-2 underline hover:text-primary"
+                >
+                  edit profile
+                </button>
               </div>
             )}
             <button
@@ -205,7 +246,14 @@ export function Landing() {
               <span className="text-sm text-muted-foreground group-hover:text-foreground">→</span>
             </button>
             <button
-              onClick={() => { unlockAudio(); setMode("join"); }}
+              onClick={() => {
+                unlockAudio();
+                if (soundOn) {
+                  sfx.click();
+                  startBackground();
+                }
+                setMode("join");
+              }}
               className="inline-flex items-center justify-between rounded-2xl border px-6 py-5 font-display text-lg font-semibold hover:bg-card"
             >
               <span className="inline-flex items-center gap-3">
@@ -243,7 +291,9 @@ export function Landing() {
               <p className="text-center text-sm text-muted-foreground">Loading decks...</p>
             ) : (
               <div className="flex flex-col gap-2">
-                <label className="text-xs uppercase tracking-widest text-muted-foreground">Choose a Deck</label>
+                <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                  Choose a Deck
+                </label>
                 {decks.map((d) => (
                   <button
                     key={d.id}
@@ -251,7 +301,9 @@ export function Landing() {
                     className={`rounded-xl border px-4 py-3 text-left transition ${selectedDeckId === d.id ? "border-primary bg-primary/10" : "hover:bg-card"}`}
                   >
                     <div className="font-semibold">{d.title}</div>
-                    {d.description && <div className="text-xs text-muted-foreground">{d.description}</div>}
+                    {d.description && (
+                      <div className="text-xs text-muted-foreground">{d.description}</div>
+                    )}
                   </button>
                 ))}
               </div>
@@ -260,7 +312,9 @@ export function Landing() {
             {selectedDeckId && (
               <>
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs uppercase tracking-widest text-muted-foreground">Game Mode</label>
+                  <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                    Game Mode
+                  </label>
                   <select
                     value={selectedMode}
                     onChange={(e) => setSelectedMode(e.target.value as any)}
@@ -326,13 +380,21 @@ export function Landing() {
               Create Room
             </button>
 
-            <button type="button" onClick={() => setMode("idle")} className="text-xs text-muted-foreground hover:text-foreground">← back</button>
+            <button
+              type="button"
+              onClick={() => setMode("idle")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              ← back
+            </button>
           </div>
         )}
 
         {mode === "join" && (
           <form onSubmit={handleJoin} className="flex flex-col gap-3">
-            <label className="text-xs uppercase tracking-widest text-muted-foreground">Room code</label>
+            <label className="text-xs uppercase tracking-widest text-muted-foreground">
+              Room code
+            </label>
             <input
               autoFocus
               value={code}
@@ -348,7 +410,13 @@ export function Landing() {
             >
               {loading ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : "Join room"}
             </button>
-            <button type="button" onClick={() => setMode("idle")} className="text-xs text-muted-foreground hover:text-foreground">← back</button>
+            <button
+              type="button"
+              onClick={() => setMode("idle")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              ← back
+            </button>
           </form>
         )}
 
@@ -356,39 +424,99 @@ export function Landing() {
           <form onSubmit={handleLogin} className="flex flex-col gap-3">
             <h3 className="text-center font-display text-lg font-bold">Sign In</h3>
             <input
-              type="email" placeholder="Email" value={email}
+              type="email"
+              placeholder="Email"
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
               required
             />
             <input
-              type="password" placeholder="Password" value={password}
+              type="password"
+              placeholder="Password"
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
               required
             />
             {authError && <p className="text-xs text-destructive">{authError}</p>}
             <button
-              type="submit" disabled={authLoading}
+              type="submit"
+              disabled={authLoading}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
             >
-              {authLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+              {authLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <LogIn className="h-4 w-4" />
+              )}
               Sign In
             </button>
-            <button type="button" onClick={() => setMode("signup")} className="text-xs text-muted-foreground hover:text-foreground">No account? Create one</button>
-            <button type="button" onClick={() => setMode("magic-link")} className="text-xs text-muted-foreground hover:text-foreground">Send magic link instead</button>
-            <button type="button" onClick={() => setMode("idle")} className="text-xs text-muted-foreground hover:text-foreground">← back</button>
+            <button
+              type="button"
+              onClick={() => setMode("signup")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              No account? Create one
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("magic-link")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Send magic link instead
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("idle")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              ← back
+            </button>
           </form>
         )}
 
         {mode === "magic-link" && (
-          <form onSubmit={async (e) => { e.preventDefault(); setAuthError(""); try { await api.requestMagicLink(email); setAuthError("Magic link sent! Check your email."); } catch (err: any) { setAuthError(err.message) } }} className="flex flex-col gap-3">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setAuthError("");
+              try {
+                await api.requestMagicLink(email);
+                setAuthError("Magic link sent! Check your email.");
+              } catch (err: any) {
+                setAuthError(err.message);
+              }
+            }}
+            className="flex flex-col gap-3"
+          >
             <h3 className="text-center font-display text-lg font-bold">Magic Link</h3>
-            <p className="text-center text-xs text-muted-foreground">Enter your email and we'll send you a sign-in link.</p>
-            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary" required />
+            <p className="text-center text-xs text-muted-foreground">
+              Enter your email and we'll send you a sign-in link.
+            </p>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
+              required
+            />
             {authError && <p className="text-xs text-destructive">{authError}</p>}
-            <button type="submit" disabled={!email} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"><Send className="h-4 w-4" /> Send Magic Link</button>
-            <button type="button" onClick={() => setMode("login")} className="text-xs text-muted-foreground hover:text-foreground">← back to sign in</button>
+            <button
+              type="submit"
+              disabled={!email}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
+            >
+              <Send className="h-4 w-4" /> Send Magic Link
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("login")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              ← back to sign in
+            </button>
           </form>
         )}
 
@@ -396,69 +524,133 @@ export function Landing() {
           <form onSubmit={handleSignup} className="flex flex-col gap-3">
             <h3 className="text-center font-display text-lg font-bold">Create Account</h3>
             <input
-              type="text" placeholder="Display name" value={displayName}
+              type="text"
+              placeholder="Display name"
+              value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
               required
             />
             <input
-              type="email" placeholder="Email" value={email}
+              type="email"
+              placeholder="Email"
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
               required
             />
             <input
-              type="password" placeholder="Password (min 8 chars)" value={password}
+              type="password"
+              placeholder="Password (min 8 chars)"
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
-              required minLength={8}
+              required
+              minLength={8}
             />
             {authError && <p className="text-xs text-destructive">{authError}</p>}
             <button
-              type="submit" disabled={authLoading}
+              type="submit"
+              disabled={authLoading}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
             >
-              {authLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+              {authLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <UserPlus className="h-4 w-4" />
+              )}
               Create Account
             </button>
-            <button type="button" onClick={() => setMode("login")} className="text-xs text-muted-foreground hover:text-foreground">Already have an account? Sign in</button>
-            <button type="button" onClick={() => setMode("idle")} className="text-xs text-muted-foreground hover:text-foreground">← back</button>
+            <button
+              type="button"
+              onClick={() => setMode("login")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Already have an account? Sign in
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("idle")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              ← back
+            </button>
           </form>
         )}
 
         {mode === "profile" && user && (
-          <form onSubmit={async (e) => { e.preventDefault(); setProfileError(""); setProfileSuccess(""); setProfileLoading(true); try { await api.updateMe({ display_name: profileName, avatar_url: profileAvatar || undefined }); setProfileSuccess("Profile updated!"); } catch (err: any) { setProfileError(err.message || "Failed to update profile"); } setProfileLoading(false); }} className="flex flex-col gap-3">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setProfileError("");
+              setProfileSuccess("");
+              setProfileLoading(true);
+              try {
+                await api.updateMe({
+                  display_name: profileName,
+                  avatar_url: profileAvatar || undefined,
+                });
+                setProfileSuccess("Profile updated!");
+              } catch (err: any) {
+                setProfileError(err.message || "Failed to update profile");
+              }
+              setProfileLoading(false);
+            }}
+            className="flex flex-col gap-3"
+          >
             <h3 className="text-center font-display text-lg font-bold">Edit Profile</h3>
-            <label className="text-xs uppercase tracking-widest text-muted-foreground">Display name</label>
+            <label className="text-xs uppercase tracking-widest text-muted-foreground">
+              Display name
+            </label>
             <input
-              type="text" value={profileName}
+              type="text"
+              value={profileName}
               onChange={(e) => setProfileName(e.target.value)}
               className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
-              required minLength={1} maxLength={50}
+              required
+              minLength={1}
+              maxLength={50}
             />
-            <label className="text-xs uppercase tracking-widest text-muted-foreground">Avatar URL (optional)</label>
+            <label className="text-xs uppercase tracking-widest text-muted-foreground">
+              Avatar URL (optional)
+            </label>
             <input
-              type="url" value={profileAvatar} placeholder="https://example.com/avatar.jpg"
+              type="url"
+              value={profileAvatar}
+              placeholder="https://example.com/avatar.jpg"
               onChange={(e) => setProfileAvatar(e.target.value)}
               className="rounded-xl border bg-background/50 px-4 py-3 outline-none focus:border-primary"
             />
             {profileError && <p className="text-xs text-destructive">{profileError}</p>}
             {profileSuccess && <p className="text-xs text-primary">{profileSuccess}</p>}
             <button
-              type="submit" disabled={profileLoading}
+              type="submit"
+              disabled={profileLoading}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary-gradient px-6 py-4 font-display text-base font-bold text-primary-foreground"
             >
-              {profileLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Settings className="h-4 w-4" />}
+              {profileLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Settings className="h-4 w-4" />
+              )}
               Save Changes
             </button>
-            <button type="button" onClick={() => setMode("idle")} className="text-xs text-muted-foreground hover:text-foreground">← back</button>
+            <button
+              type="button"
+              onClick={() => setMode("idle")}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              ← back
+            </button>
           </form>
         )}
       </motion.div>
 
       <div className="mt-10 flex items-center gap-6 text-xs text-muted-foreground">
-        {user?.role === 'admin' ? (
-          <a href="/admin" className="hover:text-foreground">Admin</a>
+        {user?.role === "admin" ? (
+          <a href="/admin" className="hover:text-foreground">
+            Admin
+          </a>
         ) : (
           <span>Player</span>
         )}

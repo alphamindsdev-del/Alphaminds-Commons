@@ -39,7 +39,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AlphaMinds Commons" },
+      { title: "The Commons" },
       { name: "description", content: "A digital community for human flourishing." },
     ],
   }),

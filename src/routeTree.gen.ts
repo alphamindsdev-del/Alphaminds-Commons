@@ -13,6 +13,7 @@ import { Route as WellnessClinicRouteImport } from './routes/wellness-clinic'
 import { Route as SubscriptionRouteImport } from './routes/subscription'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RelFiRouteImport } from './routes/rel-fi'
+import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PlansRouteImport } from './routes/plans'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MyChapterRouteImport } from './routes/my-chapter'
@@ -60,6 +61,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const RelFiRoute = RelFiRouteImport.update({
   id: '/rel-fi',
   path: '/rel-fi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlansRoute = PlansRouteImport.update({
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/my-chapter': typeof MyChapterRoute
   '/notifications': typeof NotificationsRoute
   '/plans': typeof PlansRouteWithChildren
+  '/products': typeof ProductsRoute
   '/rel-fi': typeof RelFiRouteWithChildren
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
@@ -248,6 +255,7 @@ export interface FileRoutesByTo {
   '/my-chapter': typeof MyChapterRoute
   '/notifications': typeof NotificationsRoute
   '/plans': typeof PlansRouteWithChildren
+  '/products': typeof ProductsRoute
   '/rel-fi': typeof RelFiRouteWithChildren
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
@@ -283,6 +291,7 @@ export interface FileRoutesById {
   '/my-chapter': typeof MyChapterRoute
   '/notifications': typeof NotificationsRoute
   '/plans': typeof PlansRouteWithChildren
+  '/products': typeof ProductsRoute
   '/rel-fi': typeof RelFiRouteWithChildren
   '/settings': typeof SettingsRoute
   '/subscription': typeof SubscriptionRoute
@@ -319,6 +328,7 @@ export interface FileRouteTypes {
     | '/my-chapter'
     | '/notifications'
     | '/plans'
+    | '/products'
     | '/rel-fi'
     | '/settings'
     | '/subscription'
@@ -352,6 +362,7 @@ export interface FileRouteTypes {
     | '/my-chapter'
     | '/notifications'
     | '/plans'
+    | '/products'
     | '/rel-fi'
     | '/settings'
     | '/subscription'
@@ -386,6 +397,7 @@ export interface FileRouteTypes {
     | '/my-chapter'
     | '/notifications'
     | '/plans'
+    | '/products'
     | '/rel-fi'
     | '/settings'
     | '/subscription'
@@ -421,6 +433,7 @@ export interface RootRouteChildren {
   MyChapterRoute: typeof MyChapterRoute
   NotificationsRoute: typeof NotificationsRoute
   PlansRoute: typeof PlansRouteWithChildren
+  ProductsRoute: typeof ProductsRoute
   RelFiRoute: typeof RelFiRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   SubscriptionRoute: typeof SubscriptionRoute
@@ -465,6 +478,13 @@ declare module '@tanstack/react-router' {
       path: '/rel-fi'
       fullPath: '/rel-fi'
       preLoaderRoute: typeof RelFiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plans': {
@@ -728,6 +748,7 @@ const rootRouteChildren: RootRouteChildren = {
   MyChapterRoute: MyChapterRoute,
   NotificationsRoute: NotificationsRoute,
   PlansRoute: PlansRouteWithChildren,
+  ProductsRoute: ProductsRoute,
   RelFiRoute: RelFiRouteWithChildren,
   SettingsRoute: SettingsRoute,
   SubscriptionRoute: SubscriptionRoute,

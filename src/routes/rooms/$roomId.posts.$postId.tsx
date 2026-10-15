@@ -12,7 +12,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/rooms/$roomId/posts/$postId")({
-  head: () => ({ meta: [{ title: "Post · AlphaMinds" }] }),
+  head: () => ({ meta: [{ title: "Post · The Commons" }] }),
   component: PostDetailPage,
 });
 
@@ -44,26 +44,28 @@ function PostDetailPage() {
     poll: postData.poll,
   };
 
-  const comments = (commentsData?.pages ?? []).flatMap((p: any) => p.data ?? []).map((c: any) => ({
-    id: c.id,
-    content: c.content ?? "",
-    timestamp: c.created_at ? new Date(c.created_at).toLocaleDateString() : "",
-    author: {
-      id: c.author?.id,
-      name: c.author?.name ?? "Member",
-      primaryHouse: (c.author?.primaryHouse ?? "wellness") as string,
-    },
-    replies: (c.replies ?? []).map((r: any) => ({
-      id: r.id,
-      content: r.content ?? "",
-      timestamp: r.created_at ? new Date(r.created_at).toLocaleDateString() : "",
+  const comments = (commentsData?.pages ?? [])
+    .flatMap((p: any) => p.data ?? [])
+    .map((c: any) => ({
+      id: c.id,
+      content: c.content ?? "",
+      timestamp: c.created_at ? new Date(c.created_at).toLocaleDateString() : "",
       author: {
-        id: r.author?.id,
-        name: r.author?.name ?? "Member",
-        primaryHouse: (r.author?.primaryHouse ?? "wellness") as string,
+        id: c.author?.id,
+        name: c.author?.name ?? "Member",
+        primaryHouse: (c.author?.primaryHouse ?? "wellness") as string,
       },
-    })),
-  }));
+      replies: (c.replies ?? []).map((r: any) => ({
+        id: r.id,
+        content: r.content ?? "",
+        timestamp: r.created_at ? new Date(r.created_at).toLocaleDateString() : "",
+        author: {
+          id: r.author?.id,
+          name: r.author?.name ?? "Member",
+          primaryHouse: (r.author?.primaryHouse ?? "wellness") as string,
+        },
+      })),
+    }));
   const meColor = "var(--accent)";
 
   async function submitComment() {
@@ -81,7 +83,13 @@ function PostDetailPage() {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
-      <Link to="/rooms/$roomId" params={{ roomId }} className="text-sm font-semibold text-text-secondary">← Back to room</Link>
+      <Link
+        to="/rooms/$roomId"
+        params={{ roomId }}
+        className="text-sm font-semibold text-text-secondary"
+      >
+        ← Back to room
+      </Link>
       <PostCard post={post} />
       <section>
         <h2 className="font-bold text-lg mb-4">Comments ({post.comments})</h2>
@@ -90,7 +98,9 @@ function PostDetailPage() {
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : comments.length === 0 ? (
-          <p className="text-sm text-text-secondary text-center py-6">No comments yet — be the first.</p>
+          <p className="text-sm text-text-secondary text-center py-6">
+            No comments yet — be the first.
+          </p>
         ) : (
           <div className="space-y-4">
             {comments.map((c) => {
@@ -100,7 +110,10 @@ function PostDetailPage() {
                   <div className="flex items-start gap-3">
                     <Avatar name={c.author.name} size="sm" color={ch} />
                     <div className="flex-1">
-                      <div className="text-sm"><span className="font-bold">{c.author.name}</span> <span className="text-text-secondary">· {c.timestamp}</span></div>
+                      <div className="text-sm">
+                        <span className="font-bold">{c.author.name}</span>{" "}
+                        <span className="text-text-secondary">· {c.timestamp}</span>
+                      </div>
                       <p className="text-text-primary mt-1">{cleanWriteup(c.content)}</p>
                       {c.replies?.length > 0 && (
                         <div className="mt-3 pl-4 border-l-2 border-border space-y-3">
@@ -110,8 +123,13 @@ function PostDetailPage() {
                               <div key={r.id} className="flex items-start gap-2">
                                 <Avatar name={r.author.name} size="sm" color={rh} />
                                 <div>
-                                  <div className="text-sm"><span className="font-bold">{r.author.name}</span> <span className="text-text-secondary">· {r.timestamp}</span></div>
-                                  <p className="text-text-primary mt-1 text-sm">{cleanWriteup(r.content)}</p>
+                                  <div className="text-sm">
+                                    <span className="font-bold">{r.author.name}</span>{" "}
+                                    <span className="text-text-secondary">· {r.timestamp}</span>
+                                  </div>
+                                  <p className="text-text-primary mt-1 text-sm">
+                                    {cleanWriteup(r.content)}
+                                  </p>
                                 </div>
                               </div>
                             );
@@ -152,7 +170,10 @@ function PostDetailPage() {
         </div>
       ) : (
         <div className="sticky bottom-20 md:bottom-4 rounded-2xl border border-border bg-card p-4 card-shadow text-center text-sm text-text-secondary">
-          <Link to="/login" className="font-bold text-primary">Sign in</Link> to join the conversation.
+          <Link to="/login" className="font-bold text-primary">
+            Sign in
+          </Link>{" "}
+          to join the conversation.
         </div>
       )}
     </div>

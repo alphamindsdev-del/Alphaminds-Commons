@@ -15,14 +15,18 @@ export const Route = createFileRoute("/code")({
 
 function CodePage() {
   const { member } = useAuthStore();
-  const { data: code, isLoading, error } = useQuery({
+  const {
+    data: code,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["code/today"],
     queryFn: () => apiFetch<any>("/v1/code/today"),
     staleTime: 60000,
   });
 
   useEffect(() => {
-    document.title = code?.title ? `${code.title} · AlphaMinds` : "AlphaMinds";
+    document.title = code?.title ? `${code.title} · The Commons` : "The Commons";
   }, [code?.title]);
 
   if (isLoading) {
@@ -68,7 +72,10 @@ function CodePage() {
         scheduledDate={code.scheduled_date}
         isPublished={code.is_published}
         onSave={async () => {
-          if (!member) { window.location.href = "/login"; return; }
+          if (!member) {
+            window.location.href = "/login";
+            return;
+          }
           try {
             await apiFetch(`/v1/code/${code.id}/save`, { method: "POST" });
             toast.success("Saved to your collection");

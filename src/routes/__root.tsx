@@ -28,7 +28,10 @@ function NotFoundComponent() {
         <p className="mt-2 text-sm text-text-secondary">
           We couldn't find what you were looking for.
         </p>
-        <Link to="/" className="mt-6 inline-flex rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground">
+        <Link
+          to="/"
+          className="mt-6 inline-flex rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
+        >
           Go home
         </Link>
       </div>
@@ -48,7 +51,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <p className="mt-2 text-sm text-text-secondary">Try again or head home.</p>
         <div className="mt-6 flex justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
           >
             Try again
@@ -70,10 +76,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#F4F3EC" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { name: "apple-mobile-web-app-title", content: "AlphaMinds" },
-      { title: "AlphaMinds Commons" },
+      { name: "apple-mobile-web-app-title", content: "The Commons" },
+      { title: "The Commons" },
       { name: "description", content: "A digital community for human flourishing." },
-      { property: "og:title", content: "AlphaMinds Commons" },
+      { property: "og:title", content: "The Commons" },
       { property: "og:description", content: "A digital community for human flourishing." },
       { property: "og:type", content: "website" },
     ],
@@ -81,7 +87,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://api.fontshare.com" },
       { rel: "preconnect", href: "https://cdn.fontshare.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=clash-display@500,600,700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=clash-display@500,600,700&display=swap",
+      },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
@@ -119,7 +128,12 @@ function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { isAuthenticated, isLoading, restoreSession } = useAuthStore();
   const [splashMinElapsed, setSplashMinElapsed] = useState(false);
-  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/register") || pathname.startsWith("/forgot-password") || pathname.startsWith("/rel-fi");
+  const isAuthRoute =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/rel-fi") ||
+    pathname.startsWith("/products");
   const isLanding = !isAuthenticated && pathname === "/";
 
   useEffect(() => {
@@ -136,15 +150,14 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AnimatePresence>{showSplash && <SplashScreen />}</AnimatePresence>
-      {!isLoading && (
-        isAuthRoute || isLanding ? (
+      {!isLoading &&
+        (isAuthRoute || isLanding ? (
           <Outlet />
         ) : (
           <PageShell>
             <Outlet />
           </PageShell>
-        )
-      )}
+        ))}
       {!isAuthRoute && !isLanding && !isAuthenticated && !isLoading && <SignupBanner />}
       <Toast />
     </QueryClientProvider>

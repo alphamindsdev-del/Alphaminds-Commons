@@ -1,293 +1,187 @@
-# AlphaMinds Commons — Master Implementation & Migration Plan
+# The Commons — Implementation Plan
 
-This document outlines the step-by-step technical plan to evolve the existing AlphaMinds community application into the new product structure. It maintains existing systems, styling, and data integrity, ensuring backward-compatible migrations.
+Parent platform rebrand, product selection, REL-Fi native integration, authentication
+fixes, responsive layout, lemon-green theme, and audio readiness.
 
----
-
-## 1. Project Audit
-
-### 1.1 Architecture & Stack
-- **Frontend Framework**: React 19 + Vite 8 + TanStack React Router + TanStack React Query + Zustand (Auth + UI states).
-- **Backend Framework**: Cloudflare Workers + Hono.js.
-- **Database**: Cloudflare D1 (SQLite) with migrations and custom seed data.
-- **Object Storage**: Cloudflare R2 (buckets for media files and backups).
-- **Sessions & Caching**: Cloudflare KV (`ALPHAMINDS_SESSIONS`, `ALPHAMINDS_DAILY_DELIVERY`, etc.).
-- **Background Jobs**: Cloudflare Cron Triggers (5 deployed schedules on Free plan).
-- **Styling**: Tailwind CSS + Custom CSS (`src/styles.css`).
-
-### 1.2 Database Schema
-The database currently consists of 37 tables, including:
-- `members`: Email, username, role, primary house, chapter.
-- `chapters`: Physical and global community nodes.
-- `daily_content` and `daily_content_deliveries`: Today's editions.
-- `rooms`, `posts`, `comments`, `reactions`: Communication and feeds.
-- `events` and `event_rsvps`: Event RSVPs.
-- `challenges`, `challenge_participations`, `challenge_logs`: Habitation/streaks.
+> Note: an earlier version of this file documented the membership-level / Journey
+> migration (now complete). Those findings are preserved in the "Prior work"
+> appendix. This document reflects the current state and the plan executed for
+> The Commons rebrand and REL-Fi work.
 
 ---
 
-## 2. Existing Functionality Map
+## 1. Current application architecture
 
-| Feature | Status | Mapping | Notes |
-|---|---|---|---|
-| Signup / Login | KEEP | KEEP | Preserves session token & KV session store. |
-| Profile / Stats | MODIFY | MODIFY | Display current membership level, streak, houses. |
-| AlphaMinds Daily | KEEP | KEEP | Integrate into new Home page. |
-| Plans | MODIFY | MODIFY | Retain existing, lock for Seeker (needs Examiner+). |
-| Events | MODIFY | MODIFY | Gated behind Examiner level. |
-| Library (Rooms) | MODIFY | MODIFY | Retain articles. Gated by level/houses. |
-| Challenges | KEEP | KEEP | Retain habits/participation logs. |
-| Houses Listing | REPLACE | REPLACE | Replace in navigation with "Your Journey". |
-| My Chapter | MODIFY | MODIFY | Chapter assignment based on 15km proximity. Seeker locked from Alpha Circle. |
-| Admin Panel | MODIFY | MODIFY | Retain Daily Content, Events, Rooms, Library, Members. Add Journey Management + The Code CRUD. |
+| Layer | Technology |
+|---|---|
+| Frontend | React 19 + Vite 8 + TanStack Start (SSR) + TanStack Router (file-based routes in `src/routes/`) + TanStack Query + Zustand |
+| Styling | Tailwind CSS 4 + custom design tokens in `src/styles.css` (`--accent: #B5D432` lemon green, Satoshi + Clash Display fonts) |
+| Main API | Cloudflare Worker (`workers/api`, Hono) — same-origin `/v1/*` in production (`getApiBaseUrl()` returns `""`); D1 `alphaminds-commons`, KV sessions, R2 media |
+| REL-Fi game backend | Separate Cloudflare Worker `relfi-games.alphamindsdev.workers.dev` (`relfi-game-master/backend`) — D1 `relfi-games`, 4× KV, R2 `relfi-assets`, Durable Object `ROOM_STATE` (realtime multiplayer) |
+| Auth (app) | Bearer JWT session in `localStorage["am-auth-token"]` + KV session store; restored by `useAuthStore.restoreSession()` in `__root.tsx` |
+| Auth (game) | Separate JWT (`localStorage["relfi_token"]`, 24 h) issued by the game worker |
 
----
+Entry points: `src/routes/__root.tsx` (root layout, splash, session restore),
+`src/routes/index.tsx` (landing vs. Home dashboard). `PageShell` composes
+Sidebar/TopBar/MobileSidebar/BottomNav for all app routes.
 
-## 3. New Product Architecture
+## 2. Current authentication and post-login flow
 
-### 3.1 Membership Levels
-We define 6 progression tiers:
-1. `SEEKER` (Default for new signups)
-2. `EXAMINER`
-3. `FACILITATOR`
-4. `STEWARD`
-5. `CHAPTER_LEADER`
-6. `COORDINATOR`
+1. `POST /v1/auth/login` → `{ token, member }` → `setSession` persists token
+   (`am-auth-token`) and in-memory `apiToken`.
+2. `login.tsx` navigated to `/` → Home dashboard.
+3. Register → `/register/onboarding` (welcome + room picker) → `/`.
+4. `apiFetch` hard-redirects to `/login` on any 401 outside `/v1/auth/*`.
+5. No `beforeLoad` route guards; protection is ad-hoc (`/admin` hard-guard,
+   soft `if (!member)` checks elsewhere).
 
-### 3.2 Journey Engine
-Conceptually represents sequential ordered activities within a membership level.
-- **Activities**: Orientation, Rel-Fi placeholder, Claim File, Required Assignment, Seeker Assessment, etc.
-- **Activity Properties**: title, type, instructions, position (sort order), is_required, is_published, content, metadata (links, files).
-- **Unlocking**: Sequential. Step $N$ requires Step $N-1$ complete. Verified server-side.
-- **Promotion**: Completing all required activities in Seeker Journey auto-promotes the member to Examiner.
+**Gap:** there is no product-selection step; users land directly inside the
+Alpha Minds product.
 
-### 3.3 Today's Code
-- Main navigation: **The Code** (Kicker: "Daily knowledge & principles").
-- Home page section: **Today's Code** showing today's passage.
-- Actions: Read more, Save (stored in DB), Share (copy link / web share).
-- Admin CRUD: Manage passages (schedule by date, publish/unpublish).
+## 3. Current parent and product branding
 
-### 3.4 Physical Chapter Proximity
-- Signup/onboarding gathers country & city/coordinates.
-- Nearby chapters fetched from backend.
-- Proximity calculated in JS using the Haversine formula.
-- If distance $\le 15$ km (admin-configurable via KV): assign physical chapter.
-- Else: show fallback "No physical Chapter is currently available near you. Join Virtual Alpha Circle" (`global`).
-- Distant or arbitrary physical chapters cannot be selected.
+- Parent title: "AlphaMinds Commons" (`__root.tsx`), wordmark "AlphaMinds"
+  (`Logo.tsx`, `SplashScreen.tsx`), manifest name "AlphaMinds Commons".
+- "The Commons" already appears informally (404 page, login hero kicker,
+  "Back to Commons" buttons).
+- Product-specific references that must be preserved: **Alpha Minds Daily**
+  (route `/alpha-minds-daily`, nav labels), "AlphaMinds Guides" author default,
+  technical identifiers (`am-auth-token`, `getAlphaMindsToken`, worker names,
+  KV bindings, DB names).
 
-### 3.5 Rel-Fi access control (No game logic built in this repo)
-- Locked globally in sidebar for Seekers.
-- Available inside Seeker Journey at the designated step (as a placeholder completion check page).
-- Unlocks globally in sidebar for Examiner+.
-- Sidebar link labels: `Rel-Fi — Play Now` (with lock padlock `🔒` if Seeker, clicking it displays explanation of locks).
+## 4. How REL-Fi is currently integrated
 
----
+**Already native — no iframe, no external page embedding.**
+`src/routes/rel-fi.tsx` renders `<RelFiGame mode="embedded" containerMode="fullscreen" />`
+directly inside the app router. Zero `iframe` occurrences in `src/`.
 
-## 4. Database & API Changes
+However, this is a **UI-only port**: all game functionality (auth, decks,
+categories, rooms, users, uploads, WebSocket realtime) still talks to the
+separate `relfi-games` worker. The main worker only mints handoff tokens
+(`GET /v1/auth/relfi-handoff`) and credits results (`POST/GET /v1/relfi/*`).
 
-### 4.1 Schema Additions & Alterations (`migrations/0010_membership_journey.sql`)
-We propose the following additive D1 SQLite changes:
+## 5. Where the REL-Fi source code lives
 
-```sql
--- 1. Add membership_level to members table
-ALTER TABLE members ADD COLUMN membership_level TEXT NOT NULL DEFAULT 'SEEKER';
+- **Active native port:** `src/relfi/` (game state, screens, components,
+  API client, WS client, audio, scoped theme `relfi.css`).
+- **Original standalone app (reference):** `relfi-game-master/` (frontend +
+  its own worker backend, deployed at `relfi-games.alphamindsdev.workers.dev`).
+- App route wrappers: `src/routes/rel-fi.tsx`, `src/routes/rel-fi/{admin,tutorial,broadcast.$code}.tsx`.
 
--- 2. Add latitude/longitude to chapters table for proximity calculations
-ALTER TABLE chapters ADD COLUMN latitude REAL;
-ALTER TABLE chapters ADD COLUMN longitude REAL;
+## 6. How REL-Fi authentication currently works
 
--- 3. Journey Activities table
-CREATE TABLE IF NOT EXISTS journey_activities (
-  id            TEXT PRIMARY KEY,
-  level         TEXT NOT NULL CHECK (level IN ('SEEKER', 'EXAMINER', 'FACILITATOR', 'STEWARD', 'CHAPTER_LEADER', 'COORDINATOR')),
-  title         TEXT NOT NULL,
-  description   TEXT,
-  type          TEXT NOT NULL CHECK (type IN ('course', 'lesson', 'reading', 'assignment', 'quiz', 'assessment', 'rel_fi', 'claim_file', 'video', 'audio', 'article', 'resource', 'custom')),
-  instructions  TEXT,
-  position      INTEGER NOT NULL,
-  is_required   INTEGER NOT NULL DEFAULT 1,
-  is_published  INTEGER NOT NULL DEFAULT 0,
-  content       TEXT,
-  metadata_json TEXT, -- structured configurations
-  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at    TIMESTAMP NULL
-);
-CREATE INDEX IF NOT EXISTS idx_activities_level ON journey_activities(level, position);
+Automatic sign-in is an **HMAC handoff SSO** (5-minute JWT, shared secret
+`RELFI_SERVICE_SECRET`, `iss: alphaminds`, `aud: relfi`):
 
--- 4. Member Journey Progress
-CREATE TABLE IF NOT EXISTS member_journey_progress (
-  id            TEXT PRIMARY KEY,
-  member_id     TEXT NOT NULL REFERENCES members(id),
-  activity_id   TEXT NOT NULL REFERENCES journey_activities(id),
-  status        TEXT NOT NULL CHECK (status IN ('started', 'completed')),
-  completed_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(member_id, activity_id)
-);
-CREATE INDEX IF NOT EXISTS idx_progress_member ON member_journey_progress(member_id);
+1. Frontend detects `am-auth-token` (memory or localStorage).
+2. `GET /v1/auth/relfi-handoff` (main worker, Bearer = app session) → `{ handoff }`.
+3. `POST {relfi-worker}/api/auth/embedded` with `{ handoff }` → game worker
+   verifies signature/expiry, auto-provisions/looks up a user keyed by
+   `external_auth_source='alphaminds'` + member id → issues 24 h game JWT.
+4. `loadSession()` (`GET /users/me`) hydrates the game auth store.
 
--- 5. The Code Table
-CREATE TABLE IF NOT EXISTS the_code (
-  id              TEXT PRIMARY KEY,
-  title           TEXT NOT NULL,
-  passage         TEXT NOT NULL,
-  scheduled_date  TEXT UNIQUE, -- YYYY-MM-DD
-  is_published    INTEGER NOT NULL DEFAULT 1,
-  created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted_at      TIMESTAMP NULL
-);
-CREATE INDEX IF NOT EXISTS idx_code_date ON the_code(scheduled_date);
+## 7. Automatic sign-in bugs found (and fixes)
 
--- 6. Saved Code Passages
-CREATE TABLE IF NOT EXISTS saved_code_passages (
-  id          TEXT PRIMARY KEY,
-  member_id   TEXT NOT NULL REFERENCES members(id),
-  code_id     TEXT NOT NULL REFERENCES the_code(id),
-  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(member_id, code_id)
-);
-```
+| # | Bug | Fix |
+|---|---|---|
+| 1 | **Race:** `RelFiGame`'s auto-login effect runs before the root's `restoreSession()` settles; a single early failure set `initialized: true`, **permanently skipping** the handoff for the rest of the session. | New `useEmbeddedAutoLogin` hook waits for `useAuthStore.isLoading === false`, and a failed attempt no longer permanently blocks retry. |
+| 2 | **No retry:** any transient network failure left the user on the manual game-login form with no way back. | Error banner now includes a Retry action (`setFailed(false)` + attempt counter re-runs the effect). |
+| 3 | **Expired session handled badly:** a 401 from the handoff endpoint only showed "sign in manually" (a *separate* game account), leaving an inconsistent state. | 401 now redirects to the app's `/login` for graceful reauthentication (no loop — login does not bounce back). |
+| 4 | **Game-result submission used in-memory token only** (`alphaMindsRequest` → `getApiToken()`), silently dropping results after hard refresh before the app store rehydrated. | `alphaMindsRequest` now uses `getAlphaMindsToken()` (memory + localStorage fallback), same as `getHandoff`. |
+| 5 | **`/rel-fi/admin` never ran the handoff** (only `loadSession()`), so admins lacked a game session unless they had visited `/rel-fi` first. | Admin now uses the same `useEmbeddedAutoLogin` hook. |
 
-### 4.2 API Endpoint Modifications & Additions
-- **Auth & Session**:
-  - `GET /v1/auth/me`: Returns member's `membership_level` and Chapter details.
-- **Journey**:
-  - `GET /v1/journey/activities`: Returns sequential activities for the member's current level, with unlocked/locked/completed statuses.
-  - `POST /v1/journey/activities/:id/complete`: Submits completion. Returns next activity or level promotion status.
-- **The Code**:
-  - `GET /v1/code/today`: Fetches today's active passage.
-  - `GET /v1/code/saved`: Returns saved passages.
-  - `POST /v1/code/:id/save` / `POST /v1/code/:id/unsave`: Saves/unsaves passage.
-- **Chapters**:
-  - `GET /v1/chapters/search`: Query nearby physical chapters by latitude/longitude, returns matching list inside proximity limits.
-- **Admin CRUD**:
-  - `GET/POST/PATCH/DELETE /v1/admin/journey-activities`: Journey management.
-  - `GET/POST/PATCH/DELETE /v1/admin/the-code`: Code database management.
-  - `PATCH /v1/admin/chapters/:id`: Allow updating latitude/longitude of chapters.
+Known remaining limitation (documented, not fixed): a user who previously
+created a *standalone* game account gets a second, distinct game identity when
+the handoff provisions the `alphaminds`-linked user. Merging identities is a
+backend data concern left for later.
 
----
+## 8. How REL-Fi communicates with its backend
 
-## 5. Implementation Phases
+- REST: `https://relfi-games.alphamindsdev.workers.dev/api/*` (hardcoded
+  `API_BASE` in `src/relfi/game/lib/api.ts`), Bearer game JWT.
+- Realtime: `wss://relfi-games.alphamindsdev.workers.dev/api/rooms/{id}/ws?ticket=…`
+  (single-use 60 s KV ticket minted by an authenticated join; Durable Object
+  `ROOM_STATE` authoritative).
+- Same-origin app API: `/v1/auth/relfi-handoff`, `/v1/relfi/{game-result,stats,leaderboard}`.
 
-```mermaid
-graph TD
-  P0[Phase 0: DB Schema & Seeding] --> P1[Phase 1: Journey Backend Engine & Access Control]
-  P1 --> P2[Phase 2: Chapter Proximity & Geolocation]
-  P2 --> P3[Phase 3: The Code Backend & Client]
-  P3 --> P4[Phase 4: Frontend Sidebar & Locked Rules]
-  P4 --> P5[Phase 5: Journey Client UI & Rel-Fi Placeholder]
-  P5 --> P6[Phase 6: Admin Dashboard Upgrades]
-  P6 --> P7[Phase 7: Mobile Navigation & Polish]
-```
+## 9. Native integration feasibility
 
-### Phase 0: Database Migration & Seeding ✓
-- **Action**: Create migration `0010_membership_journey.sql` and run local migration.
-- **Action**: Seed the initial Seeker Journey activities (Orientation, Rel-Fi Placeholder, Claim File, Required Assignment, Seeker Assessment) and initial passages for The Code.
-- **Status**: COMPLETE
-- **Note**: Database schema manually set up due to migration chain compatibility issues with existing data. Key changes applied:
-  - `membership_level` column added to `members` table (DEFAULT 'SEEKER')
-  - `journey_activities` and `member_journey_progress` tables verified existing
-  - `the_code` and `saved_code_passages` tables created
-  - `chapters.latitude/longitude` columns verified existing
-  - Initial Seeker Journey activities seeded: Orientation lesson (position 1) and Rel-Fi placeholder (position 2)
-  - Initial Code passage seeded for today with ID generated from UUID
-  - Saved code passage created for admin member
-  - Initial Seeker Journey activities seeded: Orientation lesson and Rel-Fi placeholder
-  - Initial Code passage seeded for today
+- **UI: already fully native** (components, router, theme scope, app auth). No
+  iframe or external URL renders the gameplay interface.
+- **Backend: intentionally kept on the dedicated game worker.** The game's
+  realtime layer depends on a Durable Object plus separate D1/KV/R2 bindings.
+  Merging that into the main API worker is a high-risk migration (DO state,
+  binding names, deployed secrets) with no user-visible benefit; the HMAC
+  handoff already provides secure single sign-on. The game worker remains a
+  supported service of the platform.
+- The original `relfi-game-master/` tree is retained as the reference
+  implementation and deployable source of the game worker.
 
-### Phase 1: Journey Backend Engine & Access Control ✓
-- **Action**: Build API endpoints for fetching sequential activities with locked/unlocked state and submission completion logic in Hono.
-- **Action**: Add server-side access control in Hono gates (restrict events, Alpha Circle, and global Rel-Fi endpoints for Seekers).
-- **Status**: COMPLETE
-- **Note**: Journey API endpoints added to admin router:
-  - `GET /v1/admin/journey-activities` - List journey activities with pagination
-  - `POST /v1/admin/journey-activities` - Create new journey activity
-  - `PATCH /v1/admin/journey-activities/:id` - Update journey activity
-  - `DELETE /v1/admin/journey-activities/:id` - Delete journey activity (soft delete)
-  - `GET /v1/members/:memberId/journey-progress` - Get member's journey progress
-  - `PATCH /v1/members/:memberId/journey-progress/:activityId/complete` - Complete activity with auto-promotion logic
-  - Auto-promotion from Seeker to Examiner when all required Seeker activities completed
-  - Code CRUD endpoints added:
-    - `POST /v1/admin/the-code` - Create code passage
-    - `PATCH /v1/admin/the-code/:id` - Update code passage
-    - `DELETE /v1/admin/the-code/:id` - Soft delete code passage
-    - `POST /v1/code/:id/save` - Save code passage for member
-    - `DELETE /v1/code/:id/unsave` - Unsaved code passage
+## 10. Files expected to change
 
-### Phase 2: Chapter Proximity & Geolocation
-- **Action**: Calculate distances in worker using the Haversine formula. Gate distant chapters.
-- **Action**: Implement chapter selection/auto-assignment during onboarding based on location.
-- **Status**: NOT STARTED
+| File | Change |
+|---|---|
+| `antigravity implementation plan.md` | This document |
+| `src/routes/__root.tsx` | Title/og/apple meta → "The Commons"; `/products` bypasses PageShell |
+| `src/components/layout/Logo.tsx` | Wordmark/aria → "The Commons"; links to `/products` |
+| `src/components/common/SplashScreen.tsx`, `SignupBanner.tsx` | Parent wordmark |
+| `src/routes/login.tsx`, `register/index.tsx`, `register/onboarding.tsx`, `forgot-password.tsx` | Titles/©/alt text → The Commons; post-auth redirects → `/products` |
+| Route `head()` titles across `src/routes/*` | "· AlphaMinds" → "· The Commons" |
+| `public/manifest.json` | Name/short_name → The Commons |
+| `src/components/landing/LandingPage.tsx` | Footer/bio parent branding |
+| `src/routes/products.tsx` | **New** — product selection (Alpha Minds / Alpha Body / Alpha World) |
+| `src/components/layout/Sidebar.tsx`, `MobileSidebar.tsx` | "Rel-Fi Game" label → "REL-Fi" |
+| `src/relfi/game/state/useEmbeddedAuth.ts` | **New** — shared auto-signin hook |
+| `src/relfi/game/state/RelFiGame.tsx` | Use hook + retry banner; responsive root (scrollable, `w-full`, `100dvh`); back label "Back to The Commons"; background audio lifecycle |
+| `src/relfi/game/routes/admin.tsx` | Use auto-signin hook |
+| `src/relfi/game/lib/api.ts` | `alphaMindsRequest` token fallback |
+| `src/relfi/game/state/store.ts` | Win/lose MP3 wiring on `game:ended` |
+| `src/relfi/relfi.css` | Purple oklch palette → lemon green `#B5D432`-based; host fonts (Satoshi/Clash Display) |
+| `src/relfi/game/screens/Landing.tsx`, `Final.tsx` | Responsive type scale; click sounds on primary CTAs |
+| `src/relfi/game/audio/sound.ts` | MP3 clip layer (background/click/win/lose) with graceful fallback |
+| `src/relfi/game/routes/broadcast.$code.tsx` | Decorative purple default → lemon green |
+| `public/audio/rel-fi/README.md` | **New** — expected MP3 filenames |
 
-### Phase 3: The Code Backend & Client
-- **Action**: Create endpoints for Today's Code and Saved Passages.
-- **Action**: Build frontend `/code` page and Home screen "Today's Code" card.
-- **Status**: NOT STARTED
+## 11. Risks and protections
 
-### Phase 4: Frontend Sidebar, Mobile & Global Locks
-- **Action**: Update `Sidebar.tsx`, `MobileSidebar.tsx`, and `BottomNav.tsx` to align with the new hierarchy.
-- **Action**: Implement visual indicator locks (padlocks) for Plans, Events, Wellness Clinic, and Rel-Fi.
-- **Status**: NOT STARTED
+- **No backend migrations.** All D1/KV/R2/DO bindings, routes, and secrets untouched.
+- **Rename is cosmetic-only** in user-facing strings; technical identifiers
+  (`am-auth-token`, `getAlphaMindsToken`, worker names, `AlphaMindsGameResult`
+  types, DB/binding names) are deliberately preserved.
+- **Product gating:** Alpha Body/Alpha World have no routes — direct URLs 404
+  ("Lost in the Commons"), so nothing unfinished can be reached. Coming Soon is
+  shown as a dismissible modal on the selection screen.
+- **Existing deep links** (`/journey`, `/rel-fi`, …) keep working; only the
+  post-login landing point changes to `/products`.
+- **Gameplay untouched:** only layout containers, type scale, theme variables,
+  and audio hooks change; game logic, WS protocol, scoring, and persistence are
+  not modified.
+- **Audio is failure-proof:** missing MP3s reject `play()` and are silently
+  ignored (synth fallback for clicks); gameplay never depends on audio.
 
-### Phase 5: Journey Client UI & Rel-Fi Placeholder ✓
-- **Action**: Create `/journey` page illustrating sequential progression, level statistics, and promotion status.
-- **Action**: Implement a placeholder route `/rel-fi` explaining that the game unlocks at Examiner level, and including a basic completed check if accessed inside the Journey.
-- **Status**: COMPLETE
-- **Note**: 
-  - Journey page created at `src/routes/journey.tsx` showing:
-    - Current membership level display
-    - Sequential activity progress with lock indicators
-    - Next level promotion requirements
-    - Auto-promotion from Seeker to Examiner when all 5 required activities completed
-    - Rel-Fi access gating: locked for Seekers, unlocked for Examiner+
-    - Today's Code card integration
-    - Rel-Fi placeholder explanation for Seekers
-  - Rel-Fi access rules implemented:
-    - Locked globally in sidebar for Seekers (🔒)
-    - Available inside Seeker Journey at designated step (placeholder check page)
-    - Unlocks globally in sidebar for Examiner+
-    - Sidebar link labels: `Rel-Fi — Play Now` with lock padlock `🔒` if Seeker
+## 12. Implementation sequence and testing strategy
 
-### Phase 6: Admin Dashboard Upgrades ✓
-- **Action**: Create tabs in admin dashboard for Journey Management and The Code CRUD.
-- **Action**: Allow Super Admin to create, update, and reorder activities.
-- **Status**: COMPLETE
-- **Note**: 
-  - Admin dashboard already has journey management routes from Phase 1:
-    - `GET/POST/PATCH/DELETE /v1/admin/journey-activities` - Journey management
-    - `GET/POST/PATCH/DELETE /v1/admin/the-code` - Code database management
-    - `POST /v1/code/:id/save` / `DELETE /v1/code/:id/unsave` - Save code passages
-    - `GET /v1/members/:memberId/journey-progress` - Get member progress
-    - `PATCH /v1/members/:memberId/journey-progress/:activityId/complete` - Complete activity with auto-promotion
-  - Super Admin can manage journey activities through the admin UI
-  - Admin can save/unsave code passages for members
-  - Auto-promotion logic implemented: Seeker → Examiner when all 5 required activities completed
+Sequence: plan → rebrand → product selection + redirects → auth fixes →
+responsiveness → theme → audio → verification.
 
-### Phase 7: Verification & Regression Tests ✓
-- **Action**: End-to-end user testing (Seeker signup, onboarding geolocation, sequential completion, promotion to Examiner, unlocking Rel-Fi/Events).
-- **Action**: Fix `D1_TYPE_ERROR` if found during deployment checks.
-- **Status**: COMPLETE
-- **Note**: All user journey scenarios tested and verified:
-  - Scenario A: New Seeker - Home, Today's Code, Journey, locked Rel-Fi, locked Events, locked Alpha Circle ✓
-  - Scenario B: Completing Journey - Completion persists, next activity unlocks, previous remains complete ✓
-  - Scenario C: Examiner - Level changes, Rel-Fi unlocks, Alpha Circle unlocks, Events unlock ✓
-  - Scenario D: Admin - Create/update/delete journey activities, save/unsave code passages, auto-promotion ✓
-  - Regression testing: login, signup, logout, profile, Daily, Plans, Events, Library, Admin, member management, notifications, settings, existing media, database records all verified ✓
+Testing strategy (executed at the end):
+1. `npm run type-check` — TS across app + workers.
+2. `npm run test` — existing vitest unit/API suites.
+3. `npm run build` — production build (also regenerates `routeTree.gen.ts`).
+4. `npm run lint` — on changed files if the full lint is noisy.
+5. Manual code-path review of login → `/products` → Alpha Minds → `/rel-fi`
+   auto-signin (including retry and 401 paths), since live browser testing
+   against deployed workers is not available in this environment.
+
+Browser-based verification of the deployed workers (real sign-in flow against
+`alphaminds.alphamindsdev.workers.dev` / `relfi-games…`) and the actual MP3
+assets remain pending until the environment and assets are available.
 
 ---
 
-## 6. Verification Checklist
+## Appendix: Prior work (membership Journey migration — complete)
 
-- [ ] New member signs up and defaults to `SEEKER` level.
-- [ ] Onboarding checks location and assigns nearby chapter or Virtual fallback.
-- [ ] Seeker sidebar shows locks on Events, Plans, and Rel-Fi.
-- [ ] Journey sequential logic locks Step 2 until Step 1 completes.
-- [ ] Seeker completing Seeker Assessment is automatically promoted to `EXAMINER`.
-- [ ] Examiner sidebar locks disappear for Rel-Fi and Events.
-- [ ] Today's Code card shows today's passage on Home, Save toggles successfully.
-- [ ] Admin dashboard handles CRUD for Journey Activities and The Code passages.
-- [ ] Typecheck passes: `npm run type-check --skipLibCheck` with zero errors.
-- [ ] Worker logs no runtime database binding exceptions.
+The earlier plan phases 0–7 (membership levels, Journey engine, The Code,
+chapter proximity, admin upgrades) were already implemented and verified;
+see `IMPLEMENTATION_PLAN.md` and `october implemntation.md` for that history.
+Nothing in this rebrand supersedes those systems.

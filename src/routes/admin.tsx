@@ -15,7 +15,7 @@ import { AdminChapters } from "@/components/admin/AdminChapters";
 import { AdminMembers } from "@/components/admin/AdminMembers";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin · AlphaMinds" }] }),
+  head: () => ({ meta: [{ title: "Admin · The Commons" }] }),
   component: AdminPage,
 });
 
@@ -54,9 +54,13 @@ function AdminPage() {
           </div>
           <h1 className="mt-4 text-xl font-bold text-text-primary">Admin access required</h1>
           <p className="mt-2 text-sm text-text-secondary">
-            Your account doesn't have administrator permissions. If you believe this is a mistake, contact a founder.
+            Your account doesn't have administrator permissions. If you believe this is a mistake,
+            contact a founder.
           </p>
-          <Link to="/" className="mt-6 inline-flex rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground">
+          <Link
+            to="/"
+            className="mt-6 inline-flex rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
+          >
             Back to Commons
           </Link>
         </div>
@@ -70,13 +74,15 @@ function AdminPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center gap-3">
           <div className="mr-auto">
             <h1 className="font-black text-xl text-text-primary">Admin Dashboard</h1>
-            <p className="text-xs text-text-secondary">Full control over content, events and members.</p>
+            <p className="text-xs text-text-secondary">
+              Full control over content, events and members.
+            </p>
           </div>
           <Link
             to="/rel-fi/admin"
             className="rounded-full bg-violet-500/10 text-violet-400 px-3 py-1.5 text-xs font-black uppercase tracking-widest hover:bg-violet-500/20 transition-colors"
           >
-            Rel-Fi Admin
+            REL-Fi Admin
           </Link>
           <Link
             to="/"

@@ -4,7 +4,7 @@ import "@/relfi/relfi.css";
 
 export const Route = createFileRoute("/rel-fi")({
   head: () => ({
-    meta: [{ title: "Rel-Fi · AlphaMinds" }],
+    meta: [{ title: "REL-Fi · The Commons" }],
   }),
   component: RelFiPage,
 });

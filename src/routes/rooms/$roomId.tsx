@@ -14,7 +14,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/rooms/$roomId")({
   loader: async ({ params }) => params,
   head: () => ({
-    meta: [{ title: `Room · AlphaMinds` }],
+    meta: [{ title: `Room · The Commons` }],
   }),
   component: RoomDetailPage,
 });
@@ -65,7 +65,9 @@ function RoomDetailPage() {
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-display font-semibold text-2xl tracking-tighter truncate">{room.name}</h1>
+              <h1 className="text-display font-semibold text-2xl tracking-tighter truncate">
+                {room.name}
+              </h1>
             </div>
             <p className="text-xs text-text-secondary inline-flex items-center gap-1">
               <Users className="h-3 w-3" /> {room.memberCount ?? 0} members
@@ -84,7 +86,10 @@ function RoomDetailPage() {
               {joinRoom.isPending || leaveRoom.isPending ? "..." : isMember ? "Leave" : "Join room"}
             </button>
           ) : (
-            <Link to="/login" className="text-sm font-bold px-4 py-2 rounded-xl bg-primary text-primary-foreground">
+            <Link
+              to="/login"
+              className="text-sm font-bold px-4 py-2 rounded-xl bg-primary text-primary-foreground"
+            >
               Sign in
             </Link>
           )}
@@ -102,8 +107,21 @@ function RoomDetailPage() {
           <EmptyState
             icon={<MessageSquare className="h-6 w-6" />}
             title="No posts yet"
-            body={isAuthenticated ? "Start the conversation — be the first to post in this room." : "Sign in to join the conversation."}
-            action={isAuthenticated ? undefined : <Link to="/login" className="rounded-xl bg-primary text-primary-foreground text-sm font-bold px-5 py-2.5 inline-block">Sign in to post</Link>}
+            body={
+              isAuthenticated
+                ? "Start the conversation — be the first to post in this room."
+                : "Sign in to join the conversation."
+            }
+            action={
+              isAuthenticated ? undefined : (
+                <Link
+                  to="/login"
+                  className="rounded-xl bg-primary text-primary-foreground text-sm font-bold px-5 py-2.5 inline-block"
+                >
+                  Sign in to post
+                </Link>
+              )
+            }
           />
         )}
       </div>

@@ -1,13 +1,29 @@
 import { Link } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Plus, Trash2, Pencil, Loader2, Image, Type, X, Upload, Check, Video, ExternalLink, Images, Wand2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Pencil,
+  Loader2,
+  Image,
+  Type,
+  X,
+  Upload,
+  Check,
+  Video,
+  ExternalLink,
+  Images,
+  Wand2,
+} from "lucide-react";
 import * as api from "../lib/api";
 import { useAuth } from "../state/auth-store";
+import { useEmbeddedAutoLogin } from "../state/useEmbeddedAuth";
 import type { ApiCategory, ApiDeck, ApiStatementCard, ApiPendingCard } from "../lib/types";
 
 export function Admin() {
   const user = useAuth((s) => s.user);
-  const loadSession = useAuth((s) => s.loadSession);
+  const { authError, retry } = useEmbeddedAutoLogin(true);
   const [tab, setTab] = useState<"categories" | "decks" | "cards" | "tutorial">("categories");
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [decks, setDecks] = useState<ApiDeck[]>([]);
@@ -22,40 +38,65 @@ export function Admin() {
   const [editingDeck, setEditingDeck] = useState<Partial<ApiDeck> | null>(null);
   const bulkFileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { loadSession() }, [loadSession])
-
   useEffect(() => {
-    if (!user || user.role !== 'admin') { setLoading(false); return }
+    if (!user || user.role !== "admin") {
+      setLoading(false);
+      return;
+    }
     Promise.all([
-      api.getCategories().then(setCategories).catch(() => {}),
-      api.getDecks().then(setDecks).catch(() => {}),
-    ]).then(() => setLoading(false))
-  }, [user])
+      api
+        .getCategories()
+        .then(setCategories)
+        .catch(() => {}),
+      api
+        .getDecks()
+        .then(setDecks)
+        .catch(() => {}),
+    ]).then(() => setLoading(false));
+  }, [user]);
 
   useEffect(() => {
     if (selectedDeckId) {
-      api.getDeck(selectedDeckId).then((d) => setCards(d.cards || [])).catch(() => {})
-      api.getPendingCards(selectedDeckId).then(setPendingCards).catch(() => setPendingCards([]))
+      api
+        .getDeck(selectedDeckId)
+        .then((d) => setCards(d.cards || []))
+        .catch(() => {});
+      api
+        .getPendingCards(selectedDeckId)
+        .then(setPendingCards)
+        .catch(() => setPendingCards([]));
     } else {
-      setCards([])
-      setPendingCards([])
+      setCards([]);
+      setPendingCards([]);
     }
-  }, [selectedDeckId])
+  }, [selectedDeckId]);
 
   if (!user) {
     return (
       <div className="relfi-root min-h-screen bg-hero flex items-center justify-center">
-        <p className="text-muted-foreground">Please sign in to access admin.</p>
+        <div className="text-center space-y-3">
+          <p className="text-muted-foreground">
+            {authError ?? "Signing you in with your Commons session…"}
+          </p>
+          {authError && (
+            <button
+              onClick={retry}
+              className="rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-card"
+            >
+              Retry
+            </button>
+          )}
+        </div>
       </div>
-    )
+    );
   }
 
-  if (user.role !== 'admin') {
+  if (user.role !== "admin") {
     return (
       <div className="relfi-root min-h-screen bg-hero flex items-center justify-center">
         <p className="text-muted-foreground">Admin access required.</p>
       </div>
-    )
+    );
   }
 
   if (loading) {
@@ -63,143 +104,152 @@ export function Admin() {
       <div className="relfi-root min-h-screen bg-hero flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
-    )
+    );
   }
 
   async function saveCard() {
-    if (!editingCard || !selectedDeckId) return
+    if (!editingCard || !selectedDeckId) return;
     try {
       if (convertingPendingId) {
-        const created = await api.convertPendingCard(selectedDeckId, convertingPendingId, editingCard as any)
-        setCards((cs) => [...cs, created])
-        setPendingCards((ps) => ps.filter((p) => p.id !== convertingPendingId))
-        setConvertingPendingId(null)
-        setEditingCard(null)
-        return
+        const created = await api.convertPendingCard(
+          selectedDeckId,
+          convertingPendingId,
+          editingCard as any,
+        );
+        setCards((cs) => [...cs, created]);
+        setPendingCards((ps) => ps.filter((p) => p.id !== convertingPendingId));
+        setConvertingPendingId(null);
+        setEditingCard(null);
+        return;
       }
       if (editingCard.id) {
-        const updated = await api.updateCard(selectedDeckId, editingCard.id, editingCard)
-        setCards((cs) => cs.map((c) => c.id === updated.id ? updated : c))
+        const updated = await api.updateCard(selectedDeckId, editingCard.id, editingCard);
+        setCards((cs) => cs.map((c) => (c.id === updated.id ? updated : c)));
       } else {
-        const created = await api.createCard(selectedDeckId, editingCard as any)
-        setCards((cs) => [...cs, created])
+        const created = await api.createCard(selectedDeckId, editingCard as any);
+        setCards((cs) => [...cs, created]);
       }
-      setEditingCard(null)
+      setEditingCard(null);
     } catch (e: any) {
-      alert(e.message)
+      alert(e.message);
     }
   }
 
   async function deleteCard(cardId: string) {
-    if (!selectedDeckId) return
+    if (!selectedDeckId) return;
     try {
-      await api.deleteCard(selectedDeckId, cardId)
-      setCards((cs) => cs.filter((c) => c.id !== cardId))
+      await api.deleteCard(selectedDeckId, cardId);
+      setCards((cs) => cs.filter((c) => c.id !== cardId));
     } catch (e: any) {
-      alert(e.message)
+      alert(e.message);
     }
   }
 
   async function handleBulkImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files
-    if (!files || files.length === 0 || !selectedDeckId) return
-    setUploading(true)
+    const files = e.target.files;
+    if (!files || files.length === 0 || !selectedDeckId) return;
+    setUploading(true);
     try {
-      const result = await api.uploadBulkStatementImages(selectedDeckId, Array.from(files))
-      setPendingCards((ps) => [...result.cards, ...ps])
-      alert(`${result.imported} statement image${result.imported === 1 ? '' : 's'} uploaded. Click "Set up" on each to assign its answer and clue.`)
+      const result = await api.uploadBulkStatementImages(selectedDeckId, Array.from(files));
+      setPendingCards((ps) => [...result.cards, ...ps]);
+      alert(
+        `${result.imported} statement image${result.imported === 1 ? "" : "s"} uploaded. Click "Set up" on each to assign its answer and clue.`,
+      );
     } catch (e: any) {
-      alert(e.message || 'Upload failed')
+      alert(e.message || "Upload failed");
     } finally {
-      setUploading(false)
-      e.target.value = ''
+      setUploading(false);
+      e.target.value = "";
     }
   }
 
   async function deletePendingCard(pendingId: string) {
-    if (!selectedDeckId) return
+    if (!selectedDeckId) return;
     try {
-      await api.deletePendingCard(selectedDeckId, pendingId)
-      setPendingCards((ps) => ps.filter((p) => p.id !== pendingId))
+      await api.deletePendingCard(selectedDeckId, pendingId);
+      setPendingCards((ps) => ps.filter((p) => p.id !== pendingId));
     } catch (e: any) {
-      alert(e.message)
+      alert(e.message);
     }
   }
 
   function setUpPendingCard(p: ApiPendingCard) {
-    setConvertingPendingId(p.id)
+    setConvertingPendingId(p.id);
     setEditingCard({
       statement_image_url: p.statement_image_url,
-      statement_text: '',
-      correct_category_id: categories[0]?.id || '',
-      clue_variant: 'none',
-      clue_type: 'none',
-      clue_content: '',
-      difficulty: 'medium',
-    })
+      statement_text: "",
+      correct_category_id: categories[0]?.id || "",
+      clue_variant: "none",
+      clue_type: "none",
+      clue_content: "",
+      difficulty: "medium",
+    });
   }
 
   async function saveCategory() {
-    if (!editingCategory) return
+    if (!editingCategory) return;
     try {
       if (editingCategory.id) {
-        const updated = await api.updateCategory(editingCategory.id, editingCategory)
-        setCategories((cs) => cs.map((c) => c.id === updated.id ? updated : c))
+        const updated = await api.updateCategory(editingCategory.id, editingCategory);
+        setCategories((cs) => cs.map((c) => (c.id === updated.id ? updated : c)));
       } else {
-        const created = await api.createCategory(editingCategory as any)
-        setCategories((cs) => [...cs, created])
+        const created = await api.createCategory(editingCategory as any);
+        setCategories((cs) => [...cs, created]);
       }
-      setEditingCategory(null)
+      setEditingCategory(null);
     } catch (e: any) {
-      alert(e.message)
+      alert(e.message);
     }
   }
 
   async function deleteCategory(id: string) {
     try {
-      await api.deleteCategory(id)
-      setCategories((cs) => cs.filter((c) => c.id !== id))
+      await api.deleteCategory(id);
+      setCategories((cs) => cs.filter((c) => c.id !== id));
     } catch (e: any) {
-      alert(e.message)
+      alert(e.message);
     }
   }
 
   async function saveDeck() {
-    if (!editingDeck) return
+    if (!editingDeck) return;
     try {
       if (editingDeck.id) {
-        const updated = await api.updateDeck(editingDeck.id, editingDeck)
-        setDecks((ds) => ds.map((d) => d.id === updated.id ? updated : d))
+        const updated = await api.updateDeck(editingDeck.id, editingDeck);
+        setDecks((ds) => ds.map((d) => (d.id === updated.id ? updated : d)));
       } else {
-        const created = await api.createDeck(editingDeck as any)
-        setDecks((ds) => [...ds, created])
+        const created = await api.createDeck(editingDeck as any);
+        setDecks((ds) => [...ds, created]);
       }
-      setEditingDeck(null)
+      setEditingDeck(null);
     } catch (e: any) {
-      alert(e.message)
+      alert(e.message);
     }
   }
 
   async function publishDeck(deckId: string) {
     try {
-      await api.publishDeck(deckId)
-      setDecks((ds) => ds.map((d) => d.id === deckId ? { ...d, is_published: 1 } : d))
+      await api.publishDeck(deckId);
+      setDecks((ds) => ds.map((d) => (d.id === deckId ? { ...d, is_published: 1 } : d)));
     } catch (e: any) {
-      alert(e.message)
+      alert(e.message);
     }
   }
 
-  const selectedDeck = decks.find((d) => d.id === selectedDeckId)
+  const selectedDeck = decks.find((d) => d.id === selectedDeckId);
 
   return (
     <div className="relfi-root min-h-screen bg-hero">
       <header className="border-b bg-card/50 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-4">
-            <Link to="/rel-fi" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <Link
+              to="/rel-fi"
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
               <ArrowLeft className="h-4 w-4" /> Back to game
             </Link>
-            <div className="hidden font-display text-lg font-bold sm:block">Rel-Fi Admin</div>
+            <div className="hidden font-display text-lg font-bold sm:block">REL-Fi Admin</div>
           </div>
           <div className="text-xs uppercase tracking-widest text-muted-foreground">
             {user.display_name} (admin)
@@ -214,7 +264,9 @@ export function Admin() {
               key={t}
               onClick={() => setTab(t)}
               className={`rounded-full px-4 py-1.5 text-sm font-semibold uppercase tracking-widest ${
-                tab === t ? "bg-primary text-primary-foreground" : "border text-muted-foreground hover:text-foreground"
+                tab === t
+                  ? "bg-primary text-primary-foreground"
+                  : "border text-muted-foreground hover:text-foreground"
               }`}
             >
               {t}
@@ -227,7 +279,15 @@ export function Admin() {
             <div className="mb-4 flex items-center justify-between">
               <div className="font-display text-lg font-bold">Categories ({categories.length})</div>
               <button
-                onClick={() => setEditingCategory({ name: '', color_hex: '#8B5CF6', short_code: '', icon_key: '', definition: '' })}
+                onClick={() =>
+                  setEditingCategory({
+                    name: "",
+                    color_hex: "#B5D432",
+                    short_code: "",
+                    icon_key: "",
+                    definition: "",
+                  })
+                }
                 className="inline-flex items-center gap-1.5 rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground"
               >
                 <Plus className="h-4 w-4" /> New category
@@ -236,16 +296,30 @@ export function Admin() {
             <div className="grid gap-3 md:grid-cols-2">
               {categories.map((c) => (
                 <div key={c.id} className="flex items-center gap-3 rounded-2xl border bg-card p-4">
-                  <div className="h-10 w-10 rounded-full shrink-0" style={{ background: c.color_hex }} />
+                  <div
+                    className="h-10 w-10 rounded-full shrink-0"
+                    style={{ background: c.color_hex }}
+                  />
                   <div className="flex-1 min-w-0">
-                    <div className="font-display text-lg font-bold">{c.name} {c.short_code && <span className="text-xs text-muted-foreground">({c.short_code})</span>}</div>
+                    <div className="font-display text-lg font-bold">
+                      {c.name}{" "}
+                      {c.short_code && (
+                        <span className="text-xs text-muted-foreground">({c.short_code})</span>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground truncate">{c.definition}</div>
                   </div>
                   <div className="flex gap-1">
-                    <button onClick={() => setEditingCategory(c)} className="p-1 text-muted-foreground hover:text-foreground">
+                    <button
+                      onClick={() => setEditingCategory(c)}
+                      className="p-1 text-muted-foreground hover:text-foreground"
+                    >
                       <Pencil className="h-4 w-4" />
                     </button>
-                    <button onClick={() => deleteCategory(c.id)} className="p-1 text-muted-foreground hover:text-destructive">
+                    <button
+                      onClick={() => deleteCategory(c.id)}
+                      className="p-1 text-muted-foreground hover:text-destructive"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
@@ -260,7 +334,7 @@ export function Admin() {
             <div className="mb-4 flex items-center justify-between">
               <div className="font-display text-lg font-bold">Decks ({decks.length})</div>
               <button
-                onClick={() => setEditingDeck({ title: '', description: '' })}
+                onClick={() => setEditingDeck({ title: "", description: "" })}
                 className="inline-flex items-center gap-1.5 rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground"
               >
                 <Plus className="h-4 w-4" /> New deck
@@ -270,27 +344,43 @@ export function Admin() {
               {decks.map((d) => (
                 <div
                   key={d.id}
-                  className={`rounded-2xl border bg-card p-4 cursor-pointer transition ${selectedDeckId === d.id ? 'border-primary' : 'hover:bg-card/80'}`}
-                  onClick={() => { setSelectedDeckId(d.id); setTab('cards') }}
+                  className={`rounded-2xl border bg-card p-4 cursor-pointer transition ${selectedDeckId === d.id ? "border-primary" : "hover:bg-card/80"}`}
+                  onClick={() => {
+                    setSelectedDeckId(d.id);
+                    setTab("cards");
+                  }}
                 >
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-display text-lg font-bold">{d.title}</div>
-                      {d.description && <p className="text-sm text-muted-foreground">{d.description}</p>}
+                      {d.description && (
+                        <p className="text-sm text-muted-foreground">{d.description}</p>
+                      )}
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-xs text-muted-foreground">{d.card_count || 0} cards</div>
                       {!d.is_published ? (
                         <button
-                          onClick={(e) => { e.stopPropagation(); publishDeck(d.id) }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            publishDeck(d.id);
+                          }}
                           className="rounded-full border px-3 py-1 text-xs font-semibold hover:bg-card"
                         >
                           Publish
                         </button>
                       ) : (
-                        <span className="rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold text-primary">Published</span>
+                        <span className="rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold text-primary">
+                          Published
+                        </span>
                       )}
-                      <button onClick={(e) => { e.stopPropagation(); setEditingDeck(d) }} className="p-1 text-muted-foreground hover:text-foreground">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingDeck(d);
+                        }}
+                        className="p-1 text-muted-foreground hover:text-foreground"
+                      >
                         <Pencil className="h-4 w-4" />
                       </button>
                     </div>
@@ -311,7 +401,9 @@ export function Admin() {
               >
                 <option value="">Select a deck...</option>
                 {decks.map((d) => (
-                  <option key={d.id} value={d.id}>{d.title}</option>
+                  <option key={d.id} value={d.id}>
+                    {d.title}
+                  </option>
                 ))}
               </select>
               {selectedDeck && (
@@ -325,7 +417,11 @@ export function Admin() {
                     className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold text-foreground hover:bg-card disabled:opacity-50"
                     title="Upload statement images in bulk"
                   >
-                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Images className="h-4 w-4" />}
+                    {uploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Images className="h-4 w-4" />
+                    )}
                     Upload image cards
                   </button>
                   <input
@@ -337,7 +433,17 @@ export function Admin() {
                     onChange={handleBulkImageUpload}
                   />
                   <button
-                    onClick={() => setEditingCard({ statement_text: '', statement_image_url: '', correct_category_id: categories[0]?.id, clue_variant: 'none', clue_type: 'none', clue_content: '', difficulty: 'medium' })}
+                    onClick={() =>
+                      setEditingCard({
+                        statement_text: "",
+                        statement_image_url: "",
+                        correct_category_id: categories[0]?.id,
+                        clue_variant: "none",
+                        clue_type: "none",
+                        clue_content: "",
+                        difficulty: "medium",
+                      })
+                    }
                     className="inline-flex items-center gap-1.5 rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground"
                   >
                     <Plus className="h-4 w-4" /> New card
@@ -358,10 +464,16 @@ export function Admin() {
                   {pendingCards.map((p) => (
                     <div key={p.id} className="overflow-hidden rounded-2xl border bg-card">
                       <div className="aspect-[4/5] w-full bg-muted/30">
-                        <img src={p.statement_image_url} alt={p.filename || 'pending card'} className="h-full w-full object-cover" />
+                        <img
+                          src={p.statement_image_url}
+                          alt={p.filename || "pending card"}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                       <div className="flex items-center justify-between p-2">
-                        <span className="truncate pr-1 text-xs text-muted-foreground">{p.filename || 'image'}</span>
+                        <span className="truncate pr-1 text-xs text-muted-foreground">
+                          {p.filename || "image"}
+                        </span>
                         <div className="flex shrink-0 gap-1">
                           <button
                             onClick={() => setUpPendingCard(p)}
@@ -369,7 +481,10 @@ export function Admin() {
                           >
                             Set up
                           </button>
-                          <button onClick={() => deletePendingCard(p.id)} className="rounded-full p-1 text-muted-foreground hover:text-destructive">
+                          <button
+                            onClick={() => deletePendingCard(p.id)}
+                            className="rounded-full p-1 text-muted-foreground hover:text-destructive"
+                          >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -399,11 +514,19 @@ export function Admin() {
                           <td className="max-w-md p-3">
                             {c.statement_image_url ? (
                               <div className="flex items-center gap-2">
-                                <img src={c.statement_image_url} alt="Statement" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+                                <img
+                                  src={c.statement_image_url}
+                                  alt="Statement"
+                                  className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                                />
                                 {c.statement_text ? (
-                                  <span className="truncate text-xs text-muted-foreground">{c.statement_text}</span>
+                                  <span className="truncate text-xs text-muted-foreground">
+                                    {c.statement_text}
+                                  </span>
                                 ) : (
-                                  <span className="truncate text-xs uppercase tracking-widest text-muted-foreground">Image card</span>
+                                  <span className="truncate text-xs uppercase tracking-widest text-muted-foreground">
+                                    Image card
+                                  </span>
                                 )}
                               </div>
                             ) : (
@@ -429,13 +552,23 @@ export function Admin() {
                             )}
                           </td>
                           <td className="p-3 text-xs uppercase tracking-widest text-muted-foreground">
-                            {c.clue_type === 'text' ? 'Text' : c.clue_type === 'image' ? 'Image' : c.clue_variant}
+                            {c.clue_type === "text"
+                              ? "Text"
+                              : c.clue_type === "image"
+                                ? "Image"
+                                : c.clue_variant}
                           </td>
                           <td className="p-3 text-right">
-                            <button onClick={() => setEditingCard(c)} className="mr-2 text-muted-foreground hover:text-foreground">
+                            <button
+                              onClick={() => setEditingCard(c)}
+                              className="mr-2 text-muted-foreground hover:text-foreground"
+                            >
                               <Pencil className="h-4 w-4" />
                             </button>
-                            <button onClick={() => deleteCard(c.id)} className="text-muted-foreground hover:text-destructive">
+                            <button
+                              onClick={() => deleteCard(c.id)}
+                              className="text-muted-foreground hover:text-destructive"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </td>
@@ -445,7 +578,9 @@ export function Admin() {
                   </tbody>
                 </table>
                 {cards.length === 0 && (
-                  <p className="p-6 text-center text-sm text-muted-foreground">No cards yet. Create your first card.</p>
+                  <p className="p-6 text-center text-sm text-muted-foreground">
+                    No cards yet. Create your first card.
+                  </p>
                 )}
               </div>
             )}
@@ -472,39 +607,61 @@ export function Admin() {
             </div>
             <label className="text-xs uppercase tracking-widest text-muted-foreground">Name</label>
             <input
-              value={editingCategory.name || ''}
+              value={editingCategory.name || ""}
               onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
               className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary"
             />
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs uppercase tracking-widest text-muted-foreground">Short code</label>
+                <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                  Short code
+                </label>
                 <input
-                  value={editingCategory.short_code || ''}
-                  onChange={(e) => setEditingCategory({ ...editingCategory, short_code: e.target.value })}
+                  value={editingCategory.short_code || ""}
+                  onChange={(e) =>
+                    setEditingCategory({ ...editingCategory, short_code: e.target.value })
+                  }
                   className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary"
                 />
               </div>
               <div>
-                <label className="text-xs uppercase tracking-widest text-muted-foreground">Color</label>
+                <label className="text-xs uppercase tracking-widest text-muted-foreground">
+                  Color
+                </label>
                 <input
                   type="color"
-                  value={editingCategory.color_hex || '#8B5CF6'}
-                  onChange={(e) => setEditingCategory({ ...editingCategory, color_hex: e.target.value })}
+                  value={editingCategory.color_hex || "#B5D432"}
+                  onChange={(e) =>
+                    setEditingCategory({ ...editingCategory, color_hex: e.target.value })
+                  }
                   className="mt-1 h-11 w-full rounded-2xl border bg-background/50 p-1 outline-none focus:border-primary"
                 />
               </div>
             </div>
-            <label className="mt-4 block text-xs uppercase tracking-widest text-muted-foreground">Definition</label>
+            <label className="mt-4 block text-xs uppercase tracking-widest text-muted-foreground">
+              Definition
+            </label>
             <textarea
-              value={editingCategory.definition || ''}
-              onChange={(e) => setEditingCategory({ ...editingCategory, definition: e.target.value })}
+              value={editingCategory.definition || ""}
+              onChange={(e) =>
+                setEditingCategory({ ...editingCategory, definition: e.target.value })
+              }
               rows={2}
               className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary"
             />
             <div className="mt-6 flex justify-end gap-2">
-              <button onClick={() => setEditingCategory(null)} className="rounded-full border px-4 py-2 text-sm">Cancel</button>
-              <button onClick={saveCategory} className="rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground">Save</button>
+              <button
+                onClick={() => setEditingCategory(null)}
+                className="rounded-full border px-4 py-2 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveCategory}
+                className="rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -518,20 +675,32 @@ export function Admin() {
             </div>
             <label className="text-xs uppercase tracking-widest text-muted-foreground">Title</label>
             <input
-              value={editingDeck.title || ''}
+              value={editingDeck.title || ""}
               onChange={(e) => setEditingDeck({ ...editingDeck, title: e.target.value })}
               className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary"
             />
-            <label className="mt-4 block text-xs uppercase tracking-widest text-muted-foreground">Description</label>
+            <label className="mt-4 block text-xs uppercase tracking-widest text-muted-foreground">
+              Description
+            </label>
             <textarea
-              value={editingDeck.description || ''}
+              value={editingDeck.description || ""}
               onChange={(e) => setEditingDeck({ ...editingDeck, description: e.target.value })}
               rows={2}
               className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary"
             />
             <div className="mt-6 flex justify-end gap-2">
-              <button onClick={() => setEditingDeck(null)} className="rounded-full border px-4 py-2 text-sm">Cancel</button>
-              <button onClick={saveDeck} className="rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground">Save</button>
+              <button
+                onClick={() => setEditingDeck(null)}
+                className="rounded-full border px-4 py-2 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveDeck}
+                className="rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -551,13 +720,13 @@ function CardEditorModal({
   onClose: () => void;
   onSave: () => void;
 }) {
-  const [clueType, setClueType] = useState(card.clue_type || 'none');
-  const [clueContent, setClueContent] = useState(card.clue_content || '');
+  const [clueType, setClueType] = useState(card.clue_type || "none");
+  const [clueContent, setClueContent] = useState(card.clue_content || "");
   const [imagePreview, setImagePreview] = useState<string | null>(
-    card.clue_type === 'image' ? card.clue_content || null : null
+    card.clue_type === "image" ? card.clue_content || null : null,
   );
   const [statementImageUrl, setStatementImageUrl] = useState<string | null>(
-    card.statement_image_url || null
+    card.statement_image_url || null,
   );
   const [statementUploading, setStatementUploading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -570,13 +739,13 @@ function CardEditorModal({
     clue_content: clueContent,
   };
 
-  function handleClueTypeChange(type: 'none' | 'text' | 'image') {
+  function handleClueTypeChange(type: "none" | "text" | "image") {
     setClueType(type);
-    if (type === 'none') {
-      setClueContent('');
+    if (type === "none") {
+      setClueContent("");
       setImagePreview(null);
-    } else if (type === 'image') {
-      setClueContent('');
+    } else if (type === "image") {
+      setClueContent("");
     }
   }
 
@@ -584,13 +753,13 @@ function CardEditorModal({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file.');
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file.");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be under 5MB.');
+      alert("Image must be under 5MB.");
       return;
     }
 
@@ -599,10 +768,10 @@ function CardEditorModal({
       const result = await api.uploadStatementImage(file);
       setStatementImageUrl(result.url);
     } catch (e: any) {
-      alert(e.message || 'Upload failed');
+      alert(e.message || "Upload failed");
     } finally {
       setStatementUploading(false);
-      e.target.value = '';
+      e.target.value = "";
     }
   }
 
@@ -610,13 +779,13 @@ function CardEditorModal({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file.');
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file.");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be under 5MB.');
+      alert("Image must be under 5MB.");
       return;
     }
 
@@ -626,7 +795,7 @@ function CardEditorModal({
       setClueContent(result.url);
       setImagePreview(result.url);
     } catch (e: any) {
-      alert(e.message || 'Upload failed');
+      alert(e.message || "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -647,11 +816,15 @@ function CardEditorModal({
         </div>
 
         {/* Statement image (optional) */}
-        <label className="text-xs uppercase tracking-widest text-muted-foreground">Statement image (optional)</label>
+        <label className="text-xs uppercase tracking-widest text-muted-foreground">
+          Statement image (optional)
+        </label>
         <div
           onClick={() => statementFileInputRef.current?.click()}
           className={`mt-1 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-4 transition ${
-            statementImageUrl ? 'border-primary/30 bg-primary/5' : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/30'
+            statementImageUrl
+              ? "border-primary/30 bg-primary/5"
+              : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/30"
           }`}
         >
           {statementImageUrl ? (
@@ -662,7 +835,10 @@ function CardEditorModal({
                 className="h-auto max-h-48 w-full rounded-xl object-contain"
               />
               <button
-                onClick={(e) => { e.stopPropagation(); setStatementImageUrl(null); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setStatementImageUrl(null);
+                }}
                 className="absolute -right-2 -top-2 rounded-full border bg-card p-1 text-muted-foreground hover:text-destructive"
               >
                 <X className="h-3.5 w-3.5" />
@@ -675,8 +851,12 @@ function CardEditorModal({
               ) : (
                 <>
                   <Image className="h-8 w-8" />
-                  <span className="text-sm font-medium">Click to upload the statement as an image</span>
-                  <span className="text-xs">PNG, JPG, GIF, WebP (max 5MB) — keeps the image's aspect ratio</span>
+                  <span className="text-sm font-medium">
+                    Click to upload the statement as an image
+                  </span>
+                  <span className="text-xs">
+                    PNG, JPG, GIF, WebP (max 5MB) — keeps the image's aspect ratio
+                  </span>
                 </>
               )}
             </div>
@@ -692,39 +872,53 @@ function CardEditorModal({
 
         {/* Statement text (used when no statement image is set) */}
         <label className="mt-5 block text-xs uppercase tracking-widest text-muted-foreground">
-          Statement text {statementImageUrl ? '(optional)' : ''}
+          Statement text {statementImageUrl ? "(optional)" : ""}
         </label>
         <textarea
-          value={card.statement_text || ''}
-          onChange={(e) => { card.statement_text = e.target.value }}
+          value={card.statement_text || ""}
+          onChange={(e) => {
+            card.statement_text = e.target.value;
+          }}
           rows={3}
-          placeholder={statementImageUrl ? 'Optional caption for the image...' : 'Enter the statement...'}
+          placeholder={
+            statementImageUrl ? "Optional caption for the image..." : "Enter the statement..."
+          }
           className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary resize-none"
         />
 
         {/* Correct category */}
-        <label className="mt-5 block text-xs uppercase tracking-widest text-muted-foreground">Correct category</label>
+        <label className="mt-5 block text-xs uppercase tracking-widest text-muted-foreground">
+          Correct category
+        </label>
         <select
-          value={card.correct_category_id || ''}
-          onChange={(e) => { card.correct_category_id = e.target.value }}
+          value={card.correct_category_id || ""}
+          onChange={(e) => {
+            card.correct_category_id = e.target.value;
+          }}
           className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary"
         >
           {categories.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
           ))}
         </select>
 
         {/* Difficulty */}
-        <label className="mt-5 block text-xs uppercase tracking-widest text-muted-foreground">Difficulty</label>
+        <label className="mt-5 block text-xs uppercase tracking-widest text-muted-foreground">
+          Difficulty
+        </label>
         <div className="mt-1 flex gap-2">
-          {['easy', 'medium', 'hard'].map((d) => (
+          {["easy", "medium", "hard"].map((d) => (
             <button
               key={d}
-              onClick={() => { card.difficulty = d as any }}
+              onClick={() => {
+                card.difficulty = d as any;
+              }}
               className={`flex-1 rounded-xl border py-2 text-xs font-semibold uppercase tracking-widest transition ${
-                (card.difficulty || 'medium') === d
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
+                (card.difficulty || "medium") === d
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {d}
@@ -733,20 +927,24 @@ function CardEditorModal({
         </div>
 
         {/* Clue type selector */}
-        <label className="mt-5 block text-xs uppercase tracking-widest text-muted-foreground">Clue</label>
+        <label className="mt-5 block text-xs uppercase tracking-widest text-muted-foreground">
+          Clue
+        </label>
         <div className="mt-2 grid grid-cols-3 gap-2">
-          {([
-            { value: 'none', label: 'None', icon: X },
-            { value: 'text', label: 'Text', icon: Type },
-            { value: 'image', label: 'Image', icon: Image },
-          ] as const).map((opt) => (
+          {(
+            [
+              { value: "none", label: "None", icon: X },
+              { value: "text", label: "Text", icon: Type },
+              { value: "image", label: "Image", icon: Image },
+            ] as const
+          ).map((opt) => (
             <button
               key={opt.value}
               onClick={() => handleClueTypeChange(opt.value)}
               className={`flex flex-col items-center gap-1.5 rounded-2xl border-2 p-4 transition ${
                 clueType === opt.value
-                  ? 'border-primary bg-primary/10 text-primary'
-                  : 'border-transparent bg-muted/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-transparent bg-muted/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               }`}
             >
               <opt.icon className="h-5 w-5" />
@@ -756,9 +954,11 @@ function CardEditorModal({
         </div>
 
         {/* Clue content */}
-        {clueType === 'text' && (
+        {clueType === "text" && (
           <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
-            <label className="text-xs uppercase tracking-widest text-muted-foreground">Clue text</label>
+            <label className="text-xs uppercase tracking-widest text-muted-foreground">
+              Clue text
+            </label>
             <textarea
               value={clueContent}
               onChange={(e) => setClueContent(e.target.value)}
@@ -769,13 +969,17 @@ function CardEditorModal({
           </div>
         )}
 
-        {clueType === 'image' && (
+        {clueType === "image" && (
           <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
-            <label className="text-xs uppercase tracking-widest text-muted-foreground">Clue image</label>
+            <label className="text-xs uppercase tracking-widest text-muted-foreground">
+              Clue image
+            </label>
             <div
               onClick={() => fileInputRef.current?.click()}
               className={`mt-1 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 transition ${
-                imagePreview ? 'border-primary/30 bg-primary/5' : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/30'
+                imagePreview
+                  ? "border-primary/30 bg-primary/5"
+                  : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/30"
               }`}
             >
               {imagePreview ? (
@@ -786,7 +990,11 @@ function CardEditorModal({
                     className="h-auto max-h-48 w-full rounded-xl object-contain"
                   />
                   <button
-                    onClick={(e) => { e.stopPropagation(); setImagePreview(null); setClueContent('') }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setImagePreview(null);
+                      setClueContent("");
+                    }}
                     className="absolute -right-2 -top-2 rounded-full border bg-card p-1 text-muted-foreground hover:text-destructive"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -817,10 +1025,14 @@ function CardEditorModal({
         )}
 
         {/* Friction explanation */}
-        <label className="mt-5 block text-xs uppercase tracking-widest text-muted-foreground">Friction explanation</label>
+        <label className="mt-5 block text-xs uppercase tracking-widest text-muted-foreground">
+          Friction explanation
+        </label>
         <textarea
-          value={card.friction_explanation || ''}
-          onChange={(e) => { card.friction_explanation = e.target.value }}
+          value={card.friction_explanation || ""}
+          onChange={(e) => {
+            card.friction_explanation = e.target.value;
+          }}
           rows={2}
           placeholder="Explained on the reveal screen..."
           className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary resize-none"
@@ -833,11 +1045,11 @@ function CardEditorModal({
           </button>
           <button
             onClick={handleSave}
-            disabled={clueType === 'image' && uploading}
+            disabled={clueType === "image" && uploading}
             className="inline-flex items-center gap-1.5 rounded-full bg-primary-gradient px-5 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
           >
             <Check className="h-4 w-4" />
-            {card.id ? 'Update' : 'Create'}
+            {card.id ? "Update" : "Create"}
           </button>
         </div>
       </div>
@@ -846,43 +1058,49 @@ function CardEditorModal({
 }
 
 function TutorialTab() {
-  const [uploading, setUploading] = useState(false)
-  const [tutorialInfo, setTutorialInfo] = useState<{ exists: boolean; url?: string; filename?: string; uploadedAt?: number } | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [message, setMessage] = useState("")
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false);
+  const [tutorialInfo, setTutorialInfo] = useState<{
+    exists: boolean;
+    url?: string;
+    filename?: string;
+    uploadedAt?: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    api.getTutorialInfo()
+    api
+      .getTutorialInfo()
       .then(setTutorialInfo)
       .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+      .finally(() => setLoading(false));
+  }, []);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    if (!file.type.startsWith('video/')) {
-      setMessage('Please select a video file.')
-      return
+    if (!file.type.startsWith("video/")) {
+      setMessage("Please select a video file.");
+      return;
     }
 
     if (file.size > 99 * 1024 * 1024) {
-      setMessage('Video must be under 99MB.')
-      return
+      setMessage("Video must be under 99MB.");
+      return;
     }
 
-    setUploading(true)
-    setMessage("")
+    setUploading(true);
+    setMessage("");
     try {
-      const result = await api.uploadTutorial(file)
-      setTutorialInfo({ exists: true, ...result, url: api.TUTORIAL_VIDEO_URL })
-      setMessage('Tutorial uploaded successfully!')
+      const result = await api.uploadTutorial(file);
+      setTutorialInfo({ exists: true, ...result, url: api.TUTORIAL_VIDEO_URL });
+      setMessage("Tutorial uploaded successfully!");
     } catch (e: any) {
-      setMessage(e.message || 'Upload failed')
+      setMessage(e.message || "Upload failed");
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
   }
 
@@ -891,7 +1109,7 @@ function TutorialTab() {
       <div className="flex items-center justify-center py-16">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
-    )
+    );
   }
 
   return (
@@ -909,7 +1127,7 @@ function TutorialTab() {
               <div className="text-xs text-muted-foreground">
                 {tutorialInfo?.exists
                   ? `Current: ${tutorialInfo.filename} (uploaded ${new Date(tutorialInfo.uploadedAt!).toLocaleDateString()})`
-                  : 'No tutorial uploaded yet'}
+                  : "No tutorial uploaded yet"}
               </div>
             </div>
           </div>
@@ -917,7 +1135,16 @@ function TutorialTab() {
           {tutorialInfo?.exists && tutorialInfo.url && (
             <div className="max-w-lg aspect-video rounded-xl overflow-hidden border bg-black">
               <video className="h-full w-full" controls>
-                <source src={tutorialInfo.url} type={tutorialInfo.url!.endsWith('.webm') ? 'video/webm' : tutorialInfo.url!.endsWith('.mov') ? 'video/quicktime' : 'video/mp4'} />
+                <source
+                  src={tutorialInfo.url}
+                  type={
+                    tutorialInfo.url!.endsWith(".webm")
+                      ? "video/webm"
+                      : tutorialInfo.url!.endsWith(".mov")
+                        ? "video/quicktime"
+                        : "video/mp4"
+                  }
+                />
               </video>
             </div>
           )}
@@ -925,7 +1152,9 @@ function TutorialTab() {
           <div
             onClick={() => fileInputRef.current?.click()}
             className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 transition ${
-              uploading ? 'border-primary/30 bg-primary/5' : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/30'
+              uploading
+                ? "border-primary/30 bg-primary/5"
+                : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/30"
             }`}
           >
             {uploading ? (
@@ -937,7 +1166,7 @@ function TutorialTab() {
               <div className="flex flex-col items-center gap-2 text-muted-foreground">
                 <Upload className="h-8 w-8" />
                 <span className="text-sm font-medium">
-                  {tutorialInfo?.exists ? 'Replace tutorial video' : 'Upload tutorial video'}
+                  {tutorialInfo?.exists ? "Replace tutorial video" : "Upload tutorial video"}
                 </span>
                 <span className="text-xs">MP4, WebM, MOV (max 99MB)</span>
               </div>
@@ -952,7 +1181,9 @@ function TutorialTab() {
           />
 
           {message && (
-            <div className={`text-sm ${message.includes('success') ? 'text-green-500' : 'text-destructive'}`}>
+            <div
+              className={`text-sm ${message.includes("success") ? "text-green-500" : "text-destructive"}`}
+            >
               {message}
             </div>
           )}
@@ -970,5 +1201,5 @@ function TutorialTab() {
         </div>
       </div>
     </div>
-  )
+  );
 }

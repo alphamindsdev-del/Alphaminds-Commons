@@ -5,12 +5,7 @@ import logoMark from "@/assets/alphaminds-logo.png";
 
 function LogoMark({ className }: { className?: string }) {
   return (
-    <img
-      src={logoMark}
-      alt=""
-      aria-hidden="true"
-      className={`object-contain ${className ?? ""}`}
-    />
+    <img src={logoMark} alt="" aria-hidden="true" className={`object-contain ${className ?? ""}`} />
   );
 }
 import {
@@ -28,7 +23,13 @@ import {
 
 /* ───────── Reusable pieces ───────── */
 
-function Container({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Container({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return <div className={`mx-auto w-full max-w-6xl px-5 sm:px-8 ${className}`}>{children}</div>;
 }
 
@@ -51,14 +52,25 @@ function Photo({
   if (video) {
     return (
       <div className={`relative overflow-hidden rounded-2xl ${className}`}>
-        <video className="absolute inset-0 h-full w-full object-cover" src={video} autoPlay muted loop playsInline />
+        <video
+          className="absolute inset-0 h-full w-full object-cover"
+          src={video}
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
       </div>
     );
   }
   if (image) {
     return (
       <div className={`relative overflow-hidden rounded-2xl ${className}`}>
-        <img src={image} alt={label ?? ""} className="absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={image}
+          alt={label ?? ""}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
       </div>
     );
   }
@@ -69,7 +81,9 @@ function Photo({
     cream: "from-card to-[#dcd9cc]",
   };
   return (
-    <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${tints[tint]} ${className}`}>
+    <div
+      className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${tints[tint]} ${className}`}
+    >
       <div className="absolute inset-0 subtle-grid opacity-30" aria-hidden="true" />
       <div className="absolute inset-0 flex items-center justify-center">
         <Icon className="h-10 w-10 text-white/70" strokeWidth={1.5} />
@@ -164,7 +178,7 @@ function LandingNav() {
         </div>
       </Container>
       {open && (
-          <nav className="border-t border-divider bg-background lg:hidden">
+        <nav className="border-t border-divider bg-background lg:hidden">
           <Container className="flex flex-col py-3">
             {NAV_LINKS.map((l) => (
               <a
@@ -196,8 +210,8 @@ function Hero() {
           <br className="hidden sm:block" /> and Humanity In All Of Us.
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-sm text-text-secondary sm:text-base">
-          A growing community of curious minds exploring healthier lifestyles, purposeful living, and
-          human progress through evidence based ideas.
+          A growing community of curious minds exploring healthier lifestyles, purposeful living,
+          and human progress through evidence based ideas.
         </p>
         <div className="mt-8 flex justify-center">
           <PillLink to="/register">Join The Club</PillLink>
@@ -259,7 +273,9 @@ function NotAlone() {
           </h2>
           <div className="flex flex-col items-start gap-2 sm:items-end">
             <PillLink to="/register">Become A Member</PillLink>
-            <span className="text-xs font-semibold text-text-secondary">Alphaminds Family Spirit</span>
+            <span className="text-xs font-semibold text-text-secondary">
+              The Commons Family Spirit
+            </span>
           </div>
         </div>
         <Photo video={MEDIA.notAlone} className="mt-6 aspect-[16/9] w-full" />
@@ -275,7 +291,9 @@ function WellnessBand() {
       <Container>
         <div className="grid items-center gap-8 md:grid-cols-2">
           <div>
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-accent">Mindful, Together</p>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-accent">
+              Mindful, Together
+            </p>
             <h2 className="mt-3 font-display text-4xl font-bold leading-tight text-white sm:text-5xl">
               Safe Space for Wellness
             </h2>
@@ -297,9 +315,10 @@ function JourneyQuote() {
       <Container>
         <div className="grid items-center gap-8 md:grid-cols-2">
           <p className="font-display text-lg leading-relaxed text-text-primary sm:text-xl">
-            Life unfolds more beautifully when journeys are shared and wisdom lights the way. Walking
-            beside others, we borrow strength, perspective, and the quiet lessons experience leaves
-            behind. In that gentle exchange, living becomes deeper, warmer, and more meaningful.
+            Life unfolds more beautifully when journeys are shared and wisdom lights the way.
+            Walking beside others, we borrow strength, perspective, and the quiet lessons experience
+            leaves behind. In that gentle exchange, living becomes deeper, warmer, and more
+            meaningful.
           </p>
           <Photo image={MEDIA.journey} className="aspect-[4/3] w-full" />
         </div>
@@ -312,13 +331,24 @@ function JourneyQuote() {
 function PodcastSection() {
   return (
     <section id="podcast" className="scroll-mt-20 relative overflow-hidden py-20 text-white">
-      <video className="absolute inset-0 h-full w-full object-cover" src={MEDIA.podcast} autoPlay muted loop playsInline aria-hidden="true" />
-      <div className="absolute inset-0 bg-gradient-to-b from-accent-dark-green/85 via-accent-dark-green/55 to-accent-dark-green/90" aria-hidden="true" />
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        src={MEDIA.podcast}
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-accent-dark-green/85 via-accent-dark-green/55 to-accent-dark-green/90"
+        aria-hidden="true"
+      />
       <div className="absolute inset-0 subtle-grid opacity-20" aria-hidden="true" />
       <Container className="relative">
         <div className="flex items-center gap-3">
           <span className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-accent">
-            Alphaminds · Curiosity Lab Podcast
+            The Commons · Curiosity Lab Podcast
           </span>
           <span className="rounded-full bg-accent px-3 py-1 text-[11px] font-bold text-accent-foreground">
             Feature On The Podcast
@@ -341,8 +371,19 @@ function PodcastSection() {
 function RhythmSoul() {
   return (
     <section className="relative overflow-hidden py-24 text-white">
-      <video className="absolute inset-0 h-full w-full object-cover" src={MEDIA.rhythm} autoPlay muted loop playsInline aria-hidden="true" />
-      <div className="absolute inset-0 bg-gradient-to-b from-accent-dark-green/65 via-accent-dark-green/30 to-accent-dark-green/75" aria-hidden="true" />
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        src={MEDIA.rhythm}
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-accent-dark-green/65 via-accent-dark-green/30 to-accent-dark-green/75"
+        aria-hidden="true"
+      />
       <Container className="relative">
         <div className="flex justify-end">
           <span className="rounded-full bg-accent px-4 py-1.5 text-[11px] font-bold text-accent-foreground">
@@ -354,8 +395,8 @@ function RhythmSoul() {
           <br />& SOUL
         </h2>
         <p className="mt-8 max-w-md text-right text-xs font-bold uppercase tracking-wider text-white/90 sm:ml-auto">
-          Experience our periodic sing along sessions. It&apos;s grounding, it&apos;s uplifting, it&apos;s
-          Alphaminds.
+          Experience our periodic sing along sessions. It&apos;s grounding, it&apos;s uplifting,
+          it&apos;s The Commons.
         </p>
         <Music className="mt-10 h-12 w-12 text-accent/80" strokeWidth={1.5} />
       </Container>
@@ -371,27 +412,33 @@ function ThoughtLeader() {
         <div className="grid items-start gap-8 md:grid-cols-[200px_1fr]">
           <div>
             <div className="mx-auto h-40 w-40 overflow-hidden rounded-3xl bg-gradient-to-br from-accent-purple/80 to-accent-dark-green sm:mx-0">
-              <img src={MEDIA.drNd} alt="Dr. Nd Esther Aguh" className="h-full w-full object-cover" />
+              <img
+                src={MEDIA.drNd}
+                alt="Dr. Nd Esther Aguh"
+                className="h-full w-full object-cover"
+              />
             </div>
             <p className="mt-3 text-center text-xs text-text-secondary sm:text-left">
-              Thought Leader at AlphaMinds Commons
+              Thought Leader at The Commons
             </p>
           </div>
           <div>
-            <h2 className="font-display text-2xl font-bold text-text-primary">Dr. Nd Esther Aguh</h2>
+            <h2 className="font-display text-2xl font-bold text-text-primary">
+              Dr. Nd Esther Aguh
+            </h2>
             <p className="text-sm italic text-text-secondary">(dr Nd) Also call her: Estee</p>
             <div className="mt-4 space-y-3 text-sm leading-relaxed text-text-primary">
               <p>
-                Dr. Nd Esther Aguh is the founding voice behind AlphaMinds Commons a physician,
-                educator, and community builder who believes that human flourishing is a team sport.
+                Dr. Nd Esther Aguh is the founding voice behind The Commons a physician, educator,
+                and community builder who believes that human flourishing is a team sport.
               </p>
               <p>
                 Her work weaves evidence based science with the warmth of lived experience, inviting
                 members to grow bolder, kinder, and more curious about the world and one another.
               </p>
               <p>
-                Through AlphaMinds, she has built a home where fun, becoming, and our shared humanity
-                are not abstractions but daily practice.
+                Through The Commons, she has built a home where fun, becoming, and our shared
+                humanity are not abstractions but daily practice.
               </p>
             </div>
           </div>
@@ -407,8 +454,8 @@ function MissionStrip() {
     <section className="bg-card py-16">
       <Container>
         <p className="mx-auto max-w-3xl text-center font-display text-2xl font-bold leading-snug text-text-primary sm:text-3xl">
-          At AlphaMinds, we design our spaces and experiences so everyone feels welcome, supported, and
-          able to participate fully.
+          At The Commons, we design our spaces and experiences so everyone feels welcome, supported,
+          and able to participate fully.
         </p>
       </Container>
     </section>
@@ -427,7 +474,9 @@ function ContactSection() {
                 <Mail className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-text-primary">Email</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-text-primary">
+                  Email
+                </p>
                 <p className="text-sm text-text-secondary">alphamindsclubs@gmail.com</p>
               </div>
             </div>
@@ -436,14 +485,16 @@ function ContactSection() {
                 <Phone className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-text-primary">Phone</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-text-primary">
+                  Phone
+                </p>
                 <p className="text-sm text-text-secondary">+248 2778579</p>
               </div>
             </div>
           </div>
           <p className="text-sm leading-relaxed text-text-secondary">
-            We&apos;re constantly updating this space with new opportunities and experiences. Check back
-            often, many events and online activities are in the pipeline.
+            We&apos;re constantly updating this space with new opportunities and experiences. Check
+            back often, many events and online activities are in the pipeline.
           </p>
         </div>
       </Container>
@@ -470,7 +521,11 @@ function ComingSoon() {
         </p>
         <div className="scrollbar-none flex gap-3 overflow-x-auto pb-2">
           <div className="h-28 w-36 shrink-0 overflow-hidden rounded-2xl">
-            <img src={MEDIA.comingSoon} alt="Coming soon content" className="h-full w-full object-cover" />
+            <img
+              src={MEDIA.comingSoon}
+              alt="Coming soon content"
+              className="h-full w-full object-cover"
+            />
           </div>
           {cards.map((c, i) => (
             <div
@@ -499,12 +554,15 @@ function LandingFooter() {
         <PillLink to="/register">Become A Member</PillLink>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           {badges.map((B, i) => (
-            <span key={i} className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+            <span
+              key={i}
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10"
+            >
               <B className="h-5 w-5 text-accent" strokeWidth={1.5} />
             </span>
           ))}
         </div>
-        <p className="mt-8 text-xs text-white/50">© AlphaMinds Commons. All rights reserved.</p>
+        <p className="mt-8 text-xs text-white/50">© The Commons. All rights reserved.</p>
       </Container>
     </footer>
   );

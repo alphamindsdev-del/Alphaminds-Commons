@@ -31,7 +31,7 @@ function groupLabel(date: Date): string {
 }
 
 export const Route = createFileRoute("/notifications")({
-  head: () => ({ meta: [{ title: "Notifications · AlphaMinds" }] }),
+  head: () => ({ meta: [{ title: "Notifications · The Commons" }] }),
   component: NotificationsPage,
 });
 
@@ -45,7 +45,12 @@ function NotificationsPage() {
       type: TYPE_MAP[n.type] ?? "daily",
       title: n.title,
       body: n.body ?? "",
-      timestamp: created.toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }),
+      timestamp: created.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       unread: !(n.read ?? true),
       group: groupLabel(created),
       actionUrl: n.action_url ?? null,
@@ -93,7 +98,11 @@ function NotificationsPage() {
       <div className="flex items-end justify-between gap-4">
         <PageHeader eyebrow="Inbox" title="Notifications" />
         {total > 0 && (
-          <button onClick={handleMarkAllRead} disabled={marking} className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-xs font-bold text-primary hover:border-primary/40 transition-colors disabled:opacity-50">
+          <button
+            onClick={handleMarkAllRead}
+            disabled={marking}
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-xs font-bold text-primary hover:border-primary/40 transition-colors disabled:opacity-50"
+          >
             <CheckCheck className="h-3.5 w-3.5" />
             {marking ? "Marking..." : "Mark all read"}
           </button>
@@ -105,9 +114,13 @@ function NotificationsPage() {
           if (items.length === 0) return null;
           return (
             <section key={g}>
-              <h2 className="eyebrow px-2 mb-2">{g} · {items.length}</h2>
+              <h2 className="eyebrow px-2 mb-2">
+                {g} · {items.length}
+              </h2>
               <div className="rounded-2xl border border-border bg-card divide-y divide-border card-shadow overflow-hidden">
-                {items.map((n) => <NotificationItem key={n.id} n={n} />)}
+                {items.map((n) => (
+                  <NotificationItem key={n.id} n={n} />
+                ))}
               </div>
             </section>
           );

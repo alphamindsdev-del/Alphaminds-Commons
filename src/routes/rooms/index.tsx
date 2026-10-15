@@ -7,7 +7,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Loader2, MessagesSquare } from "lucide-react";
 
 export const Route = createFileRoute("/rooms/")({
-  head: () => ({ meta: [{ title: "Rooms · AlphaMinds" }] }),
+  head: () => ({ meta: [{ title: "Rooms · The Commons" }] }),
   component: RoomsPage,
 });
 
@@ -29,7 +29,14 @@ function RoomsPage() {
           icon={<MessagesSquare className="h-6 w-6" />}
           title="Sign in to browse rooms"
           body="Rooms are where the community talks, shares, and supports each other."
-          action={<Link to="/login" className="rounded-xl bg-primary text-primary-foreground text-sm font-bold px-5 py-2.5 inline-block">Sign in</Link>}
+          action={
+            <Link
+              to="/login"
+              className="rounded-xl bg-primary text-primary-foreground text-sm font-bold px-5 py-2.5 inline-block"
+            >
+              Sign in
+            </Link>
+          }
         />
       ) : isLoading ? (
         <div className="flex items-center justify-center py-16">

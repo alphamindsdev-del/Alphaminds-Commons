@@ -1,11 +1,11 @@
 {
-  "name": "AlphaMinds Commons",
-  "short_name": "AlphaMinds",
+  "name": "The Commons",
+  "short_name": "Commons",
   "description": "A digital community for human flourishing.",
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#2f5b64",
-  "background_color": "#0F1923",
+  "theme_color": "#F4F3EC",
+  "background_color": "#F4F3EC",
   "orientation": "portrait",
   "icons": [
     { "src": "/favicon-32x32.png", "sizes": "32x32", "type": "image/png" },

@@ -1,12 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BroadcastPage } from "@/relfi/game/routes/broadcast.$code";
+import "@/relfi/relfi.css";
 
 export const Route = createFileRoute("/rel-fi/broadcast/$code")({
   head: () => ({
-    meta: [
-      { title: "Rel-Fi Broadcast · AlphaMinds" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "REL-Fi Broadcast · The Commons" }, { name: "robots", content: "noindex" }],
   }),
   component: RelFiBroadcastPage,
 });

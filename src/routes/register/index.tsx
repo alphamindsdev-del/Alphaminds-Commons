@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { COUNTRIES } from "@/lib/countries";
 
 export const Route = createFileRoute("/register/")({
-  head: () => ({ meta: [{ title: "Create your account · AlphaMinds" }] }),
+  head: () => ({ meta: [{ title: "Create your account · The Commons" }] }),
   component: RegisterPage,
 });
 
@@ -124,53 +124,122 @@ function RegisterPage() {
 
   return (
     <div className="min-h-dvh grid lg:grid-cols-2 bg-background">
-      <div className="hidden lg:flex relative overflow-hidden flex-col justify-between p-12 text-white" style={{ background: "linear-gradient(160deg, var(--primary) 0%, var(--primary-dark) 60%, #0F1923 100%)" }}>
-        <div className="absolute inset-0 opacity-20" style={{ background: "radial-gradient(circle at 70% 30%, var(--accent) 0%, transparent 40%), radial-gradient(circle at 20% 80%, #10B981 0%, transparent 40%)" }} />
-        <img src={logo} alt="AlphaMinds" className="h-14 w-auto object-contain brightness-0 invert relative" />
+      <div
+        className="hidden lg:flex relative overflow-hidden flex-col justify-between p-12 text-white"
+        style={{
+          background:
+            "linear-gradient(160deg, var(--primary) 0%, var(--primary-dark) 60%, #0F1923 100%)",
+        }}
+      >
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            background:
+              "radial-gradient(circle at 70% 30%, var(--accent) 0%, transparent 40%), radial-gradient(circle at 20% 80%, #10B981 0%, transparent 40%)",
+          }}
+        />
+        <img
+          src={logo}
+          alt="The Commons"
+          className="h-14 w-auto object-contain brightness-0 invert relative"
+        />
         <div className="relative">
-          <p className="font-display text-4xl font-black leading-tight max-w-md">"Belonging is built. One small showing up at a time."</p>
-          <p className="mt-4 text-white/70 text-sm uppercase tracking-widest font-bold">The Commons</p>
+          <p className="font-display text-4xl font-black leading-tight max-w-md">
+            "Belonging is built. One small showing up at a time."
+          </p>
+          <p className="mt-4 text-white/70 text-sm uppercase tracking-widest font-bold">
+            The Commons
+          </p>
         </div>
-        <p className="relative text-xs text-white/50">© AlphaMinds Commons</p>
+        <p className="relative text-xs text-white/50">© The Commons</p>
       </div>
 
       <div className="flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-sm">
-          <div className="lg:hidden mb-6 flex justify-center"><img src={logo} alt="AlphaMinds" className="h-12 w-auto object-contain" /></div>
+          <div className="lg:hidden mb-6 flex justify-center">
+            <img src={logo} alt="The Commons" className="h-12 w-auto object-contain" />
+          </div>
           <h1 className="font-black text-3xl text-text-primary">Create your account</h1>
           <p className="text-text-secondary mt-1">Join the Commons in under a minute.</p>
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <Field label="Full Name">
-              <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" className="w-full rounded-[10px] border border-border bg-surface px-4 py-3" />
+              <input
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your full name"
+                className="w-full rounded-[10px] border border-border bg-surface px-4 py-3"
+              />
             </Field>
             <Field label="Username">
               <div className="flex items-stretch rounded-[10px] border border-border bg-surface overflow-hidden">
-                <span className="flex items-center px-3 text-text-secondary font-semibold border-r border-border">@</span>
-                <input required value={username} onChange={(e) => setUsername(e.target.value)} placeholder="username" className="flex-1 bg-transparent px-3 py-3" />
+                <span className="flex items-center px-3 text-text-secondary font-semibold border-r border-border">
+                  @
+                </span>
+                <input
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="username"
+                  className="flex-1 bg-transparent px-3 py-3"
+                />
               </div>
             </Field>
             <Field label="Email">
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" className="w-full rounded-[10px] border border-border bg-surface px-4 py-3" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@email.com"
+                className="w-full rounded-[10px] border border-border bg-surface px-4 py-3"
+              />
             </Field>
             <Field label="Password">
-              <input type="password" required minLength={8} value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Min 8 characters" className="w-full rounded-[10px] border border-border bg-surface px-4 py-3" />
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                placeholder="Min 8 characters"
+                className="w-full rounded-[10px] border border-border bg-surface px-4 py-3"
+              />
               <div className="mt-2 grid grid-cols-4 gap-1">
                 {[0, 1, 2, 3].map((i) => (
                   <div key={i} className="h-1 rounded-full bg-subtle overflow-hidden">
-                    <div className="h-full transition-all" style={{ width: i < s ? "100%" : "0%", background: colors[s] }} />
+                    <div
+                      className="h-full transition-all"
+                      style={{ width: i < s ? "100%" : "0%", background: colors[s] }}
+                    />
                   </div>
                 ))}
               </div>
-              {pw && <p className="text-xs mt-1 font-semibold" style={{ color: colors[s] }}>{labels[s]}</p>}
+              {pw && (
+                <p className="text-xs mt-1 font-semibold" style={{ color: colors[s] }}>
+                  {labels[s]}
+                </p>
+              )}
             </Field>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Country">
                 <div className="relative" ref={countryRef}>
-                  <button type="button" onClick={() => setCountryOpen(!countryOpen)} className="w-full rounded-[10px] border border-border bg-surface px-3 py-3 flex items-center gap-2 text-left">
+                  <button
+                    type="button"
+                    onClick={() => setCountryOpen(!countryOpen)}
+                    className="w-full rounded-[10px] border border-border bg-surface px-3 py-3 flex items-center gap-2 text-left"
+                  >
                     {(() => {
                       const c = COUNTRIES.find((c) => c.name === country);
-                      return c ? <><span className="text-lg">{c.flag}</span><span className="truncate">{c.name}</span></> : <span className="text-text-secondary">Select country</span>;
+                      return c ? (
+                        <>
+                          <span className="text-lg">{c.flag}</span>
+                          <span className="truncate">{c.name}</span>
+                        </>
+                      ) : (
+                        <span className="text-text-secondary">Select country</span>
+                      );
                     })()}
                     <span className="ml-auto text-text-secondary text-xs">▼</span>
                   </button>
@@ -187,11 +256,17 @@ function RegisterPage() {
                         />
                       </div>
                       <div className="overflow-y-auto max-h-56">
-                        {COUNTRIES.filter((c) => c.name.toLowerCase().includes(countrySearch.toLowerCase())).map((c) => (
+                        {COUNTRIES.filter((c) =>
+                          c.name.toLowerCase().includes(countrySearch.toLowerCase()),
+                        ).map((c) => (
                           <button
                             key={c.code}
                             type="button"
-                            onClick={() => { setCountry(c.name); setCountryOpen(false); setCountrySearch(""); }}
+                            onClick={() => {
+                              setCountry(c.name);
+                              setCountryOpen(false);
+                              setCountrySearch("");
+                            }}
                             className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-subtle transition-colors"
                           >
                             <span className="text-lg">{c.flag}</span>
@@ -203,25 +278,54 @@ function RegisterPage() {
                   )}
                 </div>
               </Field>
-              <Field label="Age"><input type="number" min={13} value={age} onChange={(e) => setAge(e.target.value)} placeholder="e.g. 25" className="w-full rounded-[10px] border border-border bg-surface px-4 py-3" /></Field>
+              <Field label="Age">
+                <input
+                  type="number"
+                  min={13}
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  placeholder="e.g. 25"
+                  className="w-full rounded-[10px] border border-border bg-surface px-4 py-3"
+                />
+              </Field>
             </div>
             <Field label="Gender (optional)">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 {GENDER_OPTIONS.map((g) => (
-                  <label key={g} className="flex items-center gap-2 rounded-[10px] border border-border bg-surface px-3 py-2.5 cursor-pointer">
-                    <input type="radio" name="gender" checked={gender === g} onChange={() => setGender(g)} className="accent-primary" />
+                  <label
+                    key={g}
+                    className="flex items-center gap-2 rounded-[10px] border border-border bg-surface px-3 py-2.5 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name="gender"
+                      checked={gender === g}
+                      onChange={() => setGender(g)}
+                      className="accent-primary"
+                    />
                     <span>{g}</span>
                   </label>
                 ))}
               </div>
             </Field>
             {registerMutation.isError && (
-              <p className="text-sm font-semibold text-red-500">{(registerMutation.error as any)?.message ?? "Registration failed"}</p>
+              <p className="text-sm font-semibold text-red-500">
+                {(registerMutation.error as any)?.message ?? "Registration failed"}
+              </p>
             )}
-            <button type="submit" disabled={registerMutation.isPending} className="w-full rounded-xl bg-primary text-primary-foreground font-bold py-3 disabled:opacity-50">
+            <button
+              type="submit"
+              disabled={registerMutation.isPending}
+              className="w-full rounded-xl bg-primary text-primary-foreground font-bold py-3 disabled:opacity-50"
+            >
               {registerMutation.isPending ? "Creating account..." : "Create My Account"}
             </button>
-            <p className="text-center text-sm text-text-secondary">Already have an account? <Link to="/login" className="text-primary font-bold">Sign In</Link></p>
+            <p className="text-center text-sm text-text-secondary">
+              Already have an account?{" "}
+              <Link to="/login" className="text-primary font-bold">
+                Sign In
+              </Link>
+            </p>
           </form>
         </div>
       </div>
@@ -232,7 +336,9 @@ function RegisterPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-bold uppercase tracking-widest text-text-secondary mb-2">{label}</label>
+      <label className="block text-xs font-bold uppercase tracking-widest text-text-secondary mb-2">
+        {label}
+      </label>
       {children}
     </div>
   );

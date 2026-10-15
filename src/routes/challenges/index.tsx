@@ -10,7 +10,7 @@ import { Target } from "lucide-react";
 import { PageHeader, SectionHeading } from "@/components/common/PageHeader";
 
 export const Route = createFileRoute("/challenges/")({
-  head: () => ({ meta: [{ title: "Challenges · AlphaMinds" }] }),
+  head: () => ({ meta: [{ title: "Challenges · The Commons" }] }),
   component: ChallengesPage,
 });
 
@@ -45,10 +45,18 @@ function ChallengesPage() {
   const pills = (
     <div className="flex gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
       {filters.map((x) => (
-        <button key={x.id} onClick={() => setF(x.id)} className={cn(
-          "shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all",
-          f === x.id ? "bg-primary text-primary-foreground shadow-[0_8px_20px_-8px_rgba(20,20,18,0.5)]" : "bg-card border border-border text-text-secondary hover:text-text-primary hover:border-primary/30",
-        )}>{x.label}</button>
+        <button
+          key={x.id}
+          onClick={() => setF(x.id)}
+          className={cn(
+            "shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-all",
+            f === x.id
+              ? "bg-primary text-primary-foreground shadow-[0_8px_20px_-8px_rgba(20,20,18,0.5)]"
+              : "bg-card border border-border text-text-secondary hover:text-text-primary hover:border-primary/30",
+          )}
+        >
+          {x.label}
+        </button>
       ))}
     </div>
   );
@@ -58,7 +66,9 @@ function ChallengesPage() {
       <div className="space-y-8">
         {header}
         <div className="grid sm:grid-cols-2 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
         </div>
       </div>
     );
@@ -73,7 +83,11 @@ function ChallengesPage() {
         <section>
           <SectionHeading kicker="In Motion" title="Your Active Challenges" />
           {active.length > 0 ? (
-            <div className="grid sm:grid-cols-2 gap-4">{active.map((c: any) => <ChallengeCard key={c.id} challenge={c} />)}</div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {active.map((c: any) => (
+                <ChallengeCard key={c.id} challenge={c} />
+              ))}
+            </div>
           ) : (
             <EmptyState
               icon={<Target className="h-6 w-6" />}
@@ -86,7 +100,11 @@ function ChallengesPage() {
         <section>
           <SectionHeading kicker="Discover" title="Find Your Next One" />
           {discover.length > 0 ? (
-            <div className="grid sm:grid-cols-2 gap-4">{discover.map((c: any) => <ChallengeCard key={c.id} challenge={c} />)}</div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {discover.map((c: any) => (
+                <ChallengeCard key={c.id} challenge={c} />
+              ))}
+            </div>
           ) : (
             <EmptyState
               icon={<Target className="h-6 w-6" />}
@@ -104,7 +122,11 @@ function ChallengesPage() {
       {header}
       {pills}
       {list.length > 0 ? (
-        <div className="grid sm:grid-cols-2 gap-4">{list.map((c: any) => <ChallengeCard key={c.id} challenge={c} />)}</div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          {list.map((c: any) => (
+            <ChallengeCard key={c.id} challenge={c} />
+          ))}
+        </div>
       ) : (
         <EmptyState
           icon={<Target className="h-6 w-6" />}

@@ -20,7 +20,7 @@ export function SplashScreen() {
         <div className="splash-logo-halo" />
         <div className="splash-brand">
           <img src={logoMark} alt="" width="110" height="110" />
-          <span>AlphaMinds</span>
+          <span>The Commons</span>
         </div>
       </div>
     </motion.div>

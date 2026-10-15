@@ -1,5 +1,26 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { X, Home, Calendar, User, Bell, Settings, Sparkles, Shield, LogOut, Moon, Sun, GraduationCap, Newspaper, Leaf, Flame, Map, Library, ScrollText, Target, Lock } from "lucide-react";
+import {
+  X,
+  Home,
+  Calendar,
+  User,
+  Bell,
+  Settings,
+  Sparkles,
+  Shield,
+  LogOut,
+  Moon,
+  Sun,
+  GraduationCap,
+  Newspaper,
+  Leaf,
+  Flame,
+  Map,
+  Library,
+  ScrollText,
+  Target,
+  Lock,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
@@ -17,7 +38,7 @@ const navItems = [
   { to: "/alpha-minds-daily", label: "Alpha Minds Daily", icon: Newspaper, minLevel: 0 },
   { to: "/plans", label: "Plans", icon: Target, minLevel: 1 },
   { to: "/wellness-clinic", label: "Wellness Clinic", icon: Leaf, minLevel: 1 },
-  { to: "/rel-fi", label: "Rel-Fi Game", icon: Flame, minLevel: 1 },
+  { to: "/rel-fi", label: "REL-Fi", icon: Flame, minLevel: 1 },
   { to: "/my-chapter", label: "My Chapter", icon: Map, minLevel: 0 },
   { to: "/events", label: "Events", icon: Calendar, minLevel: 1 },
   { to: "/library", label: "Library", icon: Library, minLevel: 0 },
@@ -68,7 +89,11 @@ export function MobileSidebar({ open, onClose }: { open: boolean; onClose: () =>
           >
             <div className="flex items-center justify-between px-4 h-14 shrink-0">
               <Logo size="sm" />
-              <button onClick={onClose} className="h-9 w-9 rounded-full bg-subtle flex items-center justify-center hover:bg-border transition-colors" aria-label="Close menu">
+              <button
+                onClick={onClose}
+                className="h-9 w-9 rounded-full bg-subtle flex items-center justify-center hover:bg-border transition-colors"
+                aria-label="Close menu"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -77,7 +102,9 @@ export function MobileSidebar({ open, onClose }: { open: boolean; onClose: () =>
               <Link to="/profile" onClick={onClose} className="flex items-center gap-3">
                 <Avatar name={member.display_name} size="md" src={member.avatar_url} />
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-sm truncate text-text-primary">{member.display_name}</p>
+                  <p className="font-semibold text-sm truncate text-text-primary">
+                    {member.display_name}
+                  </p>
                   <p className="text-xs text-text-secondary truncate">@{member.username}</p>
                 </div>
               </Link>
@@ -97,12 +124,16 @@ export function MobileSidebar({ open, onClose }: { open: boolean; onClose: () =>
                     onClick={onClose}
                     className={cn(
                       "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors min-h-[44px]",
-                      active ? "bg-card text-text-primary" : isLocked
-                        ? "text-lock-gray hover:bg-subtle"
-                        : "text-text-secondary hover:bg-subtle hover:text-text-primary",
+                      active
+                        ? "bg-card text-text-primary"
+                        : isLocked
+                          ? "text-lock-gray hover:bg-subtle"
+                          : "text-text-secondary hover:bg-subtle hover:text-text-primary",
                     )}
                   >
-                    <Icon className={isLocked ? "h-5 w-5 shrink-0 text-lock-gray" : "h-5 w-5 shrink-0"} />
+                    <Icon
+                      className={isLocked ? "h-5 w-5 shrink-0 text-lock-gray" : "h-5 w-5 shrink-0"}
+                    />
                     <span className="flex-1">{item.label}</span>
                     {isLocked && (
                       <span className="ml-auto h-5 w-5 rounded-full bg-lock-gray/15 text-lock-gray inline-flex items-center justify-center">
@@ -123,7 +154,9 @@ export function MobileSidebar({ open, onClose }: { open: boolean; onClose: () =>
                   onClick={onClose}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors min-h-[44px]",
-                    pathname.startsWith("/admin") ? "bg-card text-text-primary" : "text-text-secondary hover:bg-subtle hover:text-text-primary",
+                    pathname.startsWith("/admin")
+                      ? "bg-card text-text-primary"
+                      : "text-text-secondary hover:bg-subtle hover:text-text-primary",
                   )}
                 >
                   <Shield className="h-5 w-5 shrink-0" />
@@ -152,8 +185,20 @@ export function MobileSidebar({ open, onClose }: { open: boolean; onClose: () =>
               >
                 <Settings className="h-5 w-5 shrink-0" />
                 <span className="flex-1">Settings</span>
-                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggle(); }} className="h-8 w-8 rounded-full bg-subtle flex items-center justify-center hover:bg-border transition-colors" aria-label="Toggle theme">
-                  {theme === "light" ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggle();
+                  }}
+                  className="h-8 w-8 rounded-full bg-subtle flex items-center justify-center hover:bg-border transition-colors"
+                  aria-label="Toggle theme"
+                >
+                  {theme === "light" ? (
+                    <Moon className="h-3.5 w-3.5" />
+                  ) : (
+                    <Sun className="h-3.5 w-3.5" />
+                  )}
                 </button>
               </Link>
               <button
