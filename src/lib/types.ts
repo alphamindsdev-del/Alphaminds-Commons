@@ -338,8 +338,33 @@ export interface EventRegistration {
   email?: string;
 }
 
+export type JourneyCompletionRule =
+  | "acknowledge"
+  | "resource"
+  | "quiz"
+  | "activity"
+  | "admin";
+
+export interface JourneyQuizQuestion {
+  id: string;
+  prompt: string;
+  options: string[];
+}
+
+export interface JourneyAttempt {
+  id: string;
+  activity_id: string;
+  status: string;
+  completion_type: string | null;
+  verification_status: string | null;
+  evidence_json: string | null;
+  started_at: string;
+  completed_at: string | null;
+}
+
 export interface JourneyActivity {
   id: string;
+  level: string;
   title: string;
   description: string | null;
   type: string;
@@ -348,14 +373,38 @@ export interface JourneyActivity {
   link_url: string | null;
   position: number;
   is_required: boolean;
-  status: "completed" | "active" | "locked";
+  status: "completed" | "active" | "available" | "locked";
   completed_at: string | null;
+  started_at: string | null;
+  last_started_at: string | null;
+  completion_type: string | null;
+  verification_status: string | null;
+  evidence: Record<string, unknown>;
+  attempts: number;
+  completion_rule: JourneyCompletionRule;
+  repeatable: boolean;
+  passing_score: number;
+  quiz_questions: JourneyQuizQuestion[];
+  history: JourneyAttempt[];
+}
+
+export interface JourneyLevelSummary {
+  level: string;
+  completed_count: number;
+  total_count: number;
+  is_current: boolean;
+  accessible: boolean;
 }
 
 export interface JourneyData {
   level: string;
+  requested_level?: string;
+  is_previous_level?: boolean;
+  member_level?: string;
   next_level: string | null;
   completed_count: number;
   total_count: number;
   activities: JourneyActivity[];
+  levels?: JourneyLevelSummary[];
 }
+

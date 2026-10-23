@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/components/common/ComingSoon";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/wellness-clinic")({
-  head: () => ({ meta: [{ title: "Wellness Clinic · The Commons" }] }),
-  component: () => <ComingSoon title="Wellness Clinic" />,
+  head: () => ({
+    meta: [{ title: "Wellness Clinic · AlphaBody" }],
+  }),
+  component: () => <Navigate to="/alpha-body" replace />,
 });

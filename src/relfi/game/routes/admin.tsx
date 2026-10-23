@@ -56,6 +56,12 @@ export function Admin() {
   }, [user]);
 
   useEffect(() => {
+    if (!selectedDeckId && decks.length > 0) {
+      setSelectedDeckId(decks[0].id);
+    }
+  }, [decks, selectedDeckId]);
+
+  useEffect(() => {
     if (selectedDeckId) {
       api
         .getDeck(selectedDeckId)
@@ -137,6 +143,7 @@ export function Admin() {
 
   async function deleteCard(cardId: string) {
     if (!selectedDeckId) return;
+    if (!window.confirm("Delete this card? This cannot be undone.")) return;
     try {
       await api.deleteCard(selectedDeckId, cardId);
       setCards((cs) => cs.filter((c) => c.id !== cardId));
@@ -165,6 +172,7 @@ export function Admin() {
 
   async function deletePendingCard(pendingId: string) {
     if (!selectedDeckId) return;
+    if (!window.confirm("Remove this pending image card?")) return;
     try {
       await api.deletePendingCard(selectedDeckId, pendingId);
       setPendingCards((ps) => ps.filter((p) => p.id !== pendingId));
@@ -203,6 +211,7 @@ export function Admin() {
   }
 
   async function deleteCategory(id: string) {
+    if (!window.confirm("Delete this category? Cards using it may need to be reassigned.")) return;
     try {
       await api.deleteCategory(id);
       setCategories((cs) => cs.filter((c) => c.id !== id));

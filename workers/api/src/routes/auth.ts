@@ -247,8 +247,8 @@ authRouter.get('/relfi-handoff', authMiddleware, async (c) => {
   const session = getSession(c);
 
   const member = await c.env.DB.prepare(
-    'SELECT display_name FROM members WHERE id = ? AND deleted_at IS NULL',
-  ).bind(session.member_id).first<{ display_name: string }>();
+    'SELECT display_name, role FROM members WHERE id = ? AND deleted_at IS NULL',
+  ).bind(session.member_id).first<{ display_name: string; role: string }>();
 
   if (!c.env.RELFI_SERVICE_SECRET) {
     console.error('[relfi-handoff] RELFI_SERVICE_SECRET is missing or empty');
@@ -260,7 +260,7 @@ authRouter.get('/relfi-handoff', authMiddleware, async (c) => {
     email: session.email,
     username: session.username,
     display_name: member?.display_name || session.username,
-    role: session.role,
+    role: member?.role ?? session.role,
   });
 
   return c.json({ handoff });

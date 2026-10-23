@@ -12,6 +12,7 @@ import type { ChallengeItem, JourneyData } from "@/lib/types";
 import { getMediaUrl } from "@/lib/utils";
 import { levelCopy } from "@/lib/levels";
 import { LandingPage } from "@/components/landing/LandingPage";
+import { ProductSwitcher } from "@/components/layout/ProductSwitcher";
 
 import { SkeletonCard } from "@/components/common/SkeletonCard";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -107,6 +108,7 @@ function ProgressRing({
 function CommonsHeader({ name, streak }: { name: string; streak: number }) {
   return (
     <header className="space-y-3">
+      <ProductSwitcher showLabel={false} className="max-w-md" />
       <h1 className="text-[26px] sm:text-[34px] font-extrabold text-text-primary leading-[1.1] tracking-tight">
         {greeting()},{" "}
         <span className="relative inline-block">

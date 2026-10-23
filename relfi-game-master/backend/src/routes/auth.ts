@@ -124,19 +124,46 @@ authRoutes.post('/embedded', async (c) => {
   }
 
   const alphaId = claims.sub
+  const nextRole = claims.role === 'admin' || claims.role === 'founder' ? 'admin' : 'player'
+  const nextName = claims.display_name || claims.username || 'AlphaMinds User'
+
   let user = await getUserByExternalAuth(c.env.DB, 'alphaminds', alphaId)
+
+  // Link an existing standalone account that uses the same email, rather than
+  // failing on the UNIQUE(email) constraint.
+  if (!user && claims.email) {
+    const byEmail = await getUserByEmail(c.env.DB, claims.email)
+    if (byEmail && (!byEmail.external_auth_source || byEmail.external_auth_source === 'alphaminds')) {
+      await c.env.DB.prepare(
+        `UPDATE users
+         SET external_auth_source = 'alphaminds', external_auth_id = ?, role = ?, display_name = ?
+         WHERE id = ?`,
+      )
+        .bind(alphaId, nextRole, nextName, byEmail.id)
+        .run()
+      user = await getUserById(c.env.DB, byEmail.id as string)
+    }
+  }
+
   if (!user) {
     const id = generateId()
     await createUser(c.env.DB, {
       id,
-      display_name: claims.display_name || 'AlphaMinds User',
+      display_name: nextName,
       email: claims.email || null,
-      role: claims.role === 'admin' ? 'admin' : 'player',
+      role: nextRole,
       external_auth_source: 'alphaminds',
       external_auth_id: alphaId,
       created_at: now(),
     })
     user = await getUserById(c.env.DB, id)
+  } else if (user.role !== nextRole || user.display_name !== nextName) {
+    // Keep the embedded account in sync with the AlphaMinds profile on every
+    // handoff, so promotions/demotions take effect without a separate login.
+    await c.env.DB.prepare('UPDATE users SET role = ?, display_name = ? WHERE id = ?')
+      .bind(nextRole, nextName, user.id)
+      .run()
+    user = await getUserById(c.env.DB, user.id as string)
   }
 
   const jwt = await signToken(

@@ -29,6 +29,12 @@ import {
 import { authMiddleware, getSession } from "../middleware/auth.js";
 import { deleteDailyContentCache } from "../lib/kv.js";
 import { requireRole } from "../middleware/requireRole.js";
+import {
+  buildJourney,
+  buildLevelSummaries,
+  maybePromote,
+  LEVELS,
+} from "./journey.js";
 
 type AuthEnv = { Bindings: Env; Variables: { session: SessionPayload } };
 
@@ -2086,121 +2092,275 @@ adminRouter.delete("/code/:id/unsave", async (c) => {
 
 // ─── Member Journey Progress ─────────────────────────────────────
 
-adminRouter.get("/members/:memberId/journey-progress", async (c) => {
-  const { memberId } = c.req.param();
-  const progress = await c.env.DB.prepare(
-    `SELECT m.*, a.position AS activity_position, a.title AS activity_title
-     FROM member_journey_progress m
-     JOIN journey_activities a ON a.id = m.activity_id
-     WHERE m.member_id = ?
-     ORDER BY a.position ASC, m.created_at DESC`,
+adminRouter.get("/journey-progress-overview", async (c) => {
+  const search = (c.req.query("search") ?? "").trim();
+  const level = (c.req.query("level") ?? "").toUpperCase();
+  const limit = Math.min(parseInt(c.req.query("limit") || "50", 10), 100);
+  const clauses: string[] = ["m.deleted_at IS NULL"];
+  const params: any[] = [];
+  if (search) {
+    clauses.push("(m.full_name LIKE ? OR m.email LIKE ?)");
+    params.push(`%${search}%`, `%${search}%`);
+  }
+  if (LEVELS.includes(level)) {
+    clauses.push("m.membership_level = ?");
+    params.push(level);
+  }
+  params.push(limit);
+
+  const result = await c.env.DB.prepare(
+    `SELECT m.id, m.full_name, m.email, m.membership_level,
+            (SELECT COUNT(*) FROM member_journey_progress p
+              WHERE p.member_id = m.id AND p.status = 'completed') AS completed_count,
+            (SELECT COUNT(*) FROM member_journey_progress p
+              WHERE p.member_id = m.id AND p.verification_status = 'pending') AS pending_count,
+            (SELECT COUNT(*) FROM journey_activities a
+              WHERE a.level = m.membership_level AND a.is_required = 1
+                AND a.is_published = 1 AND a.deleted_at IS NULL) AS required_total
+     FROM members m
+     WHERE ${clauses.join(" AND ")}
+     ORDER BY m.full_name ASC
+     LIMIT ?`,
   )
-    .bind(memberId)
+    .bind(...params)
     .all();
-  return c.json({ data: progress.results });
+
+  return c.json({ data: result.results });
 });
 
-adminRouter.patch("/members/:memberId/journey-progress/:activityId/complete", async (c) => {
-  const { memberId, activityId } = c.req.param();
-  const session = getSession(c as any);
-  const now = new Date().toISOString();
+adminRouter.get("/members/:memberId/journey-progress", async (c) => {
+  const { memberId } = c.req.param();
+  const requested = (c.req.query("level") ?? "").toUpperCase();
 
-  // Check if activity exists
+  const member = await c.env.DB.prepare(
+    "SELECT id, full_name, email, membership_level FROM members WHERE id = ? AND deleted_at IS NULL",
+  )
+    .bind(memberId)
+    .first<{ id: string; full_name: string; email: string; membership_level: string }>();
+  if (!member) {
+    return c.json({ error: "Member not found", code: ERROR_CODES.NOT_FOUND }, 404);
+  }
+
+  let level = member.membership_level;
+  if (requested) {
+    if (!LEVELS.includes(requested)) {
+      return c.json({ error: "Unknown journey level", code: ERROR_CODES.VALIDATION_ERROR }, 400);
+    }
+    level = requested;
+  }
+
+  const [journey, levels, attempts] = await Promise.all([
+    buildJourney(c.env.DB, memberId, level, member.membership_level, requested || undefined),
+    buildLevelSummaries(c.env.DB, memberId, member.membership_level),
+    c.env.DB.prepare(
+      `SELECT t.*, a.title AS activity_title, a.level AS activity_level
+       FROM member_journey_attempts t
+       JOIN journey_activities a ON a.id = t.activity_id
+       WHERE t.member_id = ?
+       ORDER BY t.created_at DESC
+       LIMIT 100`,
+    )
+      .bind(memberId)
+      .all(),
+  ]);
+
+  return c.json({
+    member,
+    journey,
+    levels,
+    attempts: attempts.results,
+    data: journey.activities,
+  });
+});
+
+async function adminCompleteActivity(
+  c: any,
+  memberId: string,
+  activityId: string,
+  adminId: string,
+  note: string | null,
+) {
+  const now = new Date().toISOString();
   const activity = await c.env.DB.prepare(
     "SELECT * FROM journey_activities WHERE id = ? AND deleted_at IS NULL",
   )
     .bind(activityId)
     .first();
-  if (!activity) {
-    return c.json({ error: "Activity not found", code: ERROR_CODES.NOT_FOUND }, 404);
-  }
+  if (!activity) return { error: "Activity not found", status: 404 };
 
-  // Check if member has completed this activity already
-  const existingProgress = await c.env.DB.prepare(
-    "SELECT * FROM member_journey_progress WHERE member_id = ? AND activity_id = ?",
-  )
-    .bind(memberId, activityId)
-    .first();
-
-  if (existingProgress) {
-    // Update existing progress
-    await c.env.DB.prepare(
-      "UPDATE member_journey_progress SET status = ?, completed_at = ?, updated_at = ? WHERE member_id = ? AND activity_id = ?",
-    )
-      .bind("completed", now, now, memberId, activityId)
-      .run();
-  } else {
-    // Create new progress record
-    await c.env.DB.prepare(
-      "INSERT INTO member_journey_progress (id, member_id, activity_id, status, completed_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    )
-      .bind(crypto.randomUUID(), memberId, activityId, "completed", now, now, now)
-      .run();
-  }
-
-  // Check if all required activities for current level are complete
-  const member = await c.env.DB.prepare(
+  const member = (await c.env.DB.prepare(
     "SELECT membership_level FROM members WHERE id = ? AND deleted_at IS NULL",
   )
     .bind(memberId)
-    .first<{ membership_level: string }>();
-  if (!member) {
-    return c.json({ error: "Member not found", code: ERROR_CODES.NOT_FOUND }, 404);
-  }
+    .first()) as { membership_level: string } | null;
+  if (!member) return { error: "Member not found", status: 404 };
 
-  const currentLevel = member.membership_level;
-  const allActivities = await c.env.DB.prepare(
-    `SELECT * FROM journey_activities WHERE level = ? AND is_required = 1 AND is_published = 1 AND deleted_at IS NULL ORDER BY position ASC`,
+  const evidence = JSON.stringify({ verified_by: adminId, verified_at: now, note });
+  const existing = (await c.env.DB.prepare(
+    "SELECT id, attempts FROM member_journey_progress WHERE member_id = ? AND activity_id = ?",
   )
-    .bind(currentLevel)
-    .all();
+    .bind(memberId, activityId)
+    .first()) as { id: string; attempts: number | null } | null;
 
-  if (allActivities.results.length > 0) {
-    const activityIds = allActivities.results.map((a: any) => a.id);
-    const placeholders = activityIds.map(() => "?").join(", ");
-    const completedCount = await c.env.DB.prepare(
-      `SELECT COUNT(*) as count FROM member_journey_progress WHERE member_id = ? AND activity_id IN (${placeholders}) AND status = 'completed'`,
+  if (existing) {
+    await c.env.DB.prepare(
+      `UPDATE member_journey_progress
+       SET status = 'completed', completed_at = ?, completion_type = 'admin_verified',
+           verification_status = 'verified', evidence_json = ?, attempts = ?, updated_at = ?
+       WHERE id = ?`,
     )
-      .bind(memberId, ...activityIds)
-      .first<{ count: number }>();
-
-    if ((completedCount?.count ?? 0) >= allActivities.results.length) {
-      // Auto-promote to next level
-      const levels: string[] = [
-        "SEEKER",
-        "EXAMINER",
-        "FACILITATOR",
-        "STEWARD",
-        "CHAPTER_LEADER",
-        "COORDINATOR",
-      ];
-      const currentIndex = levels.indexOf(currentLevel);
-      if (currentIndex >= 0 && currentIndex < levels.length - 1) {
-        const nextLevel = levels[currentIndex + 1];
-        await c.env.DB.prepare(
-          "UPDATE members SET membership_level = ?, updated_at = ? WHERE id = ?",
-        )
-          .bind(nextLevel, now, memberId)
-          .run();
-
-        await c.env.DB.prepare(
-          "INSERT INTO admin_audit_log (id, admin_id, action, target_type, target_id, after_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        )
-          .bind(
-            crypto.randomUUID(),
-            session.member_id,
-            "promote_member",
-            "member",
-            memberId,
-            JSON.stringify({ from: currentLevel, to: nextLevel }),
-            now,
-          )
-          .run();
-      }
-    }
+      .bind(now, evidence, (existing.attempts ?? 0) + 1, now, existing.id)
+      .run();
+  } else {
+    await c.env.DB.prepare(
+      `INSERT INTO member_journey_progress
+         (id, member_id, activity_id, status, completed_at, completion_type, verification_status,
+          evidence_json, attempts, created_at, updated_at)
+       VALUES (?, ?, ?, 'completed', ?, 'admin_verified', 'verified', ?, 1, ?, ?)`,
+    )
+      .bind(crypto.randomUUID(), memberId, activityId, now, evidence, now, now)
+      .run();
   }
 
-  return c.json({ success: true });
+  const openAttempt = (await c.env.DB.prepare(
+    "SELECT id FROM member_journey_attempts WHERE member_id = ? AND activity_id = ? AND status = 'started' ORDER BY created_at DESC LIMIT 1",
+  )
+    .bind(memberId, activityId)
+    .first()) as { id: string } | null;
+
+  if (openAttempt) {
+    await c.env.DB.prepare(
+      `UPDATE member_journey_attempts
+       SET status = 'completed', completed_at = ?, completion_type = 'admin_verified',
+           verification_status = 'verified', evidence_json = ?
+       WHERE id = ?`,
+    )
+      .bind(now, evidence, openAttempt.id)
+      .run();
+  } else {
+    await c.env.DB.prepare(
+      `INSERT INTO member_journey_attempts
+         (id, member_id, activity_id, status, completion_type, verification_status, evidence_json,
+          started_at, completed_at, created_at)
+       VALUES (?, ?, ?, 'completed', 'admin_verified', 'verified', ?, ?, ?, ?)`,
+    )
+      .bind(crypto.randomUUID(), memberId, activityId, evidence, now, now, now)
+      .run();
+  }
+
+  let promoted = false;
+  let newLevel: string | null = null;
+  if (activity.level === member.membership_level) {
+    const result = await maybePromote(c.env.DB, memberId, member.membership_level, now, adminId);
+    promoted = result.promoted;
+    newLevel = result.newLevel;
+  }
+
+  await c.env.DB.prepare(
+    "INSERT INTO admin_audit_log (id, admin_id, action, target_type, target_id, after_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+  )
+    .bind(
+      crypto.randomUUID(),
+      adminId,
+      "complete_journey_activity",
+      "member",
+      memberId,
+      JSON.stringify({ activity_id: activityId, note, promoted, new_level: newLevel }),
+      now,
+    )
+    .run();
+
+  const journey = await buildJourney(
+    c.env.DB,
+    memberId,
+    newLevel ?? member.membership_level,
+    newLevel ?? member.membership_level,
+  );
+  return { success: true, promoted, new_level: newLevel, journey };
+}
+
+adminRouter.patch("/members/:memberId/journey-progress/:activityId/complete", async (c) => {
+  const { memberId, activityId } = c.req.param();
+  const session = getSession(c as any);
+  const body = await c.req.json().catch(() => ({} as any));
+  const result = await adminCompleteActivity(
+    c,
+    memberId,
+    activityId,
+    session.member_id,
+    typeof body?.note === "string" ? body.note : null,
+  );
+  if ("error" in result) {
+    return c.json({ error: result.error, code: ERROR_CODES.NOT_FOUND }, result.status as any);
+  }
+  return c.json(result);
+});
+
+adminRouter.patch("/members/:memberId/journey-progress/:activityId/verify", async (c) => {
+  const { memberId, activityId } = c.req.param();
+  const session = getSession(c as any);
+  const body = await c.req.json().catch(() => ({} as any));
+  const decision = body?.decision;
+
+  if (decision !== "verified" && decision !== "rejected") {
+    return c.json(
+      { error: "decision must be 'verified' or 'rejected'", code: ERROR_CODES.VALIDATION_ERROR },
+      400,
+    );
+  }
+
+  if (decision === "verified") {
+    const result = await adminCompleteActivity(
+      c,
+      memberId,
+      activityId,
+      session.member_id,
+      typeof body?.note === "string" ? body.note : null,
+    );
+    if ("error" in result) {
+      return c.json({ error: result.error, code: ERROR_CODES.NOT_FOUND }, result.status as any);
+    }
+    return c.json(result);
+  }
+
+  const now = new Date().toISOString();
+  const evidence = JSON.stringify({
+    reviewed_by: session.member_id,
+    reviewed_at: now,
+    note: typeof body?.note === "string" ? body.note : null,
+    decision: "rejected",
+  });
+  await c.env.DB.prepare(
+    `UPDATE member_journey_progress
+     SET status = 'started', completed_at = NULL, verification_status = 'self_reported',
+         evidence_json = ?, updated_at = ?
+     WHERE member_id = ? AND activity_id = ? AND status <> 'completed'`,
+  )
+    .bind(evidence, now, memberId, activityId)
+    .run();
+  await c.env.DB.prepare(
+    `UPDATE member_journey_attempts
+     SET verification_status = 'rejected', evidence_json = ?
+     WHERE member_id = ? AND activity_id = ? AND status = 'started'`,
+  )
+    .bind(evidence, memberId, activityId)
+    .run();
+
+  await c.env.DB.prepare(
+    "INSERT INTO admin_audit_log (id, admin_id, action, target_type, target_id, after_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+  )
+    .bind(
+      crypto.randomUUID(),
+      session.member_id,
+      "reject_journey_submission",
+      "member",
+      memberId,
+      JSON.stringify({ activity_id: activityId, note: body?.note ?? null }),
+      now,
+    )
+    .run();
+
+  return c.json({ success: true, rejected: true });
 });
 
 // Helper function to get next activity

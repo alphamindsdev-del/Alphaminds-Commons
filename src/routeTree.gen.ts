@@ -21,7 +21,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as CodeRouteImport } from './routes/code'
+import { Route as AlphaWorldRouteImport } from './routes/alpha-world'
 import { Route as AlphaMindsDailyRouteImport } from './routes/alpha-minds-daily'
+import { Route as AlphaBodyRouteImport } from './routes/alpha-body'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as LibraryRouteRouteImport } from './routes/library/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -103,9 +105,19 @@ const CodeRoute = CodeRouteImport.update({
   path: '/code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AlphaWorldRoute = AlphaWorldRouteImport.update({
+  id: '/alpha-world',
+  path: '/alpha-world',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AlphaMindsDailyRoute = AlphaMindsDailyRouteImport.update({
   id: '/alpha-minds-daily',
   path: '/alpha-minds-daily',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlphaBodyRoute = AlphaBodyRouteImport.update({
+  id: '/alpha-body',
+  path: '/alpha-body',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -213,7 +225,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/library': typeof LibraryRouteRouteWithChildren
   '/admin': typeof AdminRoute
+  '/alpha-body': typeof AlphaBodyRoute
   '/alpha-minds-daily': typeof AlphaMindsDailyRoute
+  '/alpha-world': typeof AlphaWorldRoute
   '/code': typeof CodeRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/journey': typeof JourneyRoute
@@ -247,7 +261,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/alpha-body': typeof AlphaBodyRoute
   '/alpha-minds-daily': typeof AlphaMindsDailyRoute
+  '/alpha-world': typeof AlphaWorldRoute
   '/code': typeof CodeRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/journey': typeof JourneyRoute
@@ -283,7 +299,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/library': typeof LibraryRouteRouteWithChildren
   '/admin': typeof AdminRoute
+  '/alpha-body': typeof AlphaBodyRoute
   '/alpha-minds-daily': typeof AlphaMindsDailyRoute
+  '/alpha-world': typeof AlphaWorldRoute
   '/code': typeof CodeRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/journey': typeof JourneyRoute
@@ -320,7 +338,9 @@ export interface FileRouteTypes {
     | '/'
     | '/library'
     | '/admin'
+    | '/alpha-body'
     | '/alpha-minds-daily'
+    | '/alpha-world'
     | '/code'
     | '/forgot-password'
     | '/journey'
@@ -354,7 +374,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/alpha-body'
     | '/alpha-minds-daily'
+    | '/alpha-world'
     | '/code'
     | '/forgot-password'
     | '/journey'
@@ -389,7 +411,9 @@ export interface FileRouteTypes {
     | '/'
     | '/library'
     | '/admin'
+    | '/alpha-body'
     | '/alpha-minds-daily'
+    | '/alpha-world'
     | '/code'
     | '/forgot-password'
     | '/journey'
@@ -425,7 +449,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LibraryRouteRoute: typeof LibraryRouteRouteWithChildren
   AdminRoute: typeof AdminRoute
+  AlphaBodyRoute: typeof AlphaBodyRoute
   AlphaMindsDailyRoute: typeof AlphaMindsDailyRoute
+  AlphaWorldRoute: typeof AlphaWorldRoute
   CodeRoute: typeof CodeRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   JourneyRoute: typeof JourneyRoute
@@ -536,11 +562,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/alpha-world': {
+      id: '/alpha-world'
+      path: '/alpha-world'
+      fullPath: '/alpha-world'
+      preLoaderRoute: typeof AlphaWorldRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/alpha-minds-daily': {
       id: '/alpha-minds-daily'
       path: '/alpha-minds-daily'
       fullPath: '/alpha-minds-daily'
       preLoaderRoute: typeof AlphaMindsDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alpha-body': {
+      id: '/alpha-body'
+      path: '/alpha-body'
+      fullPath: '/alpha-body'
+      preLoaderRoute: typeof AlphaBodyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -740,7 +780,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LibraryRouteRoute: LibraryRouteRouteWithChildren,
   AdminRoute: AdminRoute,
+  AlphaBodyRoute: AlphaBodyRoute,
   AlphaMindsDailyRoute: AlphaMindsDailyRoute,
+  AlphaWorldRoute: AlphaWorldRoute,
   CodeRoute: CodeRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   JourneyRoute: JourneyRoute,
