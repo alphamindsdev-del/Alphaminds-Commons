@@ -20,6 +20,7 @@ import { Route as MyChapterRouteImport } from './routes/my-chapter'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as FocusRouteImport } from './routes/focus'
 import { Route as CodeRouteImport } from './routes/code'
 import { Route as AlphaWorldRouteImport } from './routes/alpha-world'
 import { Route as AlphaMindsDailyRouteImport } from './routes/alpha-minds-daily'
@@ -98,6 +99,11 @@ const JourneyRoute = JourneyRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FocusRoute = FocusRouteImport.update({
+  id: '/focus',
+  path: '/focus',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CodeRoute = CodeRouteImport.update({
@@ -229,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/alpha-minds-daily': typeof AlphaMindsDailyRoute
   '/alpha-world': typeof AlphaWorldRoute
   '/code': typeof CodeRoute
+  '/focus': typeof FocusRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/journey': typeof JourneyRoute
   '/login': typeof LoginRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/alpha-minds-daily': typeof AlphaMindsDailyRoute
   '/alpha-world': typeof AlphaWorldRoute
   '/code': typeof CodeRoute
+  '/focus': typeof FocusRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/journey': typeof JourneyRoute
   '/login': typeof LoginRoute
@@ -303,6 +311,7 @@ export interface FileRoutesById {
   '/alpha-minds-daily': typeof AlphaMindsDailyRoute
   '/alpha-world': typeof AlphaWorldRoute
   '/code': typeof CodeRoute
+  '/focus': typeof FocusRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/journey': typeof JourneyRoute
   '/login': typeof LoginRoute
@@ -342,6 +351,7 @@ export interface FileRouteTypes {
     | '/alpha-minds-daily'
     | '/alpha-world'
     | '/code'
+    | '/focus'
     | '/forgot-password'
     | '/journey'
     | '/login'
@@ -378,6 +388,7 @@ export interface FileRouteTypes {
     | '/alpha-minds-daily'
     | '/alpha-world'
     | '/code'
+    | '/focus'
     | '/forgot-password'
     | '/journey'
     | '/login'
@@ -415,6 +426,7 @@ export interface FileRouteTypes {
     | '/alpha-minds-daily'
     | '/alpha-world'
     | '/code'
+    | '/focus'
     | '/forgot-password'
     | '/journey'
     | '/login'
@@ -453,6 +465,7 @@ export interface RootRouteChildren {
   AlphaMindsDailyRoute: typeof AlphaMindsDailyRoute
   AlphaWorldRoute: typeof AlphaWorldRoute
   CodeRoute: typeof CodeRoute
+  FocusRoute: typeof FocusRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   JourneyRoute: typeof JourneyRoute
   LoginRoute: typeof LoginRoute
@@ -553,6 +566,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/focus': {
+      id: '/focus'
+      path: '/focus'
+      fullPath: '/focus'
+      preLoaderRoute: typeof FocusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/code': {
@@ -784,6 +804,7 @@ const rootRouteChildren: RootRouteChildren = {
   AlphaMindsDailyRoute: AlphaMindsDailyRoute,
   AlphaWorldRoute: AlphaWorldRoute,
   CodeRoute: CodeRoute,
+  FocusRoute: FocusRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   JourneyRoute: JourneyRoute,
   LoginRoute: LoginRoute,

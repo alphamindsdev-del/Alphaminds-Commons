@@ -9,7 +9,8 @@ export const Route = createFileRoute("/alpha-body")({
       { title: "AlphaBody · The Commons" },
       {
         name: "description",
-        content: "Movement, vitality and embodied wellbeing — with the Wellness Clinic at its heart.",
+        content:
+          "Movement, vitality and embodied wellbeing — with the Wellness Clinic at its heart.",
       },
     ],
   }),
@@ -143,11 +144,7 @@ function AlphaBodyPage() {
       </section>
 
       <section className="rounded-3xl border border-divider bg-card p-6 sm:p-8">
-        <SectionHeading
-          kicker="A daily practice"
-          title="Small, repeatable care."
-          className="mb-0"
-        />
+        <SectionHeading kicker="A daily practice" title="Small, repeatable care." className="mb-0" />
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-text-secondary">
           You do not need a perfect routine. Five minutes of movement, ten minutes of stillness and
           one nourishing meal is a real beginning. AlphaBody helps you keep showing up.

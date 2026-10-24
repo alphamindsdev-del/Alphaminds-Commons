@@ -151,7 +151,7 @@ function OnboardingPage() {
                       } catch (e) {
                         console.error(e);
                       }
-                      navigate({ to: "/products" });
+                      navigate({ to: "/focus" });
                     }}
                     className="btn-primary"
                   >

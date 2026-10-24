@@ -133,6 +133,7 @@ function RootComponent() {
     pathname.startsWith("/register") ||
     pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/rel-fi") ||
+    pathname.startsWith("/focus") ||
     pathname.startsWith("/products");
   const isLanding = !isAuthenticated && pathname === "/";
 

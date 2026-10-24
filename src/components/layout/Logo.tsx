@@ -18,7 +18,7 @@ export function Logo({
   const text = { sm: "text-base", md: "text-lg", lg: "text-2xl" }[size];
   return (
     <Link
-      to="/products"
+      to="/focus"
       className="inline-flex items-center gap-2 group text-text-primary"
       aria-label="The Commons"
     >

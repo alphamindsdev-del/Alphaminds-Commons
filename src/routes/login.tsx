@@ -35,7 +35,7 @@ function LoginPage() {
         subscription_tier: data.member.subscription_tier ?? "free",
         email_verified: data.member.email_verified ?? false,
       });
-      navigate({ to: "/products" });
+      navigate({ to: "/focus" });
     } catch (err: any) {
       toast.error(err.message ?? "Invalid email or password");
     }

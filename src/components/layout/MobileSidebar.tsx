@@ -34,7 +34,7 @@ import { apiFetch } from "@/lib/api";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home, minLevel: 0 },
-  { to: "/products", label: "Worlds", icon: Compass, minLevel: 0 },
+  { to: "/focus", label: "Focus", icon: Compass, minLevel: 0 },
   { to: "/journey", label: "Your Journey", icon: GraduationCap, minLevel: 0 },
   { to: "/code", label: "The Code", icon: ScrollText, minLevel: 0 },
   { to: "/alpha-minds-daily", label: "Alpha Minds Daily", icon: Newspaper, minLevel: 0 },

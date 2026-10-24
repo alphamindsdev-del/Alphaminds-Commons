@@ -58,7 +58,7 @@ export const PRODUCTS: ProductDefinition[] = [
     image: "/product-world.webp",
     color: "#5B4FE0",
     soft: "#EEECFD",
-    available: false,
+    available: true,
   },
 ];
 

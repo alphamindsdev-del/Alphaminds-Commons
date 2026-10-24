@@ -31,10 +31,10 @@ function AlphaWorldPage() {
           then, AlphaBody and AlphaMind are open.
         </p>
         <Link
-          to="/products"
+          to="/focus"
           className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#5B4FE0] px-5 py-2.5 text-sm font-bold text-white"
         >
-          <ArrowLeft className="h-4 w-4" /> Choose another world
+          <ArrowLeft className="h-4 w-4" /> Choose another focus
         </Link>
       </section>
     </div>
