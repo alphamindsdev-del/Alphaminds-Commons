@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft,
@@ -24,6 +24,7 @@ import type { ApiCategory, ApiDeck, ApiStatementCard, ApiPendingCard } from "../
 export function Admin() {
   const user = useAuth((s) => s.user);
   const { authError, retry } = useEmbeddedAutoLogin(true);
+  const router = useRouter();
   const [tab, setTab] = useState<"categories" | "decks" | "cards" | "tutorial">("categories");
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [decks, setDecks] = useState<ApiDeck[]>([]);
@@ -247,27 +248,40 @@ export function Admin() {
 
   const selectedDeck = decks.find((d) => d.id === selectedDeckId);
 
+  function handleBack() {
+    const canGoBack = typeof router.history?.canGoBack === "function" ? router.history.canGoBack() : false;
+    if (canGoBack) {
+      router.history.back();
+      return;
+    }
+    router.navigate({ to: "/rel-fi" });
+  }
+
   return (
     <div className="relfi-root min-h-screen bg-hero">
       <header className="border-b bg-card/50 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/rel-fi"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back to game
-            </Link>
-            <div className="hidden font-display text-lg font-bold sm:block">REL-Fi Admin</div>
-          </div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">
-            {user.display_name} (admin)
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground hover:border-foreground/30"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </button>
+              <div className="font-display text-lg font-bold">RealFi Admin</div>
+            </div>
+            <div className="text-xs uppercase tracking-widest text-muted-foreground truncate">
+              {user.display_name} (admin)
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-6xl px-6 py-8">
-        <div className="mb-6 flex gap-2">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
           {(["categories", "decks", "cards", "tutorial"] as const).map((t) => (
             <button
               key={t}
@@ -285,7 +299,7 @@ export function Admin() {
 
         {tab === "categories" && (
           <div>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="font-display text-lg font-bold">Categories ({categories.length})</div>
               <button
                 onClick={() =>
@@ -340,7 +354,7 @@ export function Admin() {
 
         {tab === "decks" && (
           <div>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="font-display text-lg font-bold">Decks ({decks.length})</div>
               <button
                 onClick={() => setEditingDeck({ title: "", description: "" })}
@@ -402,11 +416,11 @@ export function Admin() {
 
         {tab === "cards" && (
           <div>
-            <div className="mb-4 flex items-center gap-3">
+            <div className="mb-4 flex flex-wrap items-center gap-3">
               <select
                 value={selectedDeckId}
                 onChange={(e) => setSelectedDeckId(e.target.value)}
-                className="rounded-xl border bg-background/50 px-4 py-2 text-sm"
+                className="w-full rounded-xl border bg-background/50 px-4 py-2 text-sm sm:w-auto"
               >
                 <option value="">Select a deck...</option>
                 {decks.map((d) => (
@@ -419,28 +433,17 @@ export function Admin() {
                 <div className="text-xs text-muted-foreground">{cards.length} cards</div>
               )}
               {selectedDeckId && (
-                <div className="ml-auto flex items-center gap-2">
+                <div className="ml-auto flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => bulkFileInputRef.current?.click()}
                     disabled={uploading}
                     className="inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold text-foreground hover:bg-card disabled:opacity-50"
                     title="Upload statement images in bulk"
                   >
-                    {uploading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Images className="h-4 w-4" />
-                    )}
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Images className="h-4 w-4" />}
                     Upload image cards
                   </button>
-                  <input
-                    ref={bulkFileInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={handleBulkImageUpload}
-                  />
+                  <input ref={bulkFileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleBulkImageUpload} />
                   <button
                     onClick={() =>
                       setEditingCard({
@@ -473,27 +476,15 @@ export function Admin() {
                   {pendingCards.map((p) => (
                     <div key={p.id} className="overflow-hidden rounded-2xl border bg-card">
                       <div className="aspect-[4/5] w-full bg-muted/30">
-                        <img
-                          src={p.statement_image_url}
-                          alt={p.filename || "pending card"}
-                          className="h-full w-full object-cover"
-                        />
+                        <img src={p.statement_image_url} alt={p.filename || "pending card"} className="h-full w-full object-cover" />
                       </div>
                       <div className="flex items-center justify-between p-2">
-                        <span className="truncate pr-1 text-xs text-muted-foreground">
-                          {p.filename || "image"}
-                        </span>
+                        <span className="truncate pr-1 text-xs text-muted-foreground">{p.filename || "image"}</span>
                         <div className="flex shrink-0 gap-1">
-                          <button
-                            onClick={() => setUpPendingCard(p)}
-                            className="rounded-full bg-primary-gradient px-2.5 py-1 text-xs font-bold text-primary-foreground"
-                          >
+                          <button onClick={() => setUpPendingCard(p)} className="rounded-full bg-primary-gradient px-2.5 py-1 text-xs font-bold text-primary-foreground">
                             Set up
                           </button>
-                          <button
-                            onClick={() => deletePendingCard(p.id)}
-                            className="rounded-full p-1 text-muted-foreground hover:text-destructive"
-                          >
+                          <button onClick={() => deletePendingCard(p.id)} className="rounded-full p-1 text-muted-foreground hover:text-destructive">
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -506,90 +497,72 @@ export function Admin() {
 
             {selectedDeckId && (
               <div className="rounded-3xl border bg-card">
-                <table className="w-full">
-                  <thead className="text-xs uppercase tracking-widest text-muted-foreground">
-                    <tr>
-                      <th className="p-3 text-left font-normal">Statement</th>
-                      <th className="p-3 text-left font-normal">Answer</th>
-                      <th className="p-3 text-left font-normal">Clue</th>
-                      <th className="p-3 text-right font-normal">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {cards.map((c) => {
-                      const ans = categories.find((cat) => cat.id === c.correct_category_id);
-                      return (
-                        <tr key={c.id} className="border-t">
-                          <td className="max-w-md p-3">
-                            {c.statement_image_url ? (
-                              <div className="flex items-center gap-2">
-                                <img
-                                  src={c.statement_image_url}
-                                  alt="Statement"
-                                  className="h-12 w-12 shrink-0 rounded-lg object-cover"
-                                />
-                                {c.statement_text ? (
-                                  <span className="truncate text-xs text-muted-foreground">
-                                    {c.statement_text}
-                                  </span>
-                                ) : (
-                                  <span className="truncate text-xs uppercase tracking-widest text-muted-foreground">
-                                    Image card
-                                  </span>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="truncate">{c.statement_text}</span>
-                            )}
-                          </td>
-                          <td className="p-3">
-                            {ans ? (
-                              <span
-                                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
-                                style={{
-                                  background: `${ans.color_hex}22`,
-                                  color: ans.color_hex,
-                                  border: `1px solid ${ans.color_hex}66`,
-                                }}
-                              >
-                                {ans.name}
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-xs font-semibold text-amber-400">
-                                Unassigned
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-3 text-xs uppercase tracking-widest text-muted-foreground">
-                            {c.clue_type === "text"
-                              ? "Text"
-                              : c.clue_type === "image"
-                                ? "Image"
-                                : c.clue_variant}
-                          </td>
-                          <td className="p-3 text-right">
-                            <button
-                              onClick={() => setEditingCard(c)}
-                              className="mr-2 text-muted-foreground hover:text-foreground"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteCard(c.id)}
-                              className="text-muted-foreground hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[640px]">
+                    <thead className="text-xs uppercase tracking-widest text-muted-foreground">
+                      <tr>
+                        <th className="p-3 text-left font-normal">Statement</th>
+                        <th className="p-3 text-left font-normal">Answer</th>
+                        <th className="p-3 text-left font-normal">Clue</th>
+                        <th className="p-3 text-right font-normal">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cards.map((c) => {
+                        const ans = categories.find((cat) => cat.id === c.correct_category_id);
+                        return (
+                          <tr key={c.id} className="border-t">
+                            <td className="max-w-md p-3">
+                              {c.statement_image_url ? (
+                                <div className="flex items-center gap-2">
+                                  <img src={c.statement_image_url} alt="Statement" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+                                  {c.statement_text ? (
+                                    <span className="truncate text-xs text-muted-foreground">{c.statement_text}</span>
+                                  ) : (
+                                    <span className="truncate text-xs uppercase tracking-widest text-muted-foreground">Image card</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="truncate">{c.statement_text}</span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              {ans ? (
+                                <span
+                                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+                                  style={{
+                                    background: `${ans.color_hex}22`,
+                                    color: ans.color_hex,
+                                    border: `1px solid ${ans.color_hex}66`,
+                                  }}
+                                >
+                                  {ans.name}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-xs font-semibold text-amber-400">
+                                  Unassigned
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-3 text-xs uppercase tracking-widest text-muted-foreground">
+                              {c.clue_type === "text" ? "Text" : c.clue_type === "image" ? "Image" : c.clue_variant}
+                            </td>
+                            <td className="p-3 text-right">
+                              <button onClick={() => setEditingCard(c)} className="mr-2 text-muted-foreground hover:text-foreground">
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button onClick={() => deleteCard(c.id)} className="text-muted-foreground hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
                 {cards.length === 0 && (
-                  <p className="p-6 text-center text-sm text-muted-foreground">
-                    No cards yet. Create your first card.
-                  </p>
+                  <p className="p-6 text-center text-sm text-muted-foreground">No cards yet. Create your first card.</p>
                 )}
               </div>
             )}
@@ -658,16 +631,16 @@ export function Admin() {
               rows={2}
               className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary"
             />
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 onClick={() => setEditingCategory(null)}
-                className="rounded-full border px-4 py-2 text-sm"
+                className="w-full rounded-full border px-4 py-2 text-sm font-semibold sm:w-auto"
               >
                 Cancel
               </button>
               <button
                 onClick={saveCategory}
-                className="rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground"
+                className="w-full rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground sm:w-auto"
               >
                 Save
               </button>
@@ -697,16 +670,16 @@ export function Admin() {
               rows={2}
               className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary"
             />
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 onClick={() => setEditingDeck(null)}
-                className="rounded-full border px-4 py-2 text-sm"
+                className="w-full rounded-full border px-4 py-2 text-sm font-semibold sm:w-auto"
               >
                 Cancel
               </button>
               <button
                 onClick={saveDeck}
-                className="rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground"
+                className="w-full rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground sm:w-auto"
               >
                 Save
               </button>
@@ -1048,14 +1021,17 @@ function CardEditorModal({
         />
 
         {/* Actions */}
-        <div className="mt-6 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-full border px-5 py-2.5 text-sm font-medium">
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button
+            onClick={onClose}
+            className="w-full rounded-full border px-5 py-2.5 text-sm font-medium sm:w-auto"
+          >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={clueType === "image" && uploading}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary-gradient px-5 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-primary-gradient px-5 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50 sm:w-auto"
           >
             <Check className="h-4 w-4" />
             {card.id ? "Update" : "Create"}

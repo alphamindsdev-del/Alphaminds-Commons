@@ -165,6 +165,7 @@ export function AdminLibrary() {
   return (
     <div>
       <SectionHeader
+        back
         title="Library"
         subtitle="Guides and long-form articles."
         action={

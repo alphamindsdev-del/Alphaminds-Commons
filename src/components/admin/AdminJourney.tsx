@@ -436,6 +436,7 @@ export function AdminJourney() {
   return (
     <div>
       <SectionHeader
+        back
         title="Journey"
         subtitle="The step-by-step membership path from Seeker to Coordinator."
         action={

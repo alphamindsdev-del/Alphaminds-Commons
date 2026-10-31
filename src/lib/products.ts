@@ -37,8 +37,7 @@ export const PRODUCTS: ProductDefinition[] = [
     name: "Alpha Mind",
     shortName: "AlphaMind",
     tagline: "Grow your mind. Find your people.",
-    description:
-      "Houses, chapters, daily practice, events, challenges, the library and Rel-Fi.",
+    description: "Houses, chapters, daily practice, events, challenges, the library and Rel-Fi.",
     route: "/",
     icon: Brain,
     image: "/product-mind.webp",
@@ -51,8 +50,7 @@ export const PRODUCTS: ProductDefinition[] = [
     name: "Alpha World",
     shortName: "AlphaWorld",
     tagline: "Explore. Connect. Play.",
-    description:
-      "Shared spaces, real-world chapters and collective adventures. Opening soon.",
+    description: "Shared spaces, real-world chapters and collective adventures. Opening soon.",
     route: "/alpha-world",
     icon: Globe,
     image: "/product-world.webp",
@@ -67,7 +65,12 @@ export const PRODUCTS_BY_ID = Object.fromEntries(
 ) as Record<ProductId, ProductDefinition>;
 
 export function productForPath(pathname: string): ProductDefinition {
-  if (pathname.startsWith("/alpha-body") || pathname.startsWith("/wellness-clinic")) {
+  if (
+    pathname.startsWith("/alpha-body") ||
+    pathname.startsWith("/wellness-clinic") ||
+    pathname.startsWith("/beatlift") ||
+    pathname.startsWith("/health-")
+  ) {
     return PRODUCTS_BY_ID.body;
   }
   if (pathname.startsWith("/alpha-world")) {

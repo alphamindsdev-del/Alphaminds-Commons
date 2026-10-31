@@ -67,6 +67,7 @@ export function AdminMembers() {
   return (
     <div>
       <SectionHeader
+        back
         title="Members"
         subtitle="Manage roles and account status. Changes take effect immediately."
       />

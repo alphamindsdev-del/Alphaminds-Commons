@@ -126,6 +126,7 @@ export function AdminRooms() {
   return (
     <div>
       <SectionHeader
+        back
         title="Rooms"
         subtitle="Rooms where members gather and talk."
         action={<PrimaryBtn onClick={() => { setEditItem(null); setModalOpen(true); }}>Create Room</PrimaryBtn>}

@@ -126,6 +126,7 @@ export function AdminCode() {
   return (
     <div>
       <SectionHeader
+        back
         title="The Code"
         subtitle="Daily passages shown on the Home page."
         action={<PrimaryBtn onClick={() => { setEditItem(null); setModalOpen(true); }}>New Passage</PrimaryBtn>}

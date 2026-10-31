@@ -132,6 +132,7 @@ export function AdminJourneyProgress() {
   return (
     <div className="mt-10">
       <SectionHeader
+        back
         title="Member progress"
         subtitle="See every member's journey, verify submitted evidence, and complete steps on their behalf."
       />

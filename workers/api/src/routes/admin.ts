@@ -25,6 +25,10 @@ import {
   UpdateCodeSchema,
   UpdateCodeInput,
   SaveCodeSchema,
+  UpdateClinicRequestSchema,
+  UpdateClinicRequestInput,
+  HealthAssessmentQuestionSetSchema,
+  HealthAssessmentQuestionSetInput,
 } from "../lib/validation.js";
 import { authMiddleware, getSession } from "../middleware/auth.js";
 import { deleteDailyContentCache } from "../lib/kv.js";
@@ -2530,6 +2534,289 @@ adminRouter.delete("/code/:id", async (c) => {
       "the_code",
       id,
       JSON.stringify(existing),
+      now,
+    )
+    .run();
+  return c.json({ success: true });
+});
+
+// AlphaBody: clinic requests
+
+adminRouter.get("/clinic-requests", async (c) => {
+  const status = c.req.query("status");
+  const conditions = ["r.deleted_at IS NULL"];
+  const params: any[] = [];
+  if (status) {
+    conditions.push("r.status = ?");
+    params.push(status);
+  }
+  const result = await c.env.DB.prepare(
+    `SELECT r.*, m.display_name, m.username, m.email, m.avatar_r2_key
+     FROM clinic_consultation_requests r
+     JOIN members m ON m.id = r.member_id
+     WHERE ${conditions.join(" AND ")}
+     ORDER BY r.created_at DESC
+     LIMIT 200`,
+  )
+    .bind(...params)
+    .all();
+  return c.json({ data: result.results });
+});
+
+adminRouter.patch("/clinic-requests/:id", async (c) => {
+  const session = getSession(c as any);
+  const { id } = c.req.param();
+  const body = await c.req.json();
+  const parsed = UpdateClinicRequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json(
+      {
+        error: "Validation failed",
+        code: ERROR_CODES.VALIDATION_ERROR,
+        details: parsed.error.flatten(),
+      },
+      400,
+    );
+  }
+  const input = parsed.data as UpdateClinicRequestInput;
+  const before = await c.env.DB.prepare(
+    "SELECT * FROM clinic_consultation_requests WHERE id = ? AND deleted_at IS NULL",
+  )
+    .bind(id)
+    .first();
+  if (!before) {
+    return c.json({ error: "Request not found", code: ERROR_CODES.NOT_FOUND }, 404);
+  }
+  const now = new Date().toISOString();
+  const updates: string[] = [];
+  const params: any[] = [];
+  if (input.status !== undefined) {
+    updates.push("status = ?");
+    params.push(input.status);
+  }
+  if (input.admin_notes !== undefined) {
+    updates.push("admin_notes = ?");
+    params.push(input.admin_notes);
+  }
+  if (updates.length === 0) {
+    return c.json({ error: "No fields to update", code: ERROR_CODES.VALIDATION_ERROR }, 400);
+  }
+  updates.push("updated_at = ?");
+  params.push(now, id);
+  await c.env.DB.prepare(
+    `UPDATE clinic_consultation_requests SET ${updates.join(", ")} WHERE id = ?`,
+  )
+    .bind(...params)
+    .run();
+  const after = await c.env.DB.prepare(
+    "SELECT * FROM clinic_consultation_requests WHERE id = ?",
+  )
+    .bind(id)
+    .first();
+  await c.env.DB.prepare(
+    "INSERT INTO admin_audit_log (id, admin_id, action, target_type, target_id, before_json, after_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+  )
+    .bind(
+      crypto.randomUUID(),
+      session.member_id,
+      "update_clinic_request",
+      "clinic_consultation_request",
+      id,
+      JSON.stringify(before),
+      JSON.stringify(after),
+      now,
+    )
+    .run();
+  return c.json({ success: true, before, after });
+});
+
+// AlphaBody: HID assessment question sets
+
+function validQuestionsJson(raw: string): boolean {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) return false;
+    return parsed.every(
+      (q: any) =>
+        q &&
+        typeof q.id === "string" &&
+        typeof q.prompt === "string" &&
+        Array.isArray(q.options) &&
+        q.options.length >= 2 &&
+        q.options.every((o: any) => typeof o.label === "string" && Number.isFinite(Number(o.value))),
+    );
+  } catch {
+    return false;
+  }
+}
+
+adminRouter.get("/health-assessment", async (c) => {
+  const result = await c.env.DB.prepare(
+    `SELECT id, detector_type, version, title, description, questions_json, is_active, created_at, updated_at
+     FROM detector_question_sets
+     WHERE detector_type = 'health_index'
+     ORDER BY created_at DESC`,
+  ).all();
+  return c.json({ data: result.results });
+});
+
+adminRouter.post("/health-assessment", async (c) => {
+  const session = getSession(c as any);
+  const body = await c.req.json();
+  const parsed = HealthAssessmentQuestionSetSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json(
+      {
+        error: "Validation failed",
+        code: ERROR_CODES.VALIDATION_ERROR,
+        details: parsed.error.flatten(),
+      },
+      400,
+    );
+  }
+  const input = parsed.data as HealthAssessmentQuestionSetInput;
+  if (!validQuestionsJson(input.questions_json)) {
+    return c.json(
+      {
+        error:
+          "questions_json must be a JSON array of questions with id, prompt and at least two options.",
+        code: ERROR_CODES.VALIDATION_ERROR,
+      },
+      400,
+    );
+  }
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+  await c.env.DB.prepare(
+    `INSERT INTO detector_question_sets
+      (id, detector_type, version, title, description, questions_json, is_active, created_at, updated_at)
+     VALUES (?, 'health_index', ?, ?, ?, ?, ?, ?, ?)`,
+  )
+    .bind(
+      id,
+      input.version,
+      input.title,
+      input.description ?? null,
+      input.questions_json,
+      input.is_active === false ? 0 : 1,
+      now,
+      now,
+    )
+    .run();
+  const questionSet = await c.env.DB.prepare(
+    "SELECT * FROM detector_question_sets WHERE id = ?",
+  )
+    .bind(id)
+    .first();
+  return c.json(questionSet, 201);
+});
+
+adminRouter.patch("/health-assessment/:id", async (c) => {
+  const session = getSession(c as any);
+  const { id } = c.req.param();
+  const body = await c.req.json();
+  const parsed = HealthAssessmentQuestionSetSchema.partial().safeParse(body);
+  if (!parsed.success) {
+    return c.json(
+      {
+        error: "Validation failed",
+        code: ERROR_CODES.VALIDATION_ERROR,
+        details: parsed.error.flatten(),
+      },
+      400,
+    );
+  }
+  const input = parsed.data as Partial<HealthAssessmentQuestionSetInput>;
+  const before = await c.env.DB.prepare(
+    "SELECT * FROM detector_question_sets WHERE id = ? AND detector_type = 'health_index'",
+  )
+    .bind(id)
+    .first();
+  if (!before) {
+    return c.json({ error: "Question set not found", code: ERROR_CODES.NOT_FOUND }, 404);
+  }
+  if (input.questions_json !== undefined && !validQuestionsJson(input.questions_json)) {
+    return c.json(
+      {
+        error:
+          "questions_json must be a JSON array of questions with id, prompt and at least two options.",
+        code: ERROR_CODES.VALIDATION_ERROR,
+      },
+      400,
+    );
+  }
+  const updates: string[] = [];
+  const params: any[] = [];
+  for (const field of ["version", "title", "description", "questions_json"]) {
+    if ((input as any)[field] !== undefined) {
+      updates.push(`${field} = ?`);
+      params.push((input as any)[field]);
+    }
+  }
+  if (input.is_active !== undefined) {
+    updates.push("is_active = ?");
+    params.push(input.is_active ? 1 : 0);
+  }
+  if (updates.length === 0) {
+    return c.json({ error: "No fields to update", code: ERROR_CODES.VALIDATION_ERROR }, 400);
+  }
+  const now = new Date().toISOString();
+  updates.push("updated_at = ?");
+  params.push(now, id);
+  await c.env.DB.prepare(
+    `UPDATE detector_question_sets SET ${updates.join(", ")} WHERE id = ?`,
+  )
+    .bind(...params)
+    .run();
+  const after = await c.env.DB.prepare(
+    "SELECT * FROM detector_question_sets WHERE id = ?",
+  )
+    .bind(id)
+    .first();
+  await c.env.DB.prepare(
+    "INSERT INTO admin_audit_log (id, admin_id, action, target_type, target_id, before_json, after_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+  )
+    .bind(
+      crypto.randomUUID(),
+      session.member_id,
+      "update_health_assessment",
+      "detector_question_set",
+      id,
+      JSON.stringify(before),
+      JSON.stringify(after),
+      now,
+    )
+    .run();
+  return c.json({ success: true, before, after });
+});
+
+adminRouter.delete("/health-assessment/:id", async (c) => {
+  const session = getSession(c as any);
+  const { id } = c.req.param();
+  const existing = await c.env.DB.prepare(
+    "SELECT * FROM detector_question_sets WHERE id = ? AND detector_type = 'health_index'",
+  )
+    .bind(id)
+    .first();
+  if (!existing) {
+    return c.json({ error: "Question set not found", code: ERROR_CODES.NOT_FOUND }, 404);
+  }
+  const now = new Date().toISOString();
+  await c.env.DB.prepare(
+    "UPDATE detector_question_sets SET is_active = 0, updated_at = ? WHERE id = ?",
+  )
+    .bind(now, id)
+    .run();
+  await c.env.DB.prepare(
+    "INSERT INTO admin_audit_log (id, admin_id, action, target_type, target_id, after_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+  )
+    .bind(
+      crypto.randomUUID(),
+      session.member_id,
+      "deactivate_health_assessment",
+      "detector_question_set",
+      id,
+      JSON.stringify({ is_active: 0 }),
       now,
     )
     .run();

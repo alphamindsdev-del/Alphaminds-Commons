@@ -494,6 +494,7 @@ export function AdminPlans() {
   return (
     <div>
       <SectionHeader
+        back
         title="Plans"
         subtitle="Structured growth programs made of sections and items."
         action={<PrimaryBtn onClick={() => setCreateOpen(true)}>New Plan</PrimaryBtn>}

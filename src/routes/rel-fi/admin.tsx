@@ -7,7 +7,7 @@ const queryClient = new QueryClient();
 
 export const Route = createFileRoute("/rel-fi/admin")({
   head: () => ({
-    meta: [{ title: "REL-Fi Admin · The Commons" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "RealFi Admin | The Commons" }, { name: "robots", content: "noindex" }],
   }),
   component: RelFiAdminPage,
 });

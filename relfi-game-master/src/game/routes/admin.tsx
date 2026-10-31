@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Plus, Trash2, Pencil, Loader2, Image, Type, X, Upload, Check, Video, ExternalLink, Images, Wand2 } from "lucide-react";
 import * as api from "../lib/api";
@@ -18,6 +18,7 @@ export const Route = createFileRoute("/admin")({
 function Admin() {
   const user = useAuth((s) => s.user);
   const loadSession = useAuth((s) => s.loadSession);
+  const router = useRouter();
   const [tab, setTab] = useState<"categories" | "decks" | "cards" | "tutorial">("categories");
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [decks, setDecks] = useState<ApiDeck[]>([]);
@@ -201,24 +202,40 @@ function Admin() {
 
   const selectedDeck = decks.find((d) => d.id === selectedDeckId)
 
+  function handleBack() {
+    const canGoBack = typeof router.history?.canGoBack === "function" ? router.history.canGoBack() : false;
+    if (canGoBack) {
+      router.history.back();
+      return;
+    }
+    router.navigate({ to: "/" });
+  }
+
   return (
     <div className="relfi-root min-h-screen bg-hero">
       <header className="border-b bg-card/50 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="h-4 w-4" /> Back to game
-            </Link>
-            <div className="hidden font-display text-lg font-bold sm:block">Rel-Fi Admin</div>
-          </div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">
-            {user.display_name} (admin)
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground hover:border-foreground/30"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </button>
+              <div className="font-display text-lg font-bold">RealFi Admin</div>
+            </div>
+            <div className="text-xs uppercase tracking-widest text-muted-foreground truncate">
+              {user.display_name} (admin)
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-6xl px-6 py-8">
-        <div className="mb-6 flex gap-2">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
+        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
           {(["categories", "decks", "cards", "tutorial"] as const).map((t) => (
             <button
               key={t}
@@ -234,7 +251,7 @@ function Admin() {
 
         {tab === "categories" && (
           <div>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="font-display text-lg font-bold">Categories ({categories.length})</div>
               <button
                 onClick={() => setEditingCategory({ name: '', color_hex: '#8B5CF6', short_code: '', icon_key: '', definition: '' })}
@@ -267,7 +284,7 @@ function Admin() {
 
         {tab === "decks" && (
           <div>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="font-display text-lg font-bold">Decks ({decks.length})</div>
               <button
                 onClick={() => setEditingDeck({ title: '', description: '' })}
@@ -283,7 +300,7 @@ function Admin() {
                   className={`rounded-2xl border bg-card p-4 cursor-pointer transition ${selectedDeckId === d.id ? 'border-primary' : 'hover:bg-card/80'}`}
                   onClick={() => { setSelectedDeckId(d.id); setTab('cards') }}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="font-display text-lg font-bold">{d.title}</div>
                       {d.description && <p className="text-sm text-muted-foreground">{d.description}</p>}
@@ -313,11 +330,11 @@ function Admin() {
 
         {tab === "cards" && (
           <div>
-            <div className="mb-4 flex items-center gap-3">
+            <div className="mb-4 flex flex-wrap items-center gap-3">
               <select
                 value={selectedDeckId}
                 onChange={(e) => setSelectedDeckId(e.target.value)}
-                className="rounded-xl border bg-background/50 px-4 py-2 text-sm"
+                className="w-full rounded-xl border bg-background/50 px-4 py-2 text-sm sm:w-auto"
               >
                 <option value="">Select a deck...</option>
                 {decks.map((d) => (
@@ -392,7 +409,8 @@ function Admin() {
 
             {selectedDeckId && (
               <div className="rounded-3xl border bg-card">
-                <table className="w-full">
+                <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px]">
                   <thead className="text-xs uppercase tracking-widest text-muted-foreground">
                     <tr>
                       <th className="p-3 text-left font-normal">Statement</th>
@@ -457,6 +475,7 @@ function Admin() {
                 {cards.length === 0 && (
                   <p className="p-6 text-center text-sm text-muted-foreground">No cards yet. Create your first card.</p>
                 )}
+                </div>
               </div>
             )}
           </div>
@@ -512,9 +531,9 @@ function Admin() {
               rows={2}
               className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary"
             />
-            <div className="mt-6 flex justify-end gap-2">
-              <button onClick={() => setEditingCategory(null)} className="rounded-full border px-4 py-2 text-sm">Cancel</button>
-              <button onClick={saveCategory} className="rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground">Save</button>
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button onClick={() => setEditingCategory(null)} className="w-full rounded-full border px-4 py-2 text-sm font-semibold sm:w-auto">Cancel</button>
+              <button onClick={saveCategory} className="w-full rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground sm:w-auto">Save</button>
             </div>
           </div>
         </div>
@@ -539,9 +558,9 @@ function Admin() {
               rows={2}
               className="mt-1 w-full rounded-2xl border bg-background/50 p-3 outline-none focus:border-primary"
             />
-            <div className="mt-6 flex justify-end gap-2">
-              <button onClick={() => setEditingDeck(null)} className="rounded-full border px-4 py-2 text-sm">Cancel</button>
-              <button onClick={saveDeck} className="rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground">Save</button>
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button onClick={() => setEditingDeck(null)} className="w-full rounded-full border px-4 py-2 text-sm font-semibold sm:w-auto">Cancel</button>
+              <button onClick={saveDeck} className="w-full rounded-full bg-primary-gradient px-4 py-2 text-sm font-bold text-primary-foreground sm:w-auto">Save</button>
             </div>
           </div>
         </div>
@@ -837,14 +856,14 @@ function CardEditorModal({
         />
 
         {/* Actions */}
-        <div className="mt-6 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-full border px-5 py-2.5 text-sm font-medium">
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <button onClick={onClose} className="w-full rounded-full border px-5 py-2.5 text-sm font-medium sm:w-auto">
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={clueType === 'image' && uploading}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary-gradient px-5 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-primary-gradient px-5 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50 sm:w-auto"
           >
             <Check className="h-4 w-4" />
             {card.id ? 'Update' : 'Create'}
@@ -906,7 +925,7 @@ function TutorialTab() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="font-display text-lg font-bold">Tutorial Video</div>
       </div>
 

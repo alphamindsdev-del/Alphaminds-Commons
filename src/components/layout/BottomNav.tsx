@@ -16,7 +16,15 @@ export function BottomNav() {
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background border-t border-divider">
       <div className="grid grid-cols-5 px-1 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {tabs.map((t) => {
-          const active = t.to === "/" ? pathname === "/" : pathname.startsWith(t.to);
+          const active =
+            t.to === "/"
+              ? pathname === "/" ||
+                pathname.startsWith("/alpha-body") ||
+                pathname.startsWith("/alpha-world") ||
+                pathname.startsWith("/wellness-clinic") ||
+                pathname.startsWith("/beatlift") ||
+                pathname.startsWith("/health-")
+              : pathname.startsWith(t.to);
           const Icon = t.icon;
           return (
             <Link
@@ -24,11 +32,19 @@ export function BottomNav() {
               to={t.to}
               className="relative flex flex-col items-center justify-center gap-0.5 py-1.5 min-h-[52px]"
             >
-              {active && (
-                <span className="absolute -top-px h-1 w-8 rounded-full bg-accent" />
-              )}
-              <Icon className={cn("h-5 w-5 transition-colors", active ? "text-text-primary" : "text-lock-gray")} />
-              <span className={cn("text-[9px] font-semibold", active ? "text-text-primary" : "text-lock-gray")}>
+              {active && <span className="absolute -top-px h-1 w-8 rounded-full bg-accent" />}
+              <Icon
+                className={cn(
+                  "h-5 w-5 transition-colors",
+                  active ? "text-[#1F7A4D] dark:text-accent" : "text-lock-gray",
+                )}
+              />
+              <span
+                className={cn(
+                  "text-[9px] font-semibold",
+                  active ? "text-[#1F7A4D] dark:text-accent" : "text-lock-gray",
+                )}
+              >
                 {t.label}
               </span>
             </Link>

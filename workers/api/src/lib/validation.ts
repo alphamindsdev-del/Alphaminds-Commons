@@ -256,3 +256,65 @@ export const SaveCodeSchema = z.object({
   code_id: z.string(),
 });
 export type SaveCodeInput = z.infer<typeof SaveCodeSchema>;
+
+// ── AlphaBody health ─────────────────────────────────────────────
+
+export const HEALTH_RECORD_CATEGORIES = [
+  "lab_result",
+  "prescription",
+  "report",
+  "imaging",
+  "consultation_note",
+  "other",
+] as const;
+
+export const HealthProfileSchema = z.object({
+  height_cm: z.number().min(30).max(300).nullable().optional(),
+  weight_kg: z.number().min(1).max(700).nullable().optional(),
+  blood_type: z.string().max(10).nullable().optional(),
+  allergies: z.string().max(2000).nullable().optional(),
+  conditions: z.string().max(2000).nullable().optional(),
+  medications: z.string().max(2000).nullable().optional(),
+  health_goals: z.string().max(2000).nullable().optional(),
+  emergency_contact_name: z.string().max(200).nullable().optional(),
+  emergency_contact_phone: z.string().max(50).nullable().optional(),
+});
+export type HealthProfileInput = z.infer<typeof HealthProfileSchema>;
+
+export const CreateHealthRecordSchema = z.object({
+  title: z.string().min(1).max(200),
+  category: z.enum(HEALTH_RECORD_CATEGORIES),
+  notes: z.string().max(2000).optional(),
+  recorded_at: z.string().max(40).optional(),
+});
+export type CreateHealthRecordInput = z.infer<typeof CreateHealthRecordSchema>;
+
+export const CreateClinicRequestSchema = z.object({
+  preferred_date: z.string().max(40).optional(),
+  preferred_time: z.string().max(20).optional(),
+  mode: z.enum(["in_person", "virtual"]).default("in_person"),
+  reason: z.string().min(5).max(2000),
+  contact_phone: z.string().max(50).optional(),
+});
+export type CreateClinicRequestInput = z.infer<typeof CreateClinicRequestSchema>;
+
+export const UpdateClinicRequestSchema = z.object({
+  status: z.enum(["requested", "scheduled", "completed", "cancelled"]).optional(),
+  admin_notes: z.string().max(2000).optional(),
+});
+export type UpdateClinicRequestInput = z.infer<typeof UpdateClinicRequestSchema>;
+
+export const SubmitHealthAssessmentSchema = z.object({
+  question_set_id: z.string().min(1),
+  answers: z.record(z.union([z.number(), z.string()])),
+});
+export type SubmitHealthAssessmentInput = z.infer<typeof SubmitHealthAssessmentSchema>;
+
+export const HealthAssessmentQuestionSetSchema = z.object({
+  version: z.string().min(1).max(20),
+  title: z.string().min(1).max(200),
+  description: z.string().max(1000).optional(),
+  questions_json: z.string().min(2),
+  is_active: z.boolean().optional(),
+});
+export type HealthAssessmentQuestionSetInput = z.infer<typeof HealthAssessmentQuestionSetSchema>;

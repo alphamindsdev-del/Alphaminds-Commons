@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { ImageIcon, Loader2, Upload, X } from "lucide-react";
+import { ArrowLeft, ImageIcon, Loader2, Upload, X } from "lucide-react";
 import { useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { useRouter } from "@tanstack/react-router";
 import { apiFetch, getApiBaseUrl, getApiToken } from "@/lib/api";
 import { cn, getMediaUrl } from "@/lib/utils";
 import { toast } from "sonner";
@@ -179,6 +180,40 @@ export function StatusPill({ ok, label }: { ok: boolean; label?: string }) {
     <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold", ok ? "bg-emerald-500/10 text-emerald-600" : "bg-subtle text-text-secondary")}>
       {label ?? (ok ? "Published" : "Draft")}
     </span>
+  );
+}
+
+// ─── Return navigation ───────────────────────────────────────────
+
+/**
+ * Admin-friendly back button. Prefers real browser history (so an admin can
+ * return to whatever page they came from) and falls back to a safe route.
+ */
+export function AdminBackButton({ to, label = "Back" }: { to?: string; label?: string }) {
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (to) {
+      router.navigate({ to });
+      return;
+    }
+    const canGoBack = typeof router.history?.canGoBack === "function" ? router.history.canGoBack() : false;
+    if (canGoBack) {
+      router.history.back();
+      return;
+    }
+    router.navigate({ to: "/admin" });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleBack}
+      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-text-primary transition-colors hover:border-primary/40 hover:text-primary sm:w-auto"
+    >
+      <ArrowLeft className="h-4 w-4 shrink-0" />
+      {label}
+    </button>
   );
 }
 
@@ -379,14 +414,21 @@ export function TabButton({ active, onClick, children }: { active: boolean; onCl
   );
 }
 
-export function SectionHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
+export function SectionHeader({ title, subtitle, action, back }: { title: string; subtitle?: string; action?: ReactNode; back?: boolean }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-      <div>
-        <h2 className="text-xl font-bold text-text-primary">{title}</h2>
-        {subtitle && <p className="text-sm text-text-secondary mt-0.5">{subtitle}</p>}
+    <div className="mb-4">
+      {back && (
+        <div className="mb-3 max-w-sm">
+          <AdminBackButton />
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-text-primary">{title}</h2>
+          {subtitle && <p className="text-sm text-text-secondary mt-0.5">{subtitle}</p>}
+        </div>
+        {action}
       </div>
-      {action}
     </div>
   );
 }

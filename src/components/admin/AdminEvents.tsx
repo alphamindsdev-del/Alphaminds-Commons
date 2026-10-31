@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+﻿import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api";
@@ -46,6 +46,15 @@ interface EventItem {
   created_at: string;
 }
 
+interface RegistrationItem {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  avatar_r2_key: string | null;
+  status: string;
+  rsvped_at: string;
+}
+
 const EVENT_TYPES = [
   { value: "alpha_circle", label: "Alpha Circle" },
   { value: "beatlift", label: "BetaLift" },
@@ -65,7 +74,9 @@ const FORMATS = [
   { value: "hybrid", label: "Hybrid" },
 ] as const;
 
-const TYPE_LABEL: Record<string, string> = Object.fromEntries(EVENT_TYPES.map((t) => [t.value, t.label]));
+const TYPE_LABEL: Record<string, string> = Object.fromEntries(
+  EVENT_TYPES.map((t) => [t.value, t.label]),
+);
 
 function EventModal({ onClose, editItem }: { onClose: () => void; editItem: EventItem | null }) {
   const qc = useQueryClient();
@@ -82,7 +93,9 @@ function EventModal({ onClose, editItem }: { onClose: () => void; editItem: Even
   const [locationAddress, setLocationAddress] = useState(editItem?.location_address ?? "");
   const [onlineUrl, setOnlineUrl] = useState(editItem?.online_url ?? "");
   const [registrationUrl, setRegistrationUrl] = useState(editItem?.registration_url ?? "");
-  const [rsvpLimit, setRsvpLimit] = useState(editItem?.rsvp_limit != null ? String(editItem.rsvp_limit) : "");
+  const [rsvpLimit, setRsvpLimit] = useState(
+    editItem?.rsvp_limit != null ? String(editItem.rsvp_limit) : "",
+  );
   const [coverKey, setCoverKey] = useState<string | null>(editItem?.cover_r2_key ?? null);
 
   const handleTitle = (v: string) => {
@@ -116,13 +129,22 @@ function EventModal({ onClose, editItem }: { onClose: () => void; editItem: Even
       qc.invalidateQueries({ queryKey: ["admin", "stats"] });
       onClose();
     },
-    onError: (err: any) => toast.error(err.message ?? "Failed to save"),
+    onError: (err: Error) => toast.error(err.message ?? "Failed to save"),
   });
 
   const handleSave = () => {
-    if (!title.trim() || !slug.trim()) { toast.error("Title is required"); return; }
-    if (!startsAt || !endsAt) { toast.error("Start and end time are required"); return; }
-    if (new Date(endsAt) <= new Date(startsAt)) { toast.error("End time must be after start time"); return; }
+    if (!title.trim() || !slug.trim()) {
+      toast.error("Title is required");
+      return;
+    }
+    if (!startsAt || !endsAt) {
+      toast.error("Start and end time are required");
+      return;
+    }
+    if (new Date(endsAt) <= new Date(startsAt)) {
+      toast.error("End time must be after start time");
+      return;
+    }
     save.mutate();
   };
 
@@ -136,7 +158,7 @@ function EventModal({ onClose, editItem }: { onClose: () => void; editItem: Even
         <>
           <GhostBtn onClick={onClose}>Cancel</GhostBtn>
           <PrimaryBtn onClick={handleSave} disabled={save.isPending}>
-            {save.isPending ? "Saving…" : editId ? "Save changes" : "Create Event"}
+            {save.isPending ? "Saving." : editId ? "Save changes" : "Create Event"}
           </PrimaryBtn>
         </>
       }
@@ -144,12 +166,19 @@ function EventModal({ onClose, editItem }: { onClose: () => void; editItem: Even
       <div className="space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Title">
-            <TInput value={title} onChange={(e) => handleTitle(e.target.value)} placeholder="Event name" />
+            <TInput
+              value={title}
+              onChange={(e) => handleTitle(e.target.value)}
+              placeholder="Event name"
+            />
           </Field>
           <Field label="Slug" hint="Used in the event URL.">
             <TInput
               value={slug}
-              onChange={(e) => { setSlugTouched(true); setSlug(slugify(e.target.value)); }}
+              onChange={(e) => {
+                setSlugTouched(true);
+                setSlug(slugify(e.target.value));
+              }}
               placeholder="event-slug"
             />
           </Field>
@@ -160,26 +189,46 @@ function EventModal({ onClose, editItem }: { onClose: () => void; editItem: Even
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Type">
             <TSelect value={eventType} onChange={(e) => setEventType(e.target.value)}>
-              {EVENT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              {EVENT_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
             </TSelect>
           </Field>
           <Field label="Format">
             <TSelect value={format} onChange={(e) => setFormat(e.target.value)}>
-              {FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+              {FORMATS.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
             </TSelect>
           </Field>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Starts At">
-            <TInput type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+            <TInput
+              type="datetime-local"
+              value={startsAt}
+              onChange={(e) => setStartsAt(e.target.value)}
+            />
           </Field>
           <Field label="Ends At">
-            <TInput type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+            <TInput
+              type="datetime-local"
+              value={endsAt}
+              onChange={(e) => setEndsAt(e.target.value)}
+            />
           </Field>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="Location Name">
-            <TInput value={locationName} onChange={(e) => setLocationName(e.target.value)} placeholder="e.g. Hub Auditorium" />
+            <TInput
+              value={locationName}
+              onChange={(e) => setLocationName(e.target.value)}
+              placeholder="e.g. Hub Auditorium"
+            />
           </Field>
           <Field label="Location Address">
             <TInput value={locationAddress} onChange={(e) => setLocationAddress(e.target.value)} />
@@ -187,52 +236,78 @@ function EventModal({ onClose, editItem }: { onClose: () => void; editItem: Even
         </div>
         <div className="grid sm:grid-cols-3 gap-4">
           <Field label="Online URL">
-            <TInput value={onlineUrl} onChange={(e) => setOnlineUrl(e.target.value)} placeholder="https://" />
+            <TInput
+              value={onlineUrl}
+              onChange={(e) => setOnlineUrl(e.target.value)}
+              placeholder="https://"
+            />
           </Field>
           <Field label="Registration URL">
-            <TInput value={registrationUrl} onChange={(e) => setRegistrationUrl(e.target.value)} placeholder="https://" />
+            <TInput
+              value={registrationUrl}
+              onChange={(e) => setRegistrationUrl(e.target.value)}
+              placeholder="https://"
+            />
           </Field>
           <Field label="RSVP Limit">
-            <TInput type="number" min={1} value={rsvpLimit} onChange={(e) => setRsvpLimit(e.target.value)} placeholder="Unlimited" />
+            <TInput
+              type="number"
+              min={1}
+              value={rsvpLimit}
+              onChange={(e) => setRsvpLimit(e.target.value)}
+              placeholder="Unlimited"
+            />
           </Field>
         </div>
-        <MediaUploadField value={coverKey} onChange={setCoverKey} kind="image" label="Cover Image (optional)" />
+        <MediaUploadField
+          value={coverKey}
+          onChange={setCoverKey}
+          kind="image"
+          label="Cover Image (optional)"
+        />
       </div>
     </AdminModal>
   );
 }
 
 function RegistrationsModal({ event, onClose }: { event: EventItem; onClose: () => void }) {
-  const { data, isLoading } = useQuery<{ data: any[] }>({
+  const { data, isLoading } = useQuery<{ data: RegistrationItem[] }>({
     queryKey: ["admin", "event-registrations", event.id],
-    queryFn: () => apiFetch<{ data: any[] }>(`/v1/admin/events/${event.id}/registrations`),
+    queryFn: () =>
+      apiFetch<{ data: RegistrationItem[] }>(`/v1/admin/events/${event.id}/registrations`),
   });
 
   const rows = data?.data ?? [];
 
   return (
-    <AdminModal open onClose={onClose} title={`RSVPs — ${event.title}`} size="lg">
+    <AdminModal open onClose={onClose} title={`RSVPs for ${event.title}`} size="lg">
       <AdminTable
         head={
           <tr>
             <th className="text-left px-4 py-3 font-bold">Member</th>
             <th className="text-left px-4 py-3 font-bold">Status</th>
-            <th className="text-left px-4 py-3 font-bold">RSVP’d</th>
+            <th className="text-left px-4 py-3 font-bold">RSVP At</th>
           </tr>
         }
       >
         {isLoading ? (
-          <EmptyRow colSpan={3} message="Loading RSVPs…" />
+          <EmptyRow colSpan={3} message="Loading RSVPs..." />
         ) : rows.length === 0 ? (
           <EmptyRow colSpan={3} message="No RSVPs yet." />
         ) : (
           rows.map((r) => (
             <tr key={r.id} className="border-t border-border">
               <td className="px-4 py-3">
-                <MemberCell name={r.display_name ?? "Member"} email={r.email} avatarKey={r.avatar_r2_key} />
+                <MemberCell
+                  name={r.display_name ?? "Member"}
+                  email={r.email}
+                  avatarKey={r.avatar_r2_key}
+                />
               </td>
               <td className="px-4 py-3">
-                <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${r.status === "going" ? "bg-emerald-500/10 text-emerald-600" : r.status === "maybe" ? "bg-amber-500/10 text-amber-600" : "bg-subtle text-text-secondary"}`}>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${r.status === "going" ? "bg-emerald-500/10 text-emerald-600" : r.status === "maybe" ? "bg-amber-500/10 text-amber-600" : "bg-subtle text-text-secondary"}`}
+                >
                   {r.status}
                 </span>
               </td>
@@ -245,7 +320,13 @@ function RegistrationsModal({ event, onClose }: { event: EventItem; onClose: () 
   );
 }
 
-export function AdminEvents() {
+export function AdminEvents({
+  title: headerTitle = "Events",
+  subtitle = "Create and manage gatherings, circles, and summits.",
+}: {
+  title?: string;
+  subtitle?: string;
+}) {
   const qc = useQueryClient();
   const { data, isLoading } = useAdminList<EventItem>("events", "/v1/admin/events?limit=100");
   const [modalOpen, setModalOpen] = useState(false);
@@ -258,7 +339,7 @@ export function AdminEvents() {
       toast.success("Event deleted");
       qc.invalidateQueries({ queryKey: ["admin", "events"] });
     },
-    onError: (err: any) => toast.error(err.message ?? "Delete failed"),
+    onError: (err: Error) => toast.error(err.message ?? "Delete failed"),
   });
 
   const handleDelete = async (item: EventItem) => {
@@ -270,9 +351,19 @@ export function AdminEvents() {
   return (
     <div>
       <SectionHeader
-        title="Events"
-        subtitle="Create and manage gatherings, circles, and summits."
-        action={<PrimaryBtn onClick={() => { setEditItem(null); setModalOpen(true); }}>Create Event</PrimaryBtn>}
+        back
+        title={headerTitle}
+        subtitle={subtitle}
+        action={
+          <PrimaryBtn
+            onClick={() => {
+              setEditItem(null);
+              setModalOpen(true);
+            }}
+          >
+            Create Event
+          </PrimaryBtn>
+        }
       />
       <AdminTable
         head={
@@ -286,15 +377,19 @@ export function AdminEvents() {
         }
       >
         {isLoading ? (
-          <EmptyRow colSpan={5} message="Loading…" />
+          <EmptyRow colSpan={5} message="Loading..." />
         ) : items.length === 0 ? (
           <EmptyRow colSpan={5} message="No events yet. Create the first one." />
         ) : (
           items.map((item) => {
             return (
               <tr key={item.id} className="border-t border-border">
-                <td className="px-4 py-3 font-semibold text-text-primary max-w-[260px] truncate">{item.title}</td>
-                <td className="px-4 py-3 text-text-secondary">{TYPE_LABEL[item.event_type] ?? item.event_type}</td>
+                <td className="px-4 py-3 font-semibold text-text-primary max-w-[260px] truncate">
+                  {item.title}
+                </td>
+                <td className="px-4 py-3 text-text-secondary">
+                  {TYPE_LABEL[item.event_type] ?? item.event_type}
+                </td>
                 <td className="px-4 py-3 text-text-secondary">{fmtDate(item.starts_at)}</td>
                 <td className="px-4 py-3 text-text-secondary capitalize">{item.format}</td>
                 <td className="px-4 py-3">
@@ -307,7 +402,10 @@ export function AdminEvents() {
                         RSVPs
                       </button>
                     }
-                    onEdit={() => { setEditItem(item); setModalOpen(true); }}
+                    onEdit={() => {
+                      setEditItem(item);
+                      setModalOpen(true);
+                    }}
                     onDelete={() => handleDelete(item)}
                   />
                 </td>
@@ -318,7 +416,13 @@ export function AdminEvents() {
       </AdminTable>
 
       {modalOpen && (
-        <EventModal onClose={() => { setModalOpen(false); setEditItem(null); }} editItem={editItem} />
+        <EventModal
+          onClose={() => {
+            setModalOpen(false);
+            setEditItem(null);
+          }}
+          editItem={editItem}
+        />
       )}
       {rsvpItem && <RegistrationsModal event={rsvpItem} onClose={() => setRsvpItem(null)} />}
     </div>

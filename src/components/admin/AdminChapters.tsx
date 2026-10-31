@@ -150,6 +150,7 @@ export function AdminChapters() {
   return (
     <div>
       <SectionHeader
+        back
         title="Chapters"
         subtitle="Local communities that members can join."
         action={<PrimaryBtn onClick={() => { setEditItem(null); setModalOpen(true); }}>New Chapter</PrimaryBtn>}

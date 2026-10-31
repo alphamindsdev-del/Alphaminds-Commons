@@ -156,6 +156,7 @@ export function AdminDailyContent() {
   return (
     <div>
       <SectionHeader
+        back
         title="Daily Content"
         subtitle="What members see on Home each day."
         action={

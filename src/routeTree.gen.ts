@@ -19,9 +19,13 @@ import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MyChapterRouteImport } from './routes/my-chapter'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as JourneyRouteImport } from './routes/journey'
+import { Route as HealthRecordsRouteImport } from './routes/health-records'
+import { Route as HealthProfileRouteImport } from './routes/health-profile'
+import { Route as HealthAssessmentRouteImport } from './routes/health-assessment'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FocusRouteImport } from './routes/focus'
 import { Route as CodeRouteImport } from './routes/code'
+import { Route as BeatliftRouteImport } from './routes/beatlift'
 import { Route as AlphaWorldRouteImport } from './routes/alpha-world'
 import { Route as AlphaMindsDailyRouteImport } from './routes/alpha-minds-daily'
 import { Route as AlphaBodyRouteImport } from './routes/alpha-body'
@@ -96,6 +100,21 @@ const JourneyRoute = JourneyRouteImport.update({
   path: '/journey',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HealthRecordsRoute = HealthRecordsRouteImport.update({
+  id: '/health-records',
+  path: '/health-records',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HealthProfileRoute = HealthProfileRouteImport.update({
+  id: '/health-profile',
+  path: '/health-profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HealthAssessmentRoute = HealthAssessmentRouteImport.update({
+  id: '/health-assessment',
+  path: '/health-assessment',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -109,6 +128,11 @@ const FocusRoute = FocusRouteImport.update({
 const CodeRoute = CodeRouteImport.update({
   id: '/code',
   path: '/code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BeatliftRoute = BeatliftRouteImport.update({
+  id: '/beatlift',
+  path: '/beatlift',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AlphaWorldRoute = AlphaWorldRouteImport.update({
@@ -234,9 +258,13 @@ export interface FileRoutesByFullPath {
   '/alpha-body': typeof AlphaBodyRoute
   '/alpha-minds-daily': typeof AlphaMindsDailyRoute
   '/alpha-world': typeof AlphaWorldRoute
+  '/beatlift': typeof BeatliftRoute
   '/code': typeof CodeRoute
   '/focus': typeof FocusRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/health-assessment': typeof HealthAssessmentRoute
+  '/health-profile': typeof HealthProfileRoute
+  '/health-records': typeof HealthRecordsRoute
   '/journey': typeof JourneyRoute
   '/login': typeof LoginRoute
   '/my-chapter': typeof MyChapterRoute
@@ -271,9 +299,13 @@ export interface FileRoutesByTo {
   '/alpha-body': typeof AlphaBodyRoute
   '/alpha-minds-daily': typeof AlphaMindsDailyRoute
   '/alpha-world': typeof AlphaWorldRoute
+  '/beatlift': typeof BeatliftRoute
   '/code': typeof CodeRoute
   '/focus': typeof FocusRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/health-assessment': typeof HealthAssessmentRoute
+  '/health-profile': typeof HealthProfileRoute
+  '/health-records': typeof HealthRecordsRoute
   '/journey': typeof JourneyRoute
   '/login': typeof LoginRoute
   '/my-chapter': typeof MyChapterRoute
@@ -310,9 +342,13 @@ export interface FileRoutesById {
   '/alpha-body': typeof AlphaBodyRoute
   '/alpha-minds-daily': typeof AlphaMindsDailyRoute
   '/alpha-world': typeof AlphaWorldRoute
+  '/beatlift': typeof BeatliftRoute
   '/code': typeof CodeRoute
   '/focus': typeof FocusRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/health-assessment': typeof HealthAssessmentRoute
+  '/health-profile': typeof HealthProfileRoute
+  '/health-records': typeof HealthRecordsRoute
   '/journey': typeof JourneyRoute
   '/login': typeof LoginRoute
   '/my-chapter': typeof MyChapterRoute
@@ -350,9 +386,13 @@ export interface FileRouteTypes {
     | '/alpha-body'
     | '/alpha-minds-daily'
     | '/alpha-world'
+    | '/beatlift'
     | '/code'
     | '/focus'
     | '/forgot-password'
+    | '/health-assessment'
+    | '/health-profile'
+    | '/health-records'
     | '/journey'
     | '/login'
     | '/my-chapter'
@@ -387,9 +427,13 @@ export interface FileRouteTypes {
     | '/alpha-body'
     | '/alpha-minds-daily'
     | '/alpha-world'
+    | '/beatlift'
     | '/code'
     | '/focus'
     | '/forgot-password'
+    | '/health-assessment'
+    | '/health-profile'
+    | '/health-records'
     | '/journey'
     | '/login'
     | '/my-chapter'
@@ -425,9 +469,13 @@ export interface FileRouteTypes {
     | '/alpha-body'
     | '/alpha-minds-daily'
     | '/alpha-world'
+    | '/beatlift'
     | '/code'
     | '/focus'
     | '/forgot-password'
+    | '/health-assessment'
+    | '/health-profile'
+    | '/health-records'
     | '/journey'
     | '/login'
     | '/my-chapter'
@@ -464,9 +512,13 @@ export interface RootRouteChildren {
   AlphaBodyRoute: typeof AlphaBodyRoute
   AlphaMindsDailyRoute: typeof AlphaMindsDailyRoute
   AlphaWorldRoute: typeof AlphaWorldRoute
+  BeatliftRoute: typeof BeatliftRoute
   CodeRoute: typeof CodeRoute
   FocusRoute: typeof FocusRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  HealthAssessmentRoute: typeof HealthAssessmentRoute
+  HealthProfileRoute: typeof HealthProfileRoute
+  HealthRecordsRoute: typeof HealthRecordsRoute
   JourneyRoute: typeof JourneyRoute
   LoginRoute: typeof LoginRoute
   MyChapterRoute: typeof MyChapterRoute
@@ -561,6 +613,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JourneyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/health-records': {
+      id: '/health-records'
+      path: '/health-records'
+      fullPath: '/health-records'
+      preLoaderRoute: typeof HealthRecordsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/health-profile': {
+      id: '/health-profile'
+      path: '/health-profile'
+      fullPath: '/health-profile'
+      preLoaderRoute: typeof HealthProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/health-assessment': {
+      id: '/health-assessment'
+      path: '/health-assessment'
+      fullPath: '/health-assessment'
+      preLoaderRoute: typeof HealthAssessmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -580,6 +653,13 @@ declare module '@tanstack/react-router' {
       path: '/code'
       fullPath: '/code'
       preLoaderRoute: typeof CodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/beatlift': {
+      id: '/beatlift'
+      path: '/beatlift'
+      fullPath: '/beatlift'
+      preLoaderRoute: typeof BeatliftRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/alpha-world': {
@@ -803,9 +883,13 @@ const rootRouteChildren: RootRouteChildren = {
   AlphaBodyRoute: AlphaBodyRoute,
   AlphaMindsDailyRoute: AlphaMindsDailyRoute,
   AlphaWorldRoute: AlphaWorldRoute,
+  BeatliftRoute: BeatliftRoute,
   CodeRoute: CodeRoute,
   FocusRoute: FocusRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  HealthAssessmentRoute: HealthAssessmentRoute,
+  HealthProfileRoute: HealthProfileRoute,
+  HealthRecordsRoute: HealthRecordsRoute,
   JourneyRoute: JourneyRoute,
   LoginRoute: LoginRoute,
   MyChapterRoute: MyChapterRoute,

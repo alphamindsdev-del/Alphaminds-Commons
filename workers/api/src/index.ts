@@ -16,6 +16,7 @@ import { journeyRouter } from './routes/journey.js';
 import { relfiRouter } from './routes/relfi.js';
 import { plansRouter } from './routes/plans.js';
 import { libraryRouter } from './routes/library.js';
+import { healthRouter } from './routes/health.js';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -56,6 +57,7 @@ app.route('/v1/journey', journeyRouter);
 app.route('/v1/relfi', relfiRouter);
 app.route('/v1/plans', plansRouter);
 app.route('/v1/library', libraryRouter);
+app.route('/v1/health', healthRouter);
 
 // Mount chapter-scoped routes
 app.route('/v1/chapters', chapterRoomsRouter);
