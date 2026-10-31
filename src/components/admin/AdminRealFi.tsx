@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { ExternalLink, Gamepad2, ShieldCheck, Video } from "lucide-react";
 import { SectionHeader } from "./AdminKit";
+import { useAuthStore } from "@/store/authStore";
 
 /**
  * RealFi (Rel-Fi) game administration panel.
@@ -9,12 +10,27 @@ import { SectionHeader } from "./AdminKit";
  * management (decks, questions/fictions, clues, how-to-play tutorial) and links
  * straight into the RealFi admin console at /rel-fi/admin, which is where the
  * admin signs in via the embedded AlphaMinds → RealFi SSO and uploads content.
+ *
+ * The Commons admin's role is automatically synced to Rel-Fi via the handoff JWT.
  */
 export function AdminRealFi() {
   const navigate = useNavigate();
+  const { member } = useAuthStore();
 
-  const openRealFiAdmin = () => {
-    navigate({ to: "/rel-fi/admin" });
+  const openRealFiAdmin = async () => {
+    // First, get the handoff JWT from the Commons API
+    const handoffRes = await fetch(`/v1/auth/relfi-handoff`, {
+      credentials: 'include',
+    });
+    const handoffData = await handoffRes.json();
+    if (!handoffData.handoff) {
+      console.error('Failed to obtain handoff token');
+      return;
+    }
+
+    // Navigate to Rel-Fi admin with the handoff token
+    // The Rel-Fi /embedded endpoint will verify the handoff and provision the user
+    navigate({ to: `/rel-fi/admin?handoff=${handoffData.handoff}` });
   };
 
   const openRealFiTutorial = () => {

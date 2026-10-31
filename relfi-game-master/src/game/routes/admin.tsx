@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter, useSearch } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Plus, Trash2, Pencil, Loader2, Image, Type, X, Upload, Check, Video, ExternalLink, Images, Wand2 } from "lucide-react";
 import * as api from "../lib/api";
@@ -19,7 +19,10 @@ function Admin() {
   const user = useAuth((s) => s.user);
   const loadSession = useAuth((s) => s.loadSession);
   const router = useRouter();
+  const search = useSearch();
+  const handoffToken = search.handoff as string | undefined;
   const [tab, setTab] = useState<"categories" | "decks" | "cards" | "tutorial">("categories");
+  // ... rest of the component
   const [categories, setCategories] = useState<ApiCategory[]>([]);
   const [decks, setDecks] = useState<ApiDeck[]>([]);
   const [selectedDeckId, setSelectedDeckId] = useState<string>("");
@@ -36,21 +39,28 @@ function Admin() {
   useEffect(() => { loadSession() }, [loadSession])
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') { setLoading(false); return }
-    Promise.all([
-      api.getCategories().then(setCategories).catch(() => {}),
-      api.getDecks().then(setDecks).catch(() => {}),
-    ]).then(() => setLoading(false))
-  }, [user])
+    // If we have a handoff token from Commons, use it to log into Rel-Fi as the appropriate role
+    // This handles both explicit navigation with ?handoff= token and direct access
+    if (handoffToken) {
+      api.embedLogin(handoffToken).then(({ token }) => {
+        setToken(token)
+        // Refresh user after login
+        api.getMe().then((u) => {
+          setUser(u)
+          setLoading(false)
+        }).catch(() => {
+          setLoading(false)
+        })
+      }).catch((e) => {
+        console.error('Failed to embed login:', e)
+        setLoading(false)
+      })
+    }
+  }, [handoffToken, loadSession, user])
 
   useEffect(() => {
-    if (selectedDeckId) {
-      api.getDeck(selectedDeckId).then((d) => setCards(d.cards || [])).catch(() => {})
-      api.getPendingCards(selectedDeckId).then(setPendingCards).catch(() => setPendingCards([]))
-    } else {
-      setCards([])
-      setPendingCards([])
-    }
+    api.getDeck(selectedDeckId).then((d) => setCards(d.cards || [])).catch(() => {})
+    api.getPendingCards(selectedDeckId).then(setPendingCards).catch(() => setPendingCards([]))
   }, [selectedDeckId])
 
   if (!user) {
@@ -61,7 +71,7 @@ function Admin() {
     )
   }
 
-  if (user.role !== 'admin') {
+  if (user && user.role !== 'admin') {
     return (
       <div className="relfi-root min-h-screen bg-hero flex items-center justify-center">
         <p className="text-muted-foreground">Admin access required.</p>

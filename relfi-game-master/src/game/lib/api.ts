@@ -335,3 +335,19 @@ export async function updateMe(data: { display_name?: string; avatar_url?: strin
 export async function getMyStats(): Promise<ApiUserStats> {
   return request('/users/me/stats')
 }
+
+// Embedded SSO login with handoff JWT from AlphaMinds
+export async function embedLogin(handoff: string): Promise<{ token: string }> {
+  const res = await fetch(`${API_BASE}/auth/embedded`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ handoff }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ error: 'Unknown error' }))
+    throw new ApiError(res.status, body.code || 'API_ERROR', body.error || 'Embed login failed')
+  }
+  return res.json()
+}

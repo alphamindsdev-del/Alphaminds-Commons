@@ -23,8 +23,12 @@ export function cleanWriteup(text: string): string {
 }
 
 export function getMediaUrl(r2Key: string): string {
-  const base = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8787";
-  return `${base.replace(/\/v1\/?$/, "")}/v1/media/${r2Key}`;
+  // In production, VITE_API_BASE_URL is empty, so API/media calls go to same origin as the page (worker)
+  // Use a relative path that the worker will resolve correctly
+  const base = import.meta.env.VITE_API_BASE_URL ?? "";
+  // If base is empty or localhost, use relative path; otherwise use the provided base
+  const basePath = base && !base.includes("localhost") ? base.replace(/\/?v1$/, "") : "";
+  return `${basePath}/v1/media/${r2Key}`;
 }
 
 export function timeAgo(input?: string | null): string {
