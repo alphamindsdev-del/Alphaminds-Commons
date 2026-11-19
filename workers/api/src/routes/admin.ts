@@ -57,6 +57,18 @@ function getDateInTimezone(tz: string): { dateStr: string } {
   return { dateStr: formatter.format(now) };
 }
 
+/** Column added by migration 0017; read as NULL until that migration runs. */
+const MISSING_COMMUNITY_ROLE = "NULL AS community_role";
+
+async function hasCommunityRole(db: D1Database): Promise<boolean> {
+  try {
+    const { results } = await db.prepare("PRAGMA table_info(members)").all<{ name: string }>();
+    return (results ?? []).some((column) => column.name === "community_role");
+  } catch {
+    return false;
+  }
+}
+
 adminRouter.get("/members", async (c) => {
   const session = getSession(c as any);
   const chapterId = c.req.query("chapter_id");
@@ -84,12 +96,15 @@ adminRouter.get("/members", async (c) => {
   let queryStr: string;
   let bindParams: any[];
   const whereClause = conditions.join(" AND ");
+  const communityRole = (await hasCommunityRole(c.env.DB))
+    ? "community_role"
+    : MISSING_COMMUNITY_ROLE;
 
   if (cursor) {
-    queryStr = `SELECT id, email, username, display_name, avatar_r2_key, bio, country_code, city, primary_house, chapter_id, role, community_role, is_active, email_verified, last_active_at, created_at FROM members WHERE ${whereClause} AND id > ? ORDER BY id ASC LIMIT ?`;
+    queryStr = `SELECT id, email, username, display_name, avatar_r2_key, bio, country_code, city, primary_house, chapter_id, role, ${communityRole}, is_active, email_verified, last_active_at, created_at FROM members WHERE ${whereClause} AND id > ? ORDER BY id ASC LIMIT ?`;
     bindParams = [...params, cursor, actualLimit];
   } else {
-    queryStr = `SELECT id, email, username, display_name, avatar_r2_key, bio, country_code, city, primary_house, chapter_id, role, community_role, is_active, email_verified, last_active_at, created_at FROM members WHERE ${whereClause} ORDER BY id ASC LIMIT ?`;
+    queryStr = `SELECT id, email, username, display_name, avatar_r2_key, bio, country_code, city, primary_house, chapter_id, role, ${communityRole}, is_active, email_verified, last_active_at, created_at FROM members WHERE ${whereClause} ORDER BY id ASC LIMIT ?`;
     bindParams = [...params, actualLimit];
   }
 
@@ -126,10 +141,21 @@ adminRouter.patch("/members/:memberId", async (c) => {
     );
   }
   const input = parsed.data as UpdateMemberAdminInput;
+  const communityRoleSupported = await hasCommunityRole(c.env.DB);
+  if (input.community_role !== undefined && !communityRoleSupported) {
+    return c.json(
+      {
+        error: "Community roles are not available until the latest database migration is applied.",
+        code: ERROR_CODES.VALIDATION_ERROR,
+      },
+      409,
+    );
+  }
   const now = new Date().toISOString();
+  const communityRole = communityRoleSupported ? "community_role" : MISSING_COMMUNITY_ROLE;
 
   const before = await c.env.DB.prepare(
-    "SELECT role, community_role, is_active FROM members WHERE id = ? AND deleted_at IS NULL",
+    `SELECT role, ${communityRole}, is_active FROM members WHERE id = ? AND deleted_at IS NULL`,
   )
     .bind(memberId)
     .first();
@@ -168,7 +194,7 @@ adminRouter.patch("/members/:memberId", async (c) => {
     .run();
 
   const after = await c.env.DB.prepare(
-    "SELECT role, community_role, is_active FROM members WHERE id = ? AND deleted_at IS NULL",
+    `SELECT role, ${communityRole}, is_active FROM members WHERE id = ? AND deleted_at IS NULL`,
   )
     .bind(memberId)
     .first();
@@ -2115,9 +2141,12 @@ adminRouter.get("/journey-progress-overview", async (c) => {
     params.push(level);
   }
   params.push(limit);
+  const communityRole = (await hasCommunityRole(c.env.DB))
+    ? "m.community_role"
+    : MISSING_COMMUNITY_ROLE;
 
   const result = await c.env.DB.prepare(
-    `SELECT m.id, m.full_name, m.email, m.membership_level, m.community_role,
+    `SELECT m.id, m.full_name, m.email, m.membership_level, ${communityRole},
             (SELECT COUNT(*) FROM member_journey_progress p
               WHERE p.member_id = m.id AND p.status = 'completed') AS completed_count,
             (SELECT COUNT(*) FROM member_journey_progress p
@@ -2140,8 +2169,11 @@ adminRouter.get("/members/:memberId/journey-progress", async (c) => {
   const { memberId } = c.req.param();
   const requested = (c.req.query("level") ?? "").toUpperCase();
 
+  const communityRole = (await hasCommunityRole(c.env.DB))
+    ? "community_role"
+    : MISSING_COMMUNITY_ROLE;
   const member = await c.env.DB.prepare(
-    "SELECT id, full_name, email, membership_level, community_role FROM members WHERE id = ? AND deleted_at IS NULL",
+    `SELECT id, full_name, email, membership_level, ${communityRole} FROM members WHERE id = ? AND deleted_at IS NULL`,
   )
     .bind(memberId)
     .first<{
