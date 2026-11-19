@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/authStore";
+import { ADMIN_ROLES, adminRoleLabel } from "@/lib/levels";
 import {
   AdminTable,
   EmptyRow,
@@ -22,6 +23,7 @@ interface Member {
   avatar_r2_key: string | null;
   primary_house: string | null;
   role: string;
+  community_role: string | null;
   is_active: number;
   email_verified: number;
   last_active_at: string | null;
@@ -69,8 +71,13 @@ export function AdminMembers() {
       <SectionHeader
         back
         title="Members"
-        subtitle="Manage roles and account status. Changes take effect immediately."
+        subtitle="Manage roles, community positions and account status. Changes take effect immediately."
       />
+      <p className="mb-4 rounded-xl border border-divider bg-card px-4 py-3 text-xs text-text-secondary">
+        <span className="font-bold text-text-primary">Community roles</span> (Facilitator, Steward,
+        Chapter Leader, Coordinator) are administrative positions. They are separate from the five
+        personal development stages of the member journey.
+      </p>
       <div className="flex flex-wrap gap-3 mb-4">
         <div className="flex-1 min-w-[220px]">
           <TInput
@@ -90,6 +97,7 @@ export function AdminMembers() {
           <tr>
             <th className="text-left px-4 py-3 font-bold">Member</th>
             <th className="text-left px-4 py-3 font-bold">Role</th>
+            <th className="text-left px-4 py-3 font-bold">Community role</th>
             <th className="text-left px-4 py-3 font-bold">Status</th>
             <th className="text-left px-4 py-3 font-bold">Joined</th>
             <th className="text-left px-4 py-3 font-bold">Last active</th>
@@ -97,9 +105,9 @@ export function AdminMembers() {
         }
       >
         {isLoading ? (
-          <EmptyRow colSpan={5} message="Loading…" />
+          <EmptyRow colSpan={6} message="Loading…" />
         ) : filtered.length === 0 ? (
-          <EmptyRow colSpan={5} message={search || roleFilter ? "No members match these filters." : "No members found."} />
+          <EmptyRow colSpan={6} message={search || roleFilter ? "No members match these filters." : "No members found."} />
         ) : (
           filtered.map((m) => {
             const isSelf = me?.id === m.id;
@@ -120,6 +128,26 @@ export function AdminMembers() {
                       {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                     </TSelect>
                   )}
+                </td>
+                <td className="px-4 py-3">
+                  <TSelect
+                    value={m.community_role ?? ""}
+                    onChange={(e) =>
+                      update.mutate({
+                        id: m.id,
+                        body: { community_role: e.target.value || null },
+                      })
+                    }
+                    aria-label={`Community role for ${m.display_name || m.username}`}
+                    className="w-auto min-w-[150px] py-1.5 text-xs"
+                  >
+                    <option value="">None</option>
+                    {ADMIN_ROLES.map((role) => (
+                      <option key={role} value={role}>
+                        {adminRoleLabel(role)}
+                      </option>
+                    ))}
+                  </TSelect>
                 </td>
                 <td className="px-4 py-3">
                   {isSelf ? (

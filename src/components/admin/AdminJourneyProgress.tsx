@@ -11,13 +11,14 @@ import {
   fmtDate,
 } from "./AdminKit";
 import { Check, Clock, ShieldCheck, X } from "lucide-react";
-import { levelLabel } from "@/lib/levels";
+import { adminRoleLabel, levelLabel } from "@/lib/levels";
 
 interface OverviewRow {
   id: string;
   full_name: string;
   email: string;
   membership_level: string;
+  community_role: string | null;
   completed_count: number;
   pending_count: number;
   required_total: number;
@@ -143,7 +144,8 @@ export function AdminJourneyProgress() {
         head={
           <tr>
             <th className="text-left px-4 py-3 font-bold">Member</th>
-            <th className="text-left px-4 py-3 font-bold">Level</th>
+            <th className="text-left px-4 py-3 font-bold">Journey stage</th>
+            <th className="text-left px-4 py-3 font-bold">Community role</th>
             <th className="text-left px-4 py-3 font-bold">Required steps</th>
             <th className="text-left px-4 py-3 font-bold">Pending review</th>
             <th className="text-right px-4 py-3 font-bold">Actions</th>
@@ -151,9 +153,9 @@ export function AdminJourneyProgress() {
         }
       >
         {isLoading ? (
-          <EmptyRow colSpan={5} message="Loading member progress…" />
+          <EmptyRow colSpan={6} message="Loading member progress…" />
         ) : filtered.length === 0 ? (
-          <EmptyRow colSpan={5} message="No members match this search." />
+          <EmptyRow colSpan={6} message="No members match this search." />
         ) : (
           filtered.map((row) => (
             <tr key={row.id} className="border-t border-border">
@@ -163,6 +165,15 @@ export function AdminJourneyProgress() {
               </td>
               <td className="px-4 py-3 text-text-secondary">
                 {levelLabel(row.membership_level)}
+              </td>
+              <td className="px-4 py-3 text-text-secondary">
+                {row.community_role ? (
+                  <span className="inline-flex items-center rounded-full bg-accent-purple/10 px-2 py-0.5 text-xs font-bold text-accent-purple">
+                    {adminRoleLabel(row.community_role)}
+                  </span>
+                ) : (
+                  <span className="text-xs text-text-secondary">—</span>
+                )}
               </td>
               <td className="px-4 py-3 tabular-nums text-text-primary">
                 {row.completed_count} total
@@ -207,6 +218,12 @@ export function AdminJourneyProgress() {
                     {detail.member.full_name}
                   </h3>
                   <p className="text-xs text-text-secondary">{detail.member.email}</p>
+                  <p className="mt-1 text-xs text-text-secondary">
+                    Journey stage: {levelLabel(detail.member.membership_level)} · Community role:{" "}
+                    {detail.member.community_role
+                      ? adminRoleLabel(detail.member.community_role)
+                      : "None"}
+                  </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {detail.levels.map((entry) => (

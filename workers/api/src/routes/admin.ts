@@ -86,10 +86,10 @@ adminRouter.get("/members", async (c) => {
   const whereClause = conditions.join(" AND ");
 
   if (cursor) {
-    queryStr = `SELECT id, email, username, display_name, avatar_r2_key, bio, country_code, city, primary_house, chapter_id, role, is_active, email_verified, last_active_at, created_at FROM members WHERE ${whereClause} AND id > ? ORDER BY id ASC LIMIT ?`;
+    queryStr = `SELECT id, email, username, display_name, avatar_r2_key, bio, country_code, city, primary_house, chapter_id, role, community_role, is_active, email_verified, last_active_at, created_at FROM members WHERE ${whereClause} AND id > ? ORDER BY id ASC LIMIT ?`;
     bindParams = [...params, cursor, actualLimit];
   } else {
-    queryStr = `SELECT id, email, username, display_name, avatar_r2_key, bio, country_code, city, primary_house, chapter_id, role, is_active, email_verified, last_active_at, created_at FROM members WHERE ${whereClause} ORDER BY id ASC LIMIT ?`;
+    queryStr = `SELECT id, email, username, display_name, avatar_r2_key, bio, country_code, city, primary_house, chapter_id, role, community_role, is_active, email_verified, last_active_at, created_at FROM members WHERE ${whereClause} ORDER BY id ASC LIMIT ?`;
     bindParams = [...params, actualLimit];
   }
 
@@ -129,7 +129,7 @@ adminRouter.patch("/members/:memberId", async (c) => {
   const now = new Date().toISOString();
 
   const before = await c.env.DB.prepare(
-    "SELECT role, is_active FROM members WHERE id = ? AND deleted_at IS NULL",
+    "SELECT role, community_role, is_active FROM members WHERE id = ? AND deleted_at IS NULL",
   )
     .bind(memberId)
     .first();
@@ -148,6 +148,10 @@ adminRouter.patch("/members/:memberId", async (c) => {
     updates.push("is_active = ?");
     params.push(input.is_active ? 1 : 0);
   }
+  if (input.community_role !== undefined) {
+    updates.push("community_role = ?");
+    params.push(input.community_role ? input.community_role : null);
+  }
 
   if (updates.length === 0) {
     return c.json({ error: "No fields to update", code: ERROR_CODES.VALIDATION_ERROR }, 400);
@@ -164,7 +168,7 @@ adminRouter.patch("/members/:memberId", async (c) => {
     .run();
 
   const after = await c.env.DB.prepare(
-    "SELECT role, is_active FROM members WHERE id = ? AND deleted_at IS NULL",
+    "SELECT role, community_role, is_active FROM members WHERE id = ? AND deleted_at IS NULL",
   )
     .bind(memberId)
     .first();
@@ -2113,7 +2117,7 @@ adminRouter.get("/journey-progress-overview", async (c) => {
   params.push(limit);
 
   const result = await c.env.DB.prepare(
-    `SELECT m.id, m.full_name, m.email, m.membership_level,
+    `SELECT m.id, m.full_name, m.email, m.membership_level, m.community_role,
             (SELECT COUNT(*) FROM member_journey_progress p
               WHERE p.member_id = m.id AND p.status = 'completed') AS completed_count,
             (SELECT COUNT(*) FROM member_journey_progress p
@@ -2137,10 +2141,16 @@ adminRouter.get("/members/:memberId/journey-progress", async (c) => {
   const requested = (c.req.query("level") ?? "").toUpperCase();
 
   const member = await c.env.DB.prepare(
-    "SELECT id, full_name, email, membership_level FROM members WHERE id = ? AND deleted_at IS NULL",
+    "SELECT id, full_name, email, membership_level, community_role FROM members WHERE id = ? AND deleted_at IS NULL",
   )
     .bind(memberId)
-    .first<{ id: string; full_name: string; email: string; membership_level: string }>();
+    .first<{
+      id: string;
+      full_name: string;
+      email: string;
+      membership_level: string;
+      community_role: string | null;
+    }>();
   if (!member) {
     return c.json({ error: "Member not found", code: ERROR_CODES.NOT_FOUND }, 404);
   }

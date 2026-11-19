@@ -85,6 +85,12 @@ export type CreateDailyContentInput = z.infer<typeof CreateDailyContentSchema>;
 export const UpdateMemberAdminSchema = z.object({
   role: z.string().optional(),
   is_active: z.boolean().optional(),
+  // Administrative / community position, independent of the journey stage.
+  // An empty string or null clears it.
+  community_role: z
+    .enum(["FACILITATOR", "STEWARD", "CHAPTER_LEADER", "COORDINATOR", ""])
+    .nullable()
+    .optional(),
 });
 export type UpdateMemberAdminInput = z.infer<typeof UpdateMemberAdminSchema>;
 

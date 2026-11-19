@@ -22,7 +22,7 @@ export function AdminRealFi() {
     const handoffRes = await fetch(`/v1/auth/relfi-handoff`, {
       credentials: 'include',
     });
-    const handoffData = await handoffRes.json();
+    const handoffData = (await handoffRes.json()) as { handoff?: string };
     if (!handoffData.handoff) {
       console.error('Failed to obtain handoff token');
       return;
