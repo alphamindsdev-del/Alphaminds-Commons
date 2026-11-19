@@ -11,15 +11,7 @@ import {
   fmtDate,
 } from "./AdminKit";
 import { Check, Clock, ShieldCheck, X } from "lucide-react";
-
-const LEVELS = [
-  "SEEKER",
-  "EXAMINER",
-  "FACILITATOR",
-  "STEWARD",
-  "CHAPTER_LEADER",
-  "COORDINATOR",
-] as const;
+import { levelLabel } from "@/lib/levels";
 
 interface OverviewRow {
   id: string;
@@ -169,7 +161,9 @@ export function AdminJourneyProgress() {
                 <p className="font-semibold text-text-primary">{row.full_name || "Unnamed member"}</p>
                 <p className="text-xs text-text-secondary">{row.email}</p>
               </td>
-              <td className="px-4 py-3 text-text-secondary">{label(row.membership_level)}</td>
+              <td className="px-4 py-3 text-text-secondary">
+                {levelLabel(row.membership_level)}
+              </td>
               <td className="px-4 py-3 tabular-nums text-text-primary">
                 {row.completed_count} total
                 <span className="text-text-secondary"> · {row.required_total} required</span>
@@ -225,7 +219,7 @@ export function AdminJourneyProgress() {
                           : "border border-divider bg-bg-card-white text-text-primary"
                       }`}
                     >
-                      {label(entry.level)} · {entry.completed_count}/{entry.total_count}
+                      {levelLabel(entry.level)} · {entry.completed_count}/{entry.total_count}
                     </button>
                   ))}
                 </div>

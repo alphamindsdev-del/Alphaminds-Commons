@@ -7,7 +7,8 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { YouTubeEmbed } from "@/components/journey/YouTubeEmbed";
 import { classifyJourneyLink, journeyLinkHref } from "@/lib/journeyLinks";
 import { toast } from "sonner";
-import { EXAMINER_INDEX, levelCopy, levelIndex } from "@/lib/levels";
+import { EXAMINER_INDEX, levelCopy, levelIndex, levelLabel } from "@/lib/levels";
+import { MemberJourneyPath } from "@/components/journey/MemberJourneyPath";
 import type { JourneyActivity, JourneyData } from "@/lib/types";
 import {
   Flame,
@@ -182,7 +183,7 @@ function JourneyContent() {
         setMember({ ...member, membership_level: res.new_level });
         setSelectedLevel(null);
         toast.success(
-          `Congratulations — you've been promoted to ${res.new_level.replace(/_/g, " ").toLowerCase()}`,
+          `Congratulations — you've been promoted to ${levelLabel(res.new_level).toLowerCase()}`,
         );
       } else if (res.pending_verification) {
         toast.success("Submitted for review. An administrator will verify your evidence.");
@@ -251,7 +252,7 @@ function JourneyContent() {
   return (
     <div className="mx-auto max-w-[760px] space-y-8">
       <PageHeader
-        eyebrow={(journey?.level ?? member?.membership_level ?? "SEEKER").replace(/_/g, " ")}
+        eyebrow={levelLabel(journey?.level ?? member?.membership_level ?? "SEEKER")}
         title={`${memberName.split(" ")[0]}'s Journey`}
         subtitle={
           nextCopy
@@ -260,37 +261,15 @@ function JourneyContent() {
         }
       />
 
-      {levels.length > 1 && (
-        <section className="rounded-2xl bg-card border border-divider p-3">
-          <p className="px-2 pb-2 text-[11px] font-bold uppercase tracking-[0.08em] text-text-secondary">
-            Your journeys
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {levels.map((entry) => {
-              const active = entry.level === (selectedLevel ?? journey?.level);
-              return (
-                <button
-                  key={entry.level}
-                  onClick={() => {
-                    setSelectedLevel(entry.level);
-                    setExpandedId(null);
-                  }}
-                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-                    active
-                      ? "bg-accent-purple text-white"
-                      : "bg-bg-card-white border border-divider text-text-primary hover:border-accent-purple/40"
-                  }`}
-                >
-                  {levelCopy(entry.level).label}
-                  <span className="ml-1.5 tabular-nums opacity-80">
-                    {entry.completed_count}/{entry.total_count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      <MemberJourneyPath
+        currentLevel={member?.membership_level}
+        selectedLevel={selectedLevel ?? journey?.level}
+        progress={levels}
+        onSelect={(next) => {
+          setSelectedLevel(next);
+          setExpandedId(null);
+        }}
+      />
 
       {journey?.is_previous_level && (
         <div className="flex items-start gap-2 rounded-xl border border-divider bg-bg-card-white/70 p-3 text-sm text-text-secondary">
@@ -723,11 +702,11 @@ function JourneyContent() {
       {nextLevel && (
         <section className="rounded-2xl bg-card border border-divider p-5 sm:p-6">
           <h3 className="text-lg font-extrabold tracking-tight text-text-primary">
-            Next level: {nextLevel.replace(/_/g, " ")}
+            Next stage: {levelLabel(nextLevel)}
           </h3>
           <p className="mt-2 text-sm text-text-secondary">
-            Complete all required activities in your current journey to be promoted to{" "}
-            {nextLevel.replace(/_/g, " ").toLowerCase()}.
+            Complete all required activities in your current journey to be promoted to the{" "}
+            {levelLabel(nextLevel)} stage.
           </p>
         </section>
       )}

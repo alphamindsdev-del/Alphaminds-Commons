@@ -10,7 +10,7 @@ import { useMyChallenges } from "@/hooks/useMyChallenges";
 import { useDailyContent } from "@/hooks/useDailyContent";
 import type { ChallengeItem, JourneyData } from "@/lib/types";
 import { getMediaUrl } from "@/lib/utils";
-import { levelCopy } from "@/lib/levels";
+import { levelCopy, levelLabel } from "@/lib/levels";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { ProductSwitcher } from "@/components/layout/ProductSwitcher";
 
@@ -352,7 +352,7 @@ function YourJourneyCard({ name, membershipLevel }: { name: string; membershipLe
             </div>
           </div>
           <div>
-            <p className="eyebrow-purple">{level.replace(/_/g, " ")} JOURNEY</p>
+            <p className="eyebrow-purple">{levelLabel(level).toUpperCase()} JOURNEY</p>
             <h3 className="mt-1 text-lg font-bold text-text-primary">
               You&apos;re on your way, {name.split(" ")[0]}!
             </h3>

@@ -174,7 +174,7 @@ export type MediaUploadInput = z.infer<typeof MediaUploadSchema>;
 export const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 
 export const CreateJourneyActivitySchema = z.object({
-  level: z.enum(["SEEKER", "EXAMINER", "FACILITATOR", "STEWARD", "CHAPTER_LEADER", "COORDINATOR"]),
+  level: z.enum(["SEEKER", "EXAMINER", "ARCHITECT", "BUILDER", "CATALYST"]),
   title: z.string().min(1).max(200),
   description: z.string().optional(),
   type: z.enum([
@@ -204,7 +204,7 @@ export type CreateJourneyActivityInput = z.infer<typeof CreateJourneyActivitySch
 
 export const UpdateJourneyActivitySchema = z.object({
   level: z
-    .enum(["SEEKER", "EXAMINER", "FACILITATOR", "STEWARD", "CHAPTER_LEADER", "COORDINATOR"])
+    .enum(["SEEKER", "EXAMINER", "ARCHITECT", "BUILDER", "CATALYST"])
     .optional(),
   title: z.string().min(1).max(200).optional(),
   description: z.string().optional(),

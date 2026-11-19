@@ -200,22 +200,31 @@ function LandingNav() {
 /* ───────── §3 Hero ───────── */
 function Hero() {
   return (
-    <section id="top" className="pt-14 pb-10 text-center sm:pt-20">
-      <Container>
+    <section id="top" className="relative overflow-hidden pt-14 pb-12 text-center sm:pt-20 sm:pb-16">
+      <Container className="relative">
         <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-bg-card-white">
           <LogoMark className="h-9 w-9 text-text-primary" />
         </div>
-        <h1 className="mx-auto max-w-3xl font-display text-4xl font-bold leading-[1.05] tracking-tight text-text-primary sm:text-6xl">
-          Embracing Fun, Becoming,
-          <br className="hidden sm:block" /> and Humanity In All Of Us.
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-accent-dark-green">
+          Welcome to the Commons
+        </p>
+        <h1 className="mx-auto mt-4 max-w-3xl font-display text-4xl font-bold leading-[1.05] tracking-tight text-text-primary sm:text-6xl">
+          A home for curious minds.
         </h1>
-        <p className="mx-auto mt-5 max-w-xl text-sm text-text-secondary sm:text-base">
-          A growing community of curious minds exploring healthier lifestyles, purposeful living,
-          and human progress through evidence based ideas.
+        <p className="mx-auto mt-4 max-w-2xl font-display text-lg font-bold leading-snug text-accent-dark-green sm:text-2xl">
+          Think freely. Question everything. Live intentionally.
+        </p>
+        <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-text-secondary sm:text-base">
+          Explore science, psychology, philosophy, relationships, wellness and what it means to be
+          human. Challenge assumptions. Discover new perspectives. Connect with people who love to
+          think.
         </p>
         <div className="mt-8 flex justify-center">
-          <PillLink to="/register">Join The Club</PillLink>
+          <PillLink to="/register">Join the Commons</PillLink>
         </div>
+        <p className="mx-auto mt-9 max-w-xl border-t border-divider pt-6 text-xs font-semibold uppercase tracking-[0.16em] text-text-secondary sm:text-sm">
+          Curiosity brings us together. Humanity gives us purpose.
+        </p>
       </Container>
     </section>
   );

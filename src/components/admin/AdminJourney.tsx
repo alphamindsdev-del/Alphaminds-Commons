@@ -74,10 +74,9 @@ function draftQuestions(meta: JourneyMetadata): QuizQuestionDraft[] {
 const LEVELS = [
   { value: "SEEKER", label: "Seeker" },
   { value: "EXAMINER", label: "Examiner" },
-  { value: "FACILITATOR", label: "Facilitator" },
-  { value: "STEWARD", label: "Steward" },
-  { value: "CHAPTER_LEADER", label: "Chapter Leader" },
-  { value: "COORDINATOR", label: "Coordinator" },
+  { value: "ARCHITECT", label: "Architect" },
+  { value: "BUILDER", label: "Builder" },
+  { value: "CATALYST", label: "Catalyst" },
 ] as const;
 
 const TYPES = [
@@ -438,7 +437,7 @@ export function AdminJourney() {
       <SectionHeader
         back
         title="Journey"
-        subtitle="The step-by-step membership path from Seeker to Coordinator."
+        subtitle="The five-stage personal development path from Seeker to Catalyst."
         action={
           <PrimaryBtn
             onClick={() => {

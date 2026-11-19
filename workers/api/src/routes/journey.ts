@@ -5,14 +5,24 @@ import { authMiddleware, getSession } from "../middleware/auth.js";
 
 export const journeyRouter = new Hono<{ Bindings: Env }>();
 
-export const LEVELS = [
-  "SEEKER",
-  "EXAMINER",
-  "FACILITATOR",
-  "STEWARD",
-  "CHAPTER_LEADER",
-  "COORDINATOR",
-];
+// The five personal-development stages of the AlphaMinds member journey.
+// Administrative roles (Facilitator, Steward, Chapter Leader, Coordinator) are
+// stored separately on the member record and are not journey stages.
+export const LEVELS = ["SEEKER", "EXAMINER", "ARCHITECT", "BUILDER", "CATALYST"];
+
+// Codes stored before the journey and administrative roles were separated.
+const LEGACY_LEVELS: Record<string, string> = {
+  FACILITATOR: "ARCHITECT",
+  STEWARD: "BUILDER",
+  CHAPTER_LEADER: "CATALYST",
+  COORDINATOR: "CATALYST",
+};
+
+export function normalizeLevel(level: string | null | undefined): string {
+  const raw = (level ?? "SEEKER").toUpperCase();
+  const mapped = LEGACY_LEVELS[raw] ?? raw;
+  return LEVELS.includes(mapped) ? mapped : "SEEKER";
+}
 
 type CompletionRule = "acknowledge" | "resource" | "quiz" | "activity" | "admin";
 
@@ -54,7 +64,7 @@ interface AttemptRow {
 }
 
 function levelIndex(level: string | null | undefined): number {
-  return Math.max(0, LEVELS.indexOf(level ?? "SEEKER"));
+  return Math.max(0, LEVELS.indexOf(normalizeLevel(level)));
 }
 
 function parseJson(raw: string | null | undefined): Record<string, any> {
@@ -332,7 +342,7 @@ export async function maybePromote(
     return { promoted: false, newLevel: null };
   }
 
-  const currentIndex = LEVELS.indexOf(currentLevel);
+  const currentIndex = LEVELS.indexOf(normalizeLevel(currentLevel));
   if (currentIndex < 0 || currentIndex >= LEVELS.length - 1) {
     return { promoted: false, newLevel: null };
   }
@@ -365,6 +375,7 @@ async function getMember(c: any) {
   )
     .bind(session.member_id)
     .first()) as { id: string; membership_level: string; role: string } | null;
+  if (member) member.membership_level = normalizeLevel(member.membership_level);
   return { session, member };
 }
 
